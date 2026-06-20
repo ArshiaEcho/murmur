@@ -453,7 +453,7 @@ fn default_autostart_enabled() -> bool {
 }
 
 fn default_update_checks_enabled() -> bool {
-    true
+    false
 }
 
 fn default_selected_language() -> String {
@@ -504,7 +504,7 @@ fn default_sound_theme() -> SoundTheme {
 }
 
 fn default_post_process_enabled() -> bool {
-    false
+    true
 }
 
 fn default_app_language() -> String {
@@ -518,7 +518,14 @@ fn default_show_tray_icon() -> bool {
 }
 
 fn default_post_process_provider_id() -> String {
-    "openai".to_string()
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    {
+        APPLE_INTELLIGENCE_PROVIDER_ID.to_string()
+    }
+    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+    {
+        "openai".to_string()
+    }
 }
 
 fn default_post_process_providers() -> Vec<PostProcessProvider> {
@@ -950,6 +957,21 @@ pub fn get_recording_retention_period(app: &AppHandle) -> RecordingRetentionPeri
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn strat_defaults_to_apple_intelligence_post_processing() {
+        let settings = get_default_settings();
+        assert!(
+            settings.post_process_enabled,
+            "Strat should enable post-processing by default"
+        );
+        #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+        assert_eq!(
+            settings.post_process_provider_id,
+            APPLE_INTELLIGENCE_PROVIDER_ID,
+            "Strat should default to Apple Intelligence on macOS aarch64"
+        );
+    }
 
     #[test]
     fn default_settings_disable_auto_submit() {
