@@ -77,6 +77,15 @@ impl From<LogLevel> for tauri_plugin_log::LogLevel {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum OutputTarget {
+    #[default]
+    Paste,
+    ClaudeCode,
+    CaptureBuffer,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Type)]
 pub struct ShortcutBinding {
     pub id: String,
@@ -84,6 +93,10 @@ pub struct ShortcutBinding {
     pub description: String,
     pub default_binding: String,
     pub current_binding: String,
+    #[serde(default)]
+    pub prompt_id: Option<String>,
+    #[serde(default)]
+    pub output_target: OutputTarget,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type)]
@@ -401,6 +414,10 @@ pub struct AppSettings {
     pub post_process_prompts: Vec<LLMPrompt>,
     #[serde(default)]
     pub post_process_selected_prompt_id: Option<String>,
+    #[serde(default = "default_claude_code_target_bundle_id")]
+    pub claude_code_target_bundle_id: String,
+    #[serde(default = "default_capture_buffer_path")]
+    pub capture_buffer_path: String,
     #[serde(default)]
     pub mute_while_recording: bool,
     #[serde(default)]
@@ -454,6 +471,15 @@ fn default_autostart_enabled() -> bool {
 
 fn default_update_checks_enabled() -> bool {
     false
+}
+
+fn default_claude_code_target_bundle_id() -> String {
+    "com.microsoft.VSCode".to_string()
+}
+
+fn default_capture_buffer_path() -> String {
+    let home = std::env::var("HOME").unwrap_or_default();
+    format!("{home}/Documents/Obsidian - Arshia/Arshia/knowledge/inbox/_capture-buffer.md")
 }
 
 fn default_selected_language() -> String {
@@ -738,6 +764,8 @@ pub fn get_default_settings() -> AppSettings {
             description: "Converts your speech into text.".to_string(),
             default_binding: default_shortcut.to_string(),
             current_binding: default_shortcut.to_string(),
+            prompt_id: None,
+            output_target: OutputTarget::Paste,
         },
     );
     #[cfg(target_os = "windows")]
@@ -758,6 +786,8 @@ pub fn get_default_settings() -> AppSettings {
                 .to_string(),
             default_binding: default_post_process_shortcut.to_string(),
             current_binding: default_post_process_shortcut.to_string(),
+            prompt_id: None,
+            output_target: OutputTarget::Paste,
         },
     );
     bindings.insert(
@@ -768,6 +798,8 @@ pub fn get_default_settings() -> AppSettings {
             description: "Cancels the current recording.".to_string(),
             default_binding: "escape".to_string(),
             current_binding: "escape".to_string(),
+            prompt_id: None,
+            output_target: OutputTarget::Paste,
         },
     );
 
@@ -806,6 +838,8 @@ pub fn get_default_settings() -> AppSettings {
         post_process_models: default_post_process_models(),
         post_process_prompts: default_post_process_prompts(),
         post_process_selected_prompt_id: None,
+        claude_code_target_bundle_id: default_claude_code_target_bundle_id(),
+        capture_buffer_path: default_capture_buffer_path(),
         mute_while_recording: false,
         append_trailing_space: false,
         app_language: default_app_language(),
@@ -957,6 +991,22 @@ pub fn get_recording_retention_period(app: &AppHandle) -> RecordingRetentionPeri
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn binding_without_new_fields_defaults_to_paste() {
+        let json = r#"{"id":"transcribe","name":"Transcribe","description":"d","default_binding":"fn","current_binding":"fn"}"#;
+        let b: ShortcutBinding = serde_json::from_str(json).unwrap();
+        assert_eq!(b.output_target, OutputTarget::Paste);
+        assert_eq!(b.prompt_id, None);
+    }
+
+    #[test]
+    fn output_target_serializes_snake_case() {
+        assert_eq!(
+            serde_json::to_string(&OutputTarget::ClaudeCode).unwrap(),
+            "\"claude_code\""
+        );
+    }
 
     #[test]
     fn strat_defaults_to_apple_intelligence_post_processing() {
