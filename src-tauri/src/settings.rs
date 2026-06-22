@@ -810,6 +810,32 @@ pub fn get_default_settings() -> AppSettings {
             output_target: OutputTarget::Paste,
         },
     );
+    bindings.insert(
+        "transcribe_claude".to_string(),
+        ShortcutBinding {
+            id: "transcribe_claude".to_string(),
+            name: "Dictate to Claude Code".to_string(),
+            description: "Dictate an instruction, clean it into a prompt, and send it to Claude Code."
+                .to_string(),
+            default_binding: "option+ctrl+space".to_string(),
+            current_binding: "option+ctrl+space".to_string(),
+            prompt_id: Some("claude_prompt".to_string()),
+            output_target: OutputTarget::ClaudeCode,
+        },
+    );
+    bindings.insert(
+        "transcribe_capture".to_string(),
+        ShortcutBinding {
+            id: "transcribe_capture".to_string(),
+            name: "Dictate to capture buffer".to_string(),
+            description: "Dictate a note, clean it into bullets, and append it to the Obsidian capture buffer."
+                .to_string(),
+            default_binding: "option+ctrl+n".to_string(),
+            current_binding: "option+ctrl+n".to_string(),
+            prompt_id: Some("bullet_notes".to_string()),
+            output_target: OutputTarget::CaptureBuffer,
+        },
+    );
 
     AppSettings {
         bindings,
