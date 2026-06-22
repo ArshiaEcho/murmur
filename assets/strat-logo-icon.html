@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 1024px;
+        height: 1024px;
+        overflow: hidden;
+      }
+      .icon {
+        width: 1024px;
+        height: 1024px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(160deg, #ffffff 0%, #f1f5f8 60%, #e7edf2 100%);
+        position: relative;
+      }
+      .icon::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at 50% 38%,
+          rgba(45, 178, 162, 0.10) 0%,
+          rgba(45, 178, 162, 0) 55%
+        );
+      }
+      img {
+        width: 660px;
+        height: 660px;
+        object-fit: contain;
+        filter: drop-shadow(0 26px 48px rgba(20, 60, 56, 0.22));
+        z-index: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="icon"><img src="stratos-logo.png" alt="Stratos" /></div>
+  </body>
+</html>
