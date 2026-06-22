@@ -591,10 +591,14 @@ impl ShortcutAction for TranscribeAction {
                             if post_process {
                                 show_processing_overlay(&ah);
                             }
-                            let prompt_id_override = get_settings(&ah)
-                                .bindings
-                                .get(&binding_id)
-                                .and_then(|b| b.prompt_id.clone());
+                            let (prompt_id_override, output_target) = {
+                                let s = get_settings(&ah);
+                                let b = s.bindings.get(&binding_id);
+                                (
+                                    b.and_then(|b| b.prompt_id.clone()),
+                                    b.map(|b| b.output_target).unwrap_or_default(),
+                                )
+                            };
                             let processed = process_transcription_output(
                                 &ah,
                                 &transcription,
@@ -619,7 +623,33 @@ impl ShortcutAction for TranscribeAction {
                             if processed.final_text.is_empty() {
                                 utils::hide_recording_overlay(&ah);
                                 change_tray_icon(&ah, TrayIconState::Idle);
+                            } else if output_target == crate::settings::OutputTarget::CaptureBuffer {
+                                // Capture-buffer target: append to the Obsidian buffer, no paste.
+                                let settings = get_settings(&ah);
+                                let ts = chrono::Local::now().format("%Y-%m-%d").to_string();
+                                if let Err(e) = crate::output::append_to_capture_buffer(
+                                    &settings.capture_buffer_path,
+                                    &processed.final_text,
+                                    &ts,
+                                ) {
+                                    error!("Capture buffer write failed: {}", e);
+                                    let _ = ah.emit("paste-error", ());
+                                } else {
+                                    debug!("Appended transcript to capture buffer");
+                                }
+                                utils::hide_recording_overlay(&ah);
+                                change_tray_icon(&ah, TrayIconState::Idle);
                             } else {
+                                // Claude Code target: focus the configured app first, then paste.
+                                if output_target == crate::settings::OutputTarget::ClaudeCode {
+                                    let settings = get_settings(&ah);
+                                    if let Err(e) = crate::output::focus_app(
+                                        &settings.claude_code_target_bundle_id,
+                                    ) {
+                                        error!("focus_app failed: {}", e);
+                                    }
+                                    std::thread::sleep(std::time::Duration::from_millis(180));
+                                }
                                 let ah_clone = ah.clone();
                                 let paste_time = Instant::now();
                                 let final_text = processed.final_text;

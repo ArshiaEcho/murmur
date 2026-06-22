@@ -13,6 +13,21 @@ pub fn append_to_capture_buffer(path: &str, text: &str, timestamp: &str) -> std:
     Ok(())
 }
 
+/// Bring the target app to the foreground before pasting into it.
+#[cfg(target_os = "macos")]
+pub fn focus_app(bundle_id: &str) -> Result<(), String> {
+    std::process::Command::new("open")
+        .args(["-b", bundle_id])
+        .status()
+        .map_err(|e| format!("focus_app failed: {e}"))
+        .map(|_| ())
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn focus_app(_bundle_id: &str) -> Result<(), String> {
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
