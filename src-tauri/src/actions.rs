@@ -63,7 +63,11 @@ fn build_system_prompt(prompt_template: &str) -> String {
     prompt_template.replace("${output}", "").trim().to_string()
 }
 
-async fn post_process_transcription(settings: &AppSettings, transcription: &str) -> Option<String> {
+async fn post_process_transcription(
+    settings: &AppSettings,
+    transcription: &str,
+    prompt_id_override: Option<&str>,
+) -> Option<String> {
     let provider = match settings.active_post_process_provider().cloned() {
         Some(provider) => provider,
         None => {
@@ -86,8 +90,8 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
         return None;
     }
 
-    let selected_prompt_id = match &settings.post_process_selected_prompt_id {
-        Some(id) => id.clone(),
+    let selected_prompt_id = match crate::settings::resolve_prompt_id(settings, prompt_id_override) {
+        Some(id) => id,
         None => {
             debug!("Post-processing skipped because no prompt is selected");
             return None;
@@ -350,6 +354,7 @@ pub(crate) async fn process_transcription_output(
     app: &AppHandle,
     transcription: &str,
     post_process: bool,
+    prompt_id_override: Option<String>,
 ) -> ProcessedTranscription {
     let settings = get_settings(app);
     let mut final_text = transcription.to_string();
@@ -361,15 +366,19 @@ pub(crate) async fn process_transcription_output(
     }
 
     if post_process {
-        if let Some(processed_text) = post_process_transcription(&settings, &final_text).await {
+        if let Some(processed_text) =
+            post_process_transcription(&settings, &final_text, prompt_id_override.as_deref()).await
+        {
             post_processed_text = Some(processed_text.clone());
             final_text = processed_text;
 
-            if let Some(prompt_id) = &settings.post_process_selected_prompt_id {
+            if let Some(prompt_id) =
+                crate::settings::resolve_prompt_id(&settings, prompt_id_override.as_deref())
+            {
                 if let Some(prompt) = settings
                     .post_process_prompts
                     .iter()
-                    .find(|prompt| &prompt.id == prompt_id)
+                    .find(|prompt| prompt.id == prompt_id)
                 {
                     post_process_prompt = Some(prompt.prompt.clone());
                 }
@@ -582,9 +591,17 @@ impl ShortcutAction for TranscribeAction {
                             if post_process {
                                 show_processing_overlay(&ah);
                             }
-                            let processed =
-                                process_transcription_output(&ah, &transcription, post_process)
-                                    .await;
+                            let prompt_id_override = get_settings(&ah)
+                                .bindings
+                                .get(&binding_id)
+                                .and_then(|b| b.prompt_id.clone());
+                            let processed = process_transcription_output(
+                                &ah,
+                                &transcription,
+                                post_process,
+                                prompt_id_override,
+                            )
+                            .await;
 
                             // Save to history if WAV was saved
                             if wav_saved {

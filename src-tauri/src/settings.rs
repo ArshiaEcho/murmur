@@ -482,6 +482,14 @@ fn default_capture_buffer_path() -> String {
     format!("{home}/Documents/Obsidian - Arshia/Arshia/knowledge/inbox/_capture-buffer.md")
 }
 
+/// Resolve which post-process prompt id to use: the binding's override if set,
+/// otherwise the globally selected prompt.
+pub fn resolve_prompt_id(settings: &AppSettings, binding_prompt_id: Option<&str>) -> Option<String> {
+    binding_prompt_id
+        .map(|s| s.to_string())
+        .or_else(|| settings.post_process_selected_prompt_id.clone())
+}
+
 fn default_selected_language() -> String {
     "auto".to_string()
 }
@@ -1005,6 +1013,20 @@ mod tests {
         assert_eq!(
             serde_json::to_string(&OutputTarget::ClaudeCode).unwrap(),
             "\"claude_code\""
+        );
+    }
+
+    #[test]
+    fn resolve_prompt_id_prefers_binding_then_global() {
+        let mut s = get_default_settings();
+        s.post_process_selected_prompt_id = Some("improve_transcriptions".to_string());
+        assert_eq!(
+            resolve_prompt_id(&s, Some("claude_prompt")),
+            Some("claude_prompt".to_string())
+        );
+        assert_eq!(
+            resolve_prompt_id(&s, None),
+            Some("improve_transcriptions".to_string())
         );
     }
 
