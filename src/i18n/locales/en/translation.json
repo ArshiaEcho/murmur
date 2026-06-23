@@ -17,7 +17,8 @@
     "history": "History",
     "debug": "Debug",
     "about": "About",
-    "overview": "Overview"
+    "overview": "Overview",
+    "conversation": "Conversation"
   },
   "onboarding": {
     "subtitle": "To get started, choose a transcription model",
@@ -669,5 +670,36 @@
     "noModel": "No model",
     "systemVoice": "System voice",
     "systemDefault": "System default"
+  },
+  "conversation": {
+    "title": "Conversation Mode",
+    "enable": {
+      "title": "Enable Conversation Mode",
+      "description": "Ask your running Claude Code session what's going on, by voice, and hear a spoken answer.",
+      "on": "Enabled",
+      "off": "Disabled"
+    },
+    "model": {
+      "title": "Answer model",
+      "description": "Which model answers (cheap & fast). Your coding session keeps running on its own model."
+    },
+    "scope": {
+      "title": "Watched session",
+      "description": "Which Claude Code project to read. Auto follows the most recently active session.",
+      "auto": "Auto (most recent)"
+    },
+    "api": {
+      "title": "Anthropic API key",
+      "keyTitle": "API key",
+      "keyDescription": "Your Anthropic API key (sk-ant-...). Falls back to the ANTHROPIC_API_KEY env var if set."
+    },
+    "voiceNote": "Answers are spoken with the ElevenLabs voice you picked in Read Aloud (Monoli).",
+    "test": {
+      "title": "Try it",
+      "placeholder": "e.g. What's going on in my session right now?",
+      "ask": "Ask",
+      "thinking": "Thinking…",
+      "stop": "Stop"
+    }
   }
 }

@@ -21,6 +21,7 @@ mod signal_handle;
 mod transcription_coordinator;
 mod tray;
 mod tray_i18n;
+mod converse;
 mod tts;
 mod utils;
 
@@ -439,6 +440,13 @@ pub fn run(cli_args: CliArgs) {
             commands::tts::change_elevenlabs_voice_setting,
             commands::tts::change_elevenlabs_api_key_setting,
             commands::tts::list_elevenlabs_voices,
+            commands::converse::converse_test,
+            commands::converse::converse_cancel,
+            commands::converse::list_claude_projects,
+            commands::converse::set_converse_enabled,
+            commands::converse::set_converse_model,
+            commands::converse::set_converse_scope,
+            commands::converse::set_converse_api_key,
         ])
         .events(collect_events![managers::history::HistoryUpdatePayload,]);
 

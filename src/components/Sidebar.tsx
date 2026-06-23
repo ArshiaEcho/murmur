@@ -9,10 +9,12 @@ import {
   Cpu,
   Volume2,
   LayoutGrid,
+  MessageSquare,
 } from "lucide-react";
 import HandyTextLogo from "./icons/HandyTextLogo";
 import StratosMark from "./icons/StratosMark";
 import { Overview } from "./settings/overview/Overview";
+import { ConversationSettings } from "./settings/conversation/ConversationSettings";
 import stratLogo from "../assets/strat-logo.png";
 import { useSettings } from "../hooks/useSettings";
 import {
@@ -66,6 +68,12 @@ export const SECTIONS_CONFIG = {
     labelKey: "sidebar.readAloud",
     icon: Volume2,
     component: ReadAloudSettings,
+    enabled: () => true,
+  },
+  conversation: {
+    labelKey: "sidebar.conversation",
+    icon: MessageSquare,
+    component: ConversationSettings,
     enabled: () => true,
   },
   advanced: {

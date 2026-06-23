@@ -473,9 +473,21 @@ pub struct AppSettings {
     /// Read Aloud (TTS): ElevenLabs voice id (e.g. the user's "Monoly" voice).
     #[serde(default)]
     pub elevenlabs_voice_id: Option<String>,
-    /// Read Aloud (TTS): secrets for cloud voices (key "elevenlabs"). Redacted in logs.
+    /// Cloud secrets (keys "elevenlabs", "anthropic"). Redacted in logs.
     #[serde(default = "default_tts_secrets")]
     pub tts_secrets: SecretMap,
+    /// Conversation Mode: master on/off.
+    #[serde(default)]
+    pub converse_enabled: bool,
+    /// Conversation Mode: the model that answers ("claude-sonnet-4-6" / "claude-haiku-4-5").
+    #[serde(default = "default_converse_model")]
+    pub converse_model: String,
+    /// Conversation Mode: which Claude Code project cwd to watch (None = most recent).
+    #[serde(default)]
+    pub converse_project_scope: Option<String>,
+    /// Conversation Mode: how many recent session turns to feed the model.
+    #[serde(default = "default_converse_max_turns")]
+    pub converse_max_turns: u32,
 }
 
 fn default_model() -> String {
@@ -492,6 +504,14 @@ fn default_tts_rate() -> u32 {
 
 fn default_tts_secrets() -> SecretMap {
     SecretMap(HashMap::new())
+}
+
+fn default_converse_model() -> String {
+    "claude-sonnet-4-6".to_string()
+}
+
+fn default_converse_max_turns() -> u32 {
+    14
 }
 
 fn default_translate_to_english() -> bool {
@@ -947,6 +967,10 @@ pub fn get_default_settings() -> AppSettings {
         tts_provider: TtsProvider::default(),
         elevenlabs_voice_id: None,
         tts_secrets: default_tts_secrets(),
+        converse_enabled: false,
+        converse_model: default_converse_model(),
+        converse_project_scope: None,
+        converse_max_turns: default_converse_max_turns(),
     }
 }
 
@@ -962,6 +986,26 @@ impl AppSettings {
                 std::env::var("ELEVENLABS_API_KEY")
                     .ok()
                     .filter(|s| !s.is_empty())
+            })
+    }
+
+    /// The Anthropic API key for Conversation Mode: stored secret, then env
+    /// `ANTHROPIC_API_KEY`, then any existing post-process "anthropic" key.
+    pub fn converse_api_key(&self) -> Option<String> {
+        self.tts_secrets
+            .get("anthropic")
+            .filter(|s| !s.is_empty())
+            .cloned()
+            .or_else(|| {
+                std::env::var("ANTHROPIC_API_KEY")
+                    .ok()
+                    .filter(|s| !s.is_empty())
+            })
+            .or_else(|| {
+                self.post_process_api_keys
+                    .get("anthropic")
+                    .filter(|s| !s.is_empty())
+                    .cloned()
             })
     }
 
