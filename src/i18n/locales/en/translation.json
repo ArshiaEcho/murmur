@@ -16,7 +16,8 @@
     "postProcessing": "Post Process",
     "history": "History",
     "debug": "Debug",
-    "about": "About"
+    "about": "About",
+    "overview": "Overview"
   },
   "onboarding": {
     "subtitle": "To get started, choose a transcription model",
@@ -651,5 +652,22 @@
   "overlay": {
     "transcribing": "Transcribing...",
     "processing": "Processing..."
+  },
+  "overview": {
+    "tagline": "Voice & dictation control center",
+    "hotkey": "Hotkey",
+    "mic": "Microphone",
+    "active": "Active",
+    "voice": "Voice",
+    "status": "Status",
+    "provider": "Provider",
+    "on": "On",
+    "off": "Off",
+    "limit": "Limit",
+    "advancedHint": "Paste, audio, accelerators",
+    "aboutHint": "Version & updates",
+    "noModel": "No model",
+    "systemVoice": "System voice",
+    "systemDefault": "System default"
   }
 }

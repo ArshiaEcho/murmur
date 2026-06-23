@@ -8,9 +8,11 @@ import {
   Sparkles,
   Cpu,
   Volume2,
+  LayoutGrid,
 } from "lucide-react";
 import HandyTextLogo from "./icons/HandyTextLogo";
-import HandyHand from "./icons/HandyHand";
+import StratosMark from "./icons/StratosMark";
+import { Overview } from "./settings/overview/Overview";
 import stratLogo from "../assets/strat-logo.png";
 import { useSettings } from "../hooks/useSettings";
 import {
@@ -42,9 +44,15 @@ interface SectionConfig {
 }
 
 export const SECTIONS_CONFIG = {
+  overview: {
+    labelKey: "sidebar.overview",
+    icon: LayoutGrid,
+    component: Overview,
+    enabled: () => true,
+  },
   general: {
     labelKey: "sidebar.general",
-    icon: HandyHand,
+    icon: StratosMark,
     component: GeneralSettings,
     enabled: () => true,
   },
