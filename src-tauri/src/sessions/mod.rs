@@ -215,9 +215,13 @@ fn extract_title(path: &Path) -> Option<String> {
     None
 }
 
-/// The role + git branch of the most recent real message, from the tail.
+/// The role of the most recent real message + git branch, from the tail. The role
+/// is one of "user" (user text), "assistant" (assistant TEXT turn — a real handoff
+/// to the user), or "assistant_tooluse" (assistant emitted only a tool_use — it is
+/// mid-work, waiting on a TOOL result, NOT on the user). We read a generous tail so
+/// a single huge attachment/tool block doesn't hide the last real message.
 fn last_role_and_branch(path: &Path) -> (Option<String>, Option<String>) {
-    let content = read_tail(path, 64 * 1024);
+    let content = read_tail(path, 256 * 1024);
     let mut branch: Option<String> = None;
     let mut last_role: Option<String> = None;
     for line in content.lines() {
@@ -236,21 +240,34 @@ fn last_role_and_branch(path: &Path) -> (Option<String>, Option<String>) {
             continue;
         }
         let ty = v.get("type").and_then(|t| t.as_str()).unwrap_or("");
-        if ty == "user" || ty == "assistant" {
-            // Only count messages that carry real content (skip pure tool churn).
-            let has_text = match v.get("message").and_then(|m| m.get("content")) {
-                Some(Value::String(s)) => !s.trim().is_empty(),
-                Some(Value::Array(blocks)) => blocks.iter().any(|b| {
-                    matches!(
-                        b.get("type").and_then(|t| t.as_str()),
-                        Some("text") | Some("tool_use")
-                    )
-                }),
-                _ => false,
-            };
-            if has_text {
-                last_role = Some(ty.to_string());
+        if ty != "user" && ty != "assistant" {
+            continue;
+        }
+        let content = v.get("message").and_then(|m| m.get("content"));
+        let (has_text, has_tool_use) = match content {
+            Some(Value::String(s)) => (!s.trim().is_empty(), false),
+            Some(Value::Array(blocks)) => {
+                let text = blocks.iter().any(|b| {
+                    b.get("type").and_then(|t| t.as_str()) == Some("text")
+                        && b.get("text")
+                            .and_then(|t| t.as_str())
+                            .map_or(false, |s| !s.trim().is_empty())
+                });
+                let tool = blocks
+                    .iter()
+                    .any(|b| b.get("type").and_then(|t| t.as_str()) == Some("tool_use"));
+                (text, tool)
             }
+            _ => (false, false),
+        };
+        if ty == "assistant" {
+            if has_text {
+                last_role = Some("assistant".to_string());
+            } else if has_tool_use {
+                last_role = Some("assistant_tooluse".to_string());
+            }
+        } else if has_text {
+            last_role = Some("user".to_string());
         }
     }
     (last_role, branch)
@@ -262,6 +279,8 @@ fn compute_status(last_activity_ms: Option<f64>, last_role: Option<&str>) -> Ses
             return SessionStatus::Working;
         }
     }
+    // Only a finished assistant TEXT turn means "your move". An assistant tool_use
+    // (agent waiting on a tool), a user message, or nothing => Idle, never an alert.
     match last_role {
         Some("assistant") => SessionStatus::WaitingForYou,
         _ => SessionStatus::Idle,
@@ -425,21 +444,32 @@ sentence (max 18 words). No markdown, no preamble, no quotes. Just the sentence.
     crate::converse::anthropic::answer(&key, &model, system, &user, 80).ok()
 }
 
-fn sanitize_notification(text: &str) -> String {
-    text.replace('"', "").replace('\n', " ").chars().take(180).collect()
+/// Make a string safe to embed inside an AppleScript double-quoted literal:
+/// strip control chars/newlines, escape backslash FIRST then the quote, and bound
+/// the length. (Backslash is AppleScript's escape char, so it must be escaped
+/// before the quote or a trailing `\` would escape the closing quote.)
+fn applescript_literal(text: &str) -> String {
+    text.chars()
+        .filter(|c| !c.is_control())
+        .take(180)
+        .collect::<String>()
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"")
 }
 
-/// Fire a native macOS notification (best-effort, zero-dependency).
+/// Fire a native macOS notification (best-effort, zero-dependency). Reaps the
+/// child on a detached thread so it never becomes a zombie.
 fn notify(title: &str, body: &str) {
     let script = format!(
         "display notification \"{}\" with title \"{}\"",
-        sanitize_notification(body),
-        sanitize_notification(title)
+        applescript_literal(body),
+        applescript_literal(title)
     );
-    let _ = std::process::Command::new("osascript")
-        .arg("-e")
-        .arg(script)
-        .spawn();
+    if let Ok(mut child) = std::process::Command::new("osascript").arg("-e").arg(script).spawn() {
+        thread::spawn(move || {
+            let _ = child.wait();
+        });
+    }
 }
 
 pub struct SessionRegistryManager {
@@ -466,30 +496,35 @@ impl SessionRegistryManager {
 
     pub fn start(self: &Arc<Self>) {
         let me = self.clone();
-        // Seed prev_status without alerting on first scan.
-        me.refresh(true);
-        thread::spawn(move || loop {
-            thread::sleep(Duration::from_millis(1500));
-            me.refresh(false);
+        thread::spawn(move || {
+            // First scan inside the worker so app startup isn't blocked by disk I/O.
+            // suppress_alerts=true means it won't record prev_status, so the first
+            // real poll sees was==None and correctly does NOT alert on already-waiting
+            // sessions (fire_attention_alerts requires was.is_some()).
+            me.refresh(true);
+            loop {
+                thread::sleep(Duration::from_millis(1500));
+                me.refresh(false);
+            }
         });
     }
 
     pub fn snapshot(&self) -> Vec<SessionInfo> {
-        self.sessions.lock().unwrap().clone()
+        self.sessions.lock().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Look up a live session by id (for transcript / focus / ask commands).
     pub fn find(&self, id: &str) -> Option<SessionInfo> {
-        self.sessions.lock().unwrap().iter().find(|s| s.id == id).cloned()
+        self.sessions.lock().unwrap_or_else(|e| e.into_inner()).iter().find(|s| s.id == id).cloned()
     }
 
     /// Cache an externally-computed summary and re-emit on the next tick.
     pub fn set_summary(&self, id: &str, mtime: f64, summary: String) {
         self.summaries
             .lock()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .insert(id.to_string(), (mtime, summary));
-        self.in_flight.lock().unwrap().remove(id);
+        self.in_flight.lock().unwrap_or_else(|e| e.into_inner()).remove(id);
     }
 
     /// Compute + cache a summary now (used by the on-demand command). Blocking.
@@ -498,11 +533,22 @@ impl SessionRegistryManager {
         let path = session
             .transcript_path
             .ok_or("Session has no transcript yet")?;
+        // Claim the in-flight slot so a concurrent rolling worker skips this id.
+        self.in_flight
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(id.to_string());
         let settings = crate::settings::get_settings(&self.app);
-        let summary = compute_summary(&settings, &path)
-            .ok_or("Could not summarize (no API key or empty transcript)")?;
+        let summary = match compute_summary(&settings, &path) {
+            Some(s) => s,
+            None => {
+                // Release the slot we claimed so future summaries aren't blocked.
+                self.in_flight.lock().unwrap_or_else(|e| e.into_inner()).remove(id);
+                return Err("Could not summarize (no API key or empty transcript)".to_string());
+            }
+        };
         let mtime = mtime_ms(Path::new(&path)).unwrap_or_else(now_ms);
-        self.set_summary(id, mtime, summary.clone());
+        self.set_summary(id, mtime, summary.clone()); // also clears the in-flight slot
         // Reflect immediately rather than waiting for the next poll.
         self.refresh(true);
         Ok(summary)
@@ -515,7 +561,7 @@ impl SessionRegistryManager {
 
         // Merge cached summaries (only if the transcript hasn't changed since).
         {
-            let cache = self.summaries.lock().unwrap();
+            let cache = self.summaries.lock().unwrap_or_else(|e| e.into_inner());
             for s in list.iter_mut() {
                 if let Some((mtime, text)) = cache.get(&s.id) {
                     if s.last_activity_ms.map_or(true, |m| m <= *mtime + 1.0) {
@@ -530,25 +576,26 @@ impl SessionRegistryManager {
             self.kick_rolling_summaries(&list, &settings);
         }
 
-        // Detect transitions into WaitingForYou and alert.
+        // Detect transitions into WaitingForYou and alert. Only an alert-evaluating
+        // refresh records prev_status — otherwise a suppressed refresh (e.g. an
+        // on-demand summarize racing a transition) could overwrite Working with
+        // WaitingForYou and swallow the next poll's real alert.
         if !suppress_alerts {
             self.fire_attention_alerts(&list, &settings);
-        }
-        {
-            let mut prev = self.prev_status.lock().unwrap();
+            let mut prev = self.prev_status.lock().unwrap_or_else(|e| e.into_inner());
             prev.clear();
             for s in &list {
                 prev.insert(s.id.clone(), s.status);
             }
         }
 
-        *self.sessions.lock().unwrap() = list.clone();
+        *self.sessions.lock().unwrap_or_else(|e| e.into_inner()) = list.clone();
         let _ = SessionsUpdate::Reset { sessions: list }.emit(&self.app);
     }
 
     fn kick_rolling_summaries(&self, list: &[SessionInfo], settings: &AppSettings) {
         let cache_snapshot: HashMap<String, f64> = {
-            let cache = self.summaries.lock().unwrap();
+            let cache = self.summaries.lock().unwrap_or_else(|e| e.into_inner());
             cache.iter().map(|(k, (m, _))| (k.clone(), *m)).collect()
         };
         let mut started = 0usize;
@@ -573,7 +620,7 @@ impl SessionRegistryManager {
                 continue;
             }
             {
-                let mut inflight = self.in_flight.lock().unwrap();
+                let mut inflight = self.in_flight.lock().unwrap_or_else(|e| e.into_inner());
                 if inflight.contains(&s.id) {
                     continue;
                 }
@@ -589,7 +636,7 @@ impl SessionRegistryManager {
                     match summary {
                         Some(text) => mgr.set_summary(&id, mtime, text),
                         None => {
-                            mgr.in_flight.lock().unwrap().remove(&id);
+                            mgr.in_flight.lock().unwrap_or_else(|e| e.into_inner()).remove(&id);
                         }
                     }
                 }
@@ -598,7 +645,7 @@ impl SessionRegistryManager {
     }
 
     fn fire_attention_alerts(&self, list: &[SessionInfo], settings: &AppSettings) {
-        let prev = self.prev_status.lock().unwrap().clone();
+        let prev = self.prev_status.lock().unwrap_or_else(|e| e.into_inner()).clone();
         for s in list {
             if s.is_background {
                 continue;

@@ -20,12 +20,17 @@ export const useSessionsStore = create<SessionsStore>((set, get) => ({
   init: async () => {
     if (get().initialized) return;
     set({ initialized: true });
-    const snap = await commands.getSessions();
-    if (snap.status === "ok") set({ sessions: snap.data });
+    // Subscribe FIRST so an early "reset" tick during hydration isn't missed.
     await listen<SessionsUpdate>("sessions-update", (e) => {
       const m = e.payload;
       if (m.action === "reset") set({ sessions: m.sessions });
     });
+    const snap = await commands.getSessions();
+    // Only seed from the snapshot if no live reset has populated us yet (avoids a
+    // stale snapshot clobbering a fresher reset that arrived during the await).
+    if (snap.status === "ok" && get().sessions.length === 0) {
+      set({ sessions: snap.data });
+    }
   },
   select: (id) => set({ selectedId: id }),
 }));

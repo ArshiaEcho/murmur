@@ -161,15 +161,18 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
   const [asking, setAsking] = useState(false);
   const [askErr, setAskErr] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const atBottomRef = useRef(true);
+  const mounted = useRef(true);
 
-  // Reset per-session UI state when the selection changes.
-  useEffect(() => {
-    setSummary(session.summary);
-    setAnswer(null);
-    setAskErr(null);
-    setQuestion("");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session.id]);
+  // Detail is keyed by session.id so it remounts on selection change (per-session
+  // state resets via initial useState); we only need an unmount flag for guarding
+  // setState after an in-flight ask/summarize when the user switches away.
+  useEffect(
+    () => () => {
+      mounted.current = false;
+    },
+    [],
+  );
 
   // Keep the cached summary in sync as poll updates arrive.
   useEffect(() => {
@@ -191,9 +194,10 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
     };
   }, [session.id]);
 
-  // Auto-scroll the transcript to the newest turn.
+  // Auto-scroll to the newest turn only when the user is already at the bottom, so
+  // scrolling up to read history isn't yanked back down on every 2.5s poll.
   useEffect(() => {
-    if (scrollRef.current) {
+    if (scrollRef.current && atBottomRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [turns]);
@@ -201,6 +205,7 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
   const refreshSummary = async () => {
     setSummarizing(true);
     const r = await commands.summarizeSession(session.id);
+    if (!mounted.current) return;
     setSummarizing(false);
     if (r.status === "ok") setSummary(r.data);
     else setSummary(`(${r.error})`);
@@ -213,6 +218,7 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
     setAskErr(null);
     setAnswer(null);
     const r = await commands.askSession(session.id, q);
+    if (!mounted.current) return;
     setAsking(false);
     if (r.status === "ok") setAnswer(r.data);
     else setAskErr(r.error);
@@ -297,6 +303,11 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
       {/* Transcript */}
       <div
         ref={scrollRef}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          atBottomRef.current =
+            el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+        }}
         className="flex-1 overflow-y-auto rounded-lg bg-mid-gray/5 border border-mid-gray/10 p-3 space-y-2.5 min-h-0"
       >
         {turns.length === 0 ? (
@@ -328,7 +339,7 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
             onKeyDown={(e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) ask();
             }}
-            placeholder={`Ask about ${session.repo}…  (spoken back via Monoli)`}
+            placeholder={`Ask about ${session.repo}…  (⌘/Ctrl+Enter to send · spoken back via Monoli)`}
             rows={2}
             className="flex-1 text-sm rounded-lg border border-mid-gray/20 bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-logo-primary resize-none"
           />
@@ -345,7 +356,8 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
             <button
               type="button"
               onClick={() => commands.askSessionCancel()}
-              className="flex items-center gap-1.5 text-xs rounded-lg px-3 py-1 border border-mid-gray/20 hover:bg-mid-gray/15 transition-colors"
+              disabled={!asking}
+              className="flex items-center gap-1.5 text-xs rounded-lg px-3 py-1 border border-mid-gray/20 hover:bg-mid-gray/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Square size={12} /> Stop
             </button>
@@ -396,6 +408,11 @@ export const SessionsView: React.FC = () => {
   const liveCount = visible.length;
   const needCount = visible.filter((s) => s.status === "waiting_for_you").length;
   const selected = sessions.find((s) => s.id === selectedId) ?? null;
+
+  // Clear a dangling selection when the selected session ends and drops out.
+  useEffect(() => {
+    if (selectedId && !sessions.some((s) => s.id === selectedId)) select(null);
+  }, [sessions, selectedId, select]);
 
   const toggleRolling = async () => {
     await commands.setSessionsRolling(!rolling);

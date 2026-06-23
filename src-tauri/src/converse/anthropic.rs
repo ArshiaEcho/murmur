@@ -34,7 +34,7 @@ pub fn answer(
 
     if !resp.status().is_success() {
         let code = resp.status();
-        let body = resp.text().unwrap_or_default();
+        let body: String = resp.text().unwrap_or_default().chars().take(500).collect();
         return Err(format!("HTTP {code}: {body}"));
     }
 

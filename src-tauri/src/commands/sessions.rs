@@ -107,16 +107,24 @@ pub fn focus_session_window(app: AppHandle, session_id: String) -> Result<(), St
     let session = manager(&app)?
         .find(&session_id)
         .ok_or("Session not found or no longer live")?;
-    let folder = session
+    let raw_folder = session
         .cwd
         .trim_end_matches('/')
         .rsplit('/')
         .next()
-        .unwrap_or("")
-        .replace('"', "");
-    if folder.is_empty() {
+        .unwrap_or("");
+    if raw_folder.is_empty() {
         return Err("No workspace folder for this session".to_string());
     }
+    // Escape for an AppleScript double-quoted literal: drop control chars, escape
+    // backslash FIRST (it is AppleScript's escape char) then the quote, so a folder
+    // name containing `\` or `"` can't break out of (or corrupt) the string.
+    let folder: String = raw_folder
+        .chars()
+        .filter(|c| !c.is_control())
+        .collect::<String>()
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"");
     // VS Code window titles end with the workspace folder name by default.
     let script = format!(
         r#"tell application "System Events"
@@ -133,12 +141,16 @@ pub fn focus_session_window(app: AppHandle, session_id: String) -> Result<(), St
   end if
 end tell"#
     );
-    std::process::Command::new("osascript")
-        .arg("-e")
-        .arg(script)
-        .spawn()
-        .map_err(|e| e.to_string())?;
-    Ok(())
+    match std::process::Command::new("osascript").arg("-e").arg(script).spawn() {
+        Ok(mut child) => {
+            // Reap on a detached thread so it never becomes a zombie.
+            std::thread::spawn(move || {
+                let _ = child.wait();
+            });
+            Ok(())
+        }
+        Err(e) => Err(e.to_string()),
+    }
 }
 
 #[tauri::command]
