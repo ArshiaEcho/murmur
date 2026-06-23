@@ -86,6 +86,9 @@ const settingUpdaters: {
   tts_voice: (value) =>
     commands.changeTtsVoiceSetting((value as string | null) ?? null),
   tts_rate: (value) => commands.changeTtsRateSetting(value as number),
+  tts_provider: (value) => commands.changeTtsProviderSetting(value as string),
+  elevenlabs_voice_id: (value) =>
+    commands.changeElevenlabsVoiceSetting((value as string | null) ?? null),
   start_hidden: (value) => commands.changeStartHiddenSetting(value as boolean),
   autostart_enabled: (value) =>
     commands.changeAutostartSetting(value as boolean),

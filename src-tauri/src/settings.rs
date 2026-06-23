@@ -158,6 +158,20 @@ pub enum ClipboardHandling {
     CopyToClipboard,
 }
 
+/// Read Aloud (TTS) engine: offline macOS `say` or cloud ElevenLabs.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type)]
+#[serde(rename_all = "snake_case")]
+pub enum TtsProvider {
+    Say,
+    ElevenLabs,
+}
+
+impl Default for TtsProvider {
+    fn default() -> Self {
+        TtsProvider::Say
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type)]
 #[serde(rename_all = "snake_case")]
 pub enum AutoSubmitKey {
@@ -453,6 +467,15 @@ pub struct AppSettings {
     /// Read Aloud (TTS): speech rate in words per minute.
     #[serde(default = "default_tts_rate")]
     pub tts_rate: u32,
+    /// Read Aloud (TTS): which engine speaks (macOS `say` or ElevenLabs).
+    #[serde(default)]
+    pub tts_provider: TtsProvider,
+    /// Read Aloud (TTS): ElevenLabs voice id (e.g. the user's "Monoly" voice).
+    #[serde(default)]
+    pub elevenlabs_voice_id: Option<String>,
+    /// Read Aloud (TTS): secrets for cloud voices (key "elevenlabs"). Redacted in logs.
+    #[serde(default = "default_tts_secrets")]
+    pub tts_secrets: SecretMap,
 }
 
 fn default_model() -> String {
@@ -465,6 +488,10 @@ fn default_always_on_microphone() -> bool {
 
 fn default_tts_rate() -> u32 {
     175
+}
+
+fn default_tts_secrets() -> SecretMap {
+    SecretMap(HashMap::new())
 }
 
 fn default_translate_to_english() -> bool {
@@ -917,10 +944,27 @@ pub fn get_default_settings() -> AppSettings {
         extra_recording_buffer_ms: 0,
         tts_voice: None,
         tts_rate: default_tts_rate(),
+        tts_provider: TtsProvider::default(),
+        elevenlabs_voice_id: None,
+        tts_secrets: default_tts_secrets(),
     }
 }
 
 impl AppSettings {
+    /// The ElevenLabs API key: from stored secrets, falling back to the
+    /// `ELEVENLABS_API_KEY` environment variable. None/empty = not configured.
+    pub fn elevenlabs_api_key(&self) -> Option<String> {
+        self.tts_secrets
+            .get("elevenlabs")
+            .filter(|s| !s.is_empty())
+            .cloned()
+            .or_else(|| {
+                std::env::var("ELEVENLABS_API_KEY")
+                    .ok()
+                    .filter(|s| !s.is_empty())
+            })
+    }
+
     pub fn active_post_process_provider(&self) -> Option<&PostProcessProvider> {
         self.post_process_providers
             .iter()

@@ -435,6 +435,10 @@ pub fn run(cli_args: CliArgs) {
             commands::tts::stop_tts,
             commands::tts::change_tts_voice_setting,
             commands::tts::change_tts_rate_setting,
+            commands::tts::change_tts_provider_setting,
+            commands::tts::change_elevenlabs_voice_setting,
+            commands::tts::change_elevenlabs_api_key_setting,
+            commands::tts::list_elevenlabs_voices,
         ])
         .events(collect_events![managers::history::HistoryUpdatePayload,]);
 

@@ -33,22 +33,27 @@ pub fn list_tts_voices() -> Result<Vec<TtsVoice>, String> {
 #[specta::specta]
 pub fn preview_tts_voice(app: AppHandle, voice: String, text: String) -> Result<(), String> {
     let settings = settings::get_settings(&app);
-    let rate = if settings.tts_rate > 0 {
-        Some(settings.tts_rate)
-    } else {
-        None
-    };
     let sample = if text.trim().is_empty() {
         "This is how the Stratos voice sounds.".to_string()
     } else {
         text
     };
-    let v = if voice.trim().is_empty() {
-        None
+    if matches!(settings.tts_provider, settings::TtsProvider::ElevenLabs) {
+        // Preview the currently-configured ElevenLabs voice.
+        crate::tts::speak_with_settings(&settings, &sample);
     } else {
-        Some(voice.as_str())
-    };
-    crate::tts::speak(&sample, v, rate);
+        let rate = if settings.tts_rate > 0 {
+            Some(settings.tts_rate)
+        } else {
+            None
+        };
+        let v = if voice.trim().is_empty() {
+            None
+        } else {
+            Some(voice.as_str())
+        };
+        crate::tts::speak(&sample, v, rate);
+    }
     Ok(())
 }
 
@@ -75,6 +80,77 @@ pub fn change_tts_voice_setting(app: AppHandle, voice: Option<String>) -> Result
 pub fn change_tts_rate_setting(app: AppHandle, rate: u32) -> Result<(), String> {
     let mut settings = settings::get_settings(&app);
     settings.tts_rate = rate;
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
+/// An ElevenLabs voice surfaced to the voice picker.
+#[derive(Serialize, Deserialize, Debug, Clone, Type)]
+pub struct ElevenVoice {
+    pub voice_id: String,
+    pub name: String,
+    pub category: String,
+}
+
+/// List the user's ElevenLabs voices (needs the key's `voices_read` scope).
+#[tauri::command]
+#[specta::specta]
+pub fn list_elevenlabs_voices(app: AppHandle) -> Result<Vec<ElevenVoice>, String> {
+    let settings = settings::get_settings(&app);
+    let key = settings
+        .elevenlabs_api_key()
+        .ok_or("No ElevenLabs API key set")?;
+    let voices = crate::tts::list_elevenlabs_voices(&key)?;
+    Ok(voices
+        .into_iter()
+        .map(|(voice_id, name, category)| ElevenVoice {
+            voice_id,
+            name,
+            category,
+        })
+        .collect())
+}
+
+/// Choose the Read Aloud engine ("say" or "eleven_labs").
+#[tauri::command]
+#[specta::specta]
+pub fn change_tts_provider_setting(app: AppHandle, provider: String) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.tts_provider = match provider.as_str() {
+        "eleven_labs" => settings::TtsProvider::ElevenLabs,
+        _ => settings::TtsProvider::Say,
+    };
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
+/// Set the active ElevenLabs voice id (None / empty = unset).
+#[tauri::command]
+#[specta::specta]
+pub fn change_elevenlabs_voice_setting(
+    app: AppHandle,
+    voice_id: Option<String>,
+) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.elevenlabs_voice_id = voice_id.filter(|v| !v.is_empty());
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
+/// Store (or clear, when empty) the ElevenLabs API key. Kept in the redacted
+/// `tts_secrets` map so it never lands in debug logs.
+#[tauri::command]
+#[specta::specta]
+pub fn change_elevenlabs_api_key_setting(app: AppHandle, key: String) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    let trimmed = key.trim().to_string();
+    if trimmed.is_empty() {
+        settings.tts_secrets.remove("elevenlabs");
+    } else {
+        settings
+            .tts_secrets
+            .insert("elevenlabs".to_string(), trimmed);
+    }
     settings::write_settings(&app, settings);
     Ok(())
 }

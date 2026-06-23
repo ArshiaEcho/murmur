@@ -222,7 +222,16 @@
         "title": "Voice",
         "description": "Choose the system voice used to read selected text aloud.",
         "systemDefault": "System default",
-        "none": "No voices were found on this system."
+        "none": "No voices were found on this system.",
+        "elevenGroup": "Stratos Studio (ElevenLabs)",
+        "premiumGroup": "Enhanced / Premium (downloaded)",
+        "englishGroup": "English",
+        "otherGroup": "Other languages",
+        "showAll": "Show all installed voices",
+        "hint": "Read Aloud uses ElevenLabs studio voices. Pick one of your own voices or a free ElevenLabs voice. The offline system voice is only used if ElevenLabs is unreachable.",
+        "customGroup": "Your voices",
+        "freeGroup": "ElevenLabs voices (free)",
+        "offline": "System voice (offline fallback)"
       },
       "rate": {
         "title": "Speech rate",
@@ -238,6 +247,15 @@
       "hotkey": {
         "title": "Read Aloud Shortcut",
         "help": "Press the shortcut to read the current selection aloud. The default is the Insert key. F13 is a good alternative if Insert is on your laptop's fn-layer."
+      },
+      "eleven": {
+        "title": "ElevenLabs (Studio voices)",
+        "keyTitle": "API key",
+        "keyDescription": "Your ElevenLabs API key, used to load and speak Studio voices like Monoly. The key needs Text to Speech and Voices (Read) permissions.",
+        "keyPlaceholder": "sk_...",
+        "loaded": "{{count}} ElevenLabs voice(s) loaded.",
+        "noVoices": "No ElevenLabs voices loaded. Add an API key with Text to Speech + Voices (Read) permissions.",
+        "needKey": "Add your ElevenLabs API key below to load voices."
       }
     },
     "sound": {

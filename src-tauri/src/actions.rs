@@ -398,6 +398,8 @@ pub(crate) async fn process_transcription_output(
 
 impl ShortcutAction for TranscribeAction {
     fn start(&self, app: &AppHandle, binding_id: &str, _shortcut_str: &str) {
+        // Starting a dictation silences any in-flight Read Aloud (fn/hotkey barge-in).
+        crate::tts::stop();
         let start_time = Instant::now();
         debug!("TranscribeAction::start called for binding: {}", binding_id);
 
@@ -786,12 +788,7 @@ impl ShortcutAction for ReadSelectionAction {
             }
 
             let settings = get_settings(&app);
-            let rate = if settings.tts_rate > 0 {
-                Some(settings.tts_rate)
-            } else {
-                None
-            };
-            crate::tts::speak(trimmed, settings.tts_voice.as_deref(), rate);
+            crate::tts::speak_with_settings(&settings, trimmed);
         });
     }
 
