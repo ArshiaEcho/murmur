@@ -31,3 +31,15 @@ Full scoping specs (6-agent workflow) archived at the session transcript; this i
 - `cd ~/Dev/strat && bunx tsc --noEmit` after each frontend wave.
 - Commit after each coherent chunk (granular restore points on the branch).
 - Final: one release build, installed, ready for the AM TCC re-grant.
+
+## Final status (2026-06-23)
+- DONE: P0 docs, P1 brand mark, P4 Overview, P5 Conversation Mode (engine + tab),
+  P5.5 Voice Agent Control Center (queue + hook + skill + dashboard), P6 animated
+  onboarding hero, P7 tray logo, P8 (release profile already optimal — no change).
+- PARTIAL: P2/P3 design system (elevation/motion tokens + slider thumb + sidebar pill
+  done; full token scale + toggle redesign + IA regroup deferred).
+- DEFERRED (next session): Conversation global voice hotkey (ConverseAction + ⌥⌃A);
+  Control Center auto-speak FIFO, per-session voice UI, fn→AgentRun logging, "Ask back";
+  custom titlebar; full onboarding glass restyle; app-iconset regen; pick a name → display-name swap.
+- All committed on `feature/conversation-mode-and-redesign`; `main` @9ac68dd untouched + working.
+- Handoff: vault `2026-06-23-overnight-handoff.md`. cargo check + tsc green throughout.
