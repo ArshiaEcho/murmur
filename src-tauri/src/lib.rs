@@ -140,6 +140,20 @@ fn should_force_show_permissions_window(app: &AppHandle) -> bool {
         }
     }
 
+    #[cfg(target_os = "macos")]
+    {
+        let _ = app;
+        // Honor the show-on-next-launch marker (set before an onboarding relaunch),
+        // so a "Start hidden" user who just granted Accessibility sees the window
+        // come back instead of vanishing into the tray.
+        let marker = crate::agents::strat_dir().join(".show_on_launch");
+        if marker.exists() {
+            let _ = std::fs::remove_file(&marker);
+            log::info!("show-on-launch marker present; forcing main window visible");
+            return true;
+        }
+    }
+
     false
 }
 
@@ -458,6 +472,7 @@ pub fn run(cli_args: CliArgs) {
             commands::agents::play_agent_run,
             commands::agents::dismiss_agent_run,
             commands::agents::delete_agent_run,
+            commands::agents::mark_show_on_next_launch,
         ])
         .events(collect_events![
             managers::history::HistoryUpdatePayload,

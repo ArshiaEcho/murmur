@@ -64,10 +64,10 @@ export const Overview: React.FC = () => {
   const ppProviderId = getSetting("post_process_provider_id");
   const ppProviders =
     (getSetting("post_process_providers") as
-      | Array<{ id: string; name?: string }>
+      | Array<{ id: string; label?: string }>
       | undefined) || [];
   const ppProvider =
-    ppProviders.find((p) => p.id === ppProviderId)?.name ?? ppProviderId ?? "—";
+    ppProviders.find((p) => p.id === ppProviderId)?.label ?? ppProviderId ?? "—";
 
   const mic = getSetting("selected_microphone") || t("overview.systemDefault");
 

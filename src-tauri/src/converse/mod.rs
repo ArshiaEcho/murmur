@@ -19,6 +19,9 @@ static CONVERSE_GEN: AtomicU64 = AtomicU64::new(0);
 /// Run one Conversation Mode turn: find the active session, answer the question,
 /// speak the answer. Returns the answer text (for the UI / logging).
 pub fn run_turn(settings: &AppSettings, question: &str) -> Result<String, String> {
+    if !settings.converse_enabled {
+        return Err("Conversation Mode is off — enable it in the Conversation tab first.".to_string());
+    }
     let my_gen = CONVERSE_GEN.fetch_add(1, Ordering::SeqCst) + 1;
 
     let api_key = settings

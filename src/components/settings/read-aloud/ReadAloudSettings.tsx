@@ -85,7 +85,7 @@ export const ReadAloudSettings: React.FC = () => {
               value={selectedValue}
               onChange={handleVoiceChange}
               disabled={!loaded}
-              className="text-sm rounded-lg border border-mid-gray/20 bg-background-ui px-2 py-1 focus:outline-none focus:ring-2 focus:ring-logo-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-sm rounded-lg border border-mid-gray/20 bg-background px-2 py-1 focus:outline-none focus:ring-2 focus:ring-logo-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {custom.length > 0 && (
                 <optgroup label={t("settings.readAloud.voice.customGroup")}>

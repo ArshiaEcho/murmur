@@ -50,7 +50,7 @@ try:
                 o = json.loads(line)
             except Exception:
                 continue
-            if o.get("type") != "assistant":
+            if o.get("type") != "assistant" or o.get("isSidechain"):
                 continue
             content = (o.get("message") or {}).get("content")
             text = ""
@@ -69,8 +69,9 @@ except Exception:
 if not last_text:
     sys.exit(0)
 
-fp = hashlib.sha256((session_id + "\x00" + last_text).encode()).hexdigest()
-statef = os.path.join(STATE, (session_id or "last") + ".last")
+key = session_id or hashlib.sha256(transcript_path.encode()).hexdigest()[:16]
+fp = hashlib.sha256((key + "\x00" + last_text).encode()).hexdigest()
+statef = os.path.join(STATE, key + ".last")
 try:
     if open(statef).read().strip() == fp:
         sys.exit(0)
@@ -289,4 +290,15 @@ pub fn dismiss_agent_run(app: AppHandle, id: String) -> Result<(), String> {
 pub fn delete_agent_run(app: AppHandle, id: String) -> Result<(), String> {
     manager(&app)?.delete(&id);
     Ok(())
+}
+
+/// Drop a marker so the NEXT cold launch force-shows the main window even when
+/// "Start hidden" is on. Used before relaunching from onboarding so the user
+/// (who just granted Accessibility) actually sees the app come back, not vanish
+/// into the tray.
+#[tauri::command]
+#[specta::specta]
+pub fn mark_show_on_next_launch() -> Result<(), String> {
+    let marker = crate::agents::strat_dir().join(".show_on_launch");
+    fs::write(marker, b"1").map_err(|e| e.to_string())
 }

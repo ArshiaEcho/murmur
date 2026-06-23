@@ -8,7 +8,7 @@ use specta::Type;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::{fs, thread, time::Duration};
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 use tauri_specta::Event;
 
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq)]
@@ -91,6 +91,27 @@ pub fn strat_dir() -> PathBuf {
     PathBuf::from(home).join(".claude/strat")
 }
 
+/// Load persisted runs from done/ (most-recent first, capped) so the dashboard
+/// survives app restarts.
+fn load_runs(done_dir: &Path) -> Vec<AgentRun> {
+    let mut files: Vec<PathBuf> = match fs::read_dir(done_dir) {
+        Ok(e) => e
+            .filter_map(|x| x.ok().map(|x| x.path()))
+            .filter(|p| p.extension().map(|x| x == "json").unwrap_or(false))
+            .collect(),
+        Err(_) => return Vec::new(),
+    };
+    files.sort_by_key(|p| std::cmp::Reverse(fs::metadata(p).and_then(|m| m.modified()).ok()));
+    let mut runs: Vec<AgentRun> = files
+        .into_iter()
+        .take(100)
+        .filter_map(|p| fs::read_to_string(&p).ok())
+        .filter_map(|t| serde_json::from_str::<AgentRun>(&t).ok())
+        .collect();
+    runs.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+    runs
+}
+
 pub struct AgentQueueManager {
     app: AppHandle,
     runs: Mutex<Vec<AgentRun>>,
@@ -107,9 +128,11 @@ impl AgentQueueManager {
         let _ = fs::create_dir_all(&done_dir);
         let _ = fs::create_dir_all(base.join("archive"));
         let _ = fs::create_dir_all(base.join(".state"));
+        // Rehydrate past runs from done/ so the dashboard survives restarts.
+        let runs = load_runs(&done_dir);
         Self {
             app: app.clone(),
-            runs: Mutex::new(Vec::new()),
+            runs: Mutex::new(runs),
             queue_dir,
             done_dir,
         }
@@ -129,6 +152,10 @@ impl AgentQueueManager {
     }
 
     fn ingest_new(&self) {
+        let settings = crate::settings::get_settings(&self.app);
+        if !settings.agents_enabled {
+            return; // master switch off
+        }
         let entries = match fs::read_dir(&self.queue_dir) {
             Ok(e) => e,
             Err(_) => return,
@@ -167,8 +194,12 @@ impl AgentQueueManager {
                 guard.insert(0, run.clone());
             }
             log::info!("agents: ingested run {} ({:?})", run.id, run.repo);
-            let _ = AgentsUpdate::Added { run: run.clone() }.emit(&self.app);
             let _ = self.move_to_done(&path);
+            let _ = AgentsUpdate::Added { run: run.clone() }.emit(&self.app);
+            // Auto-speak new reports if enabled and nothing is currently playing (FIFO-ish).
+            if settings.agents_autospeak && !crate::tts::is_speaking() {
+                self.play(&run.id);
+            }
         }
     }
 
@@ -198,10 +229,28 @@ impl AgentQueueManager {
         } else {
             run.speak_text.clone()
         };
-        if !text.trim().is_empty() {
-            crate::tts::speak_with_settings(&s, &text);
+        if text.trim().is_empty() {
+            self.set_status(id, AgentStatus::Reviewed);
+            return;
         }
-        self.set_status(id, AgentStatus::Reviewed);
+        self.set_status(id, AgentStatus::Playing);
+        crate::tts::speak_with_settings(&s, &text);
+        // Flip to Reviewed when playback actually finishes (background watcher).
+        let app = self.app.clone();
+        let id = id.to_string();
+        thread::spawn(move || {
+            let t0 = std::time::Instant::now();
+            while !crate::tts::is_speaking() && t0.elapsed().as_secs() < 8 {
+                thread::sleep(Duration::from_millis(200));
+            }
+            let t1 = std::time::Instant::now();
+            while crate::tts::is_speaking() && t1.elapsed().as_secs() < 180 {
+                thread::sleep(Duration::from_millis(300));
+            }
+            if let Some(mgr) = app.try_state::<Arc<AgentQueueManager>>() {
+                mgr.set_status(&id, AgentStatus::Reviewed);
+            }
+        });
     }
 
     pub fn dismiss(&self, id: &str) {
@@ -217,12 +266,17 @@ impl AgentQueueManager {
             })
         };
         if let Some(run) = updated {
+            // Persist the new status so it survives restarts.
+            if let Ok(text) = serde_json::to_string(&run) {
+                let _ = fs::write(self.done_dir.join(format!("{}.json", run.id)), text);
+            }
             let _ = AgentsUpdate::Updated { run }.emit(&self.app);
         }
     }
 
     pub fn delete(&self, id: &str) {
         self.runs.lock().unwrap().retain(|r| r.id != id);
+        let _ = fs::remove_file(self.done_dir.join(format!("{}.json", id)));
         let _ = AgentsUpdate::Removed { id: id.to_string() }.emit(&self.app);
     }
 }

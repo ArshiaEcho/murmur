@@ -260,6 +260,23 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
     }
   };
 
+  // macOS only applies an Accessibility grant after a relaunch (AXIsProcessTrusted
+  // caches false for the running process). Mark show-on-next-launch first so a
+  // "Start hidden" user actually sees the app return instead of it vanishing.
+  const handleRestart = async () => {
+    try {
+      await commands.markShowOnNextLaunch();
+    } catch (error) {
+      console.error("Failed to mark show-on-launch:", error);
+    }
+    try {
+      await relaunch();
+    } catch (error) {
+      console.error("Failed to relaunch:", error);
+      toast.error(t("onboarding.permissions.errors.requestFailed"));
+    }
+  };
+
   const handleGrantMicrophone = async () => {
     try {
       if (isWindows) {
@@ -397,7 +414,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
                       {t("onboarding.permissions.accessibility.restartHint")}
                     </p>
                     <button
-                      onClick={() => relaunch()}
+                      onClick={handleRestart}
                       className="self-start px-4 py-2 rounded-lg bg-logo-primary hover:bg-logo-primary/90 text-white text-sm font-medium transition-colors"
                     >
                       {t("onboarding.permissions.restart")}

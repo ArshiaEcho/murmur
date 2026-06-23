@@ -114,7 +114,7 @@ export const AgentsSettings: React.FC = () => {
               value={repoPath}
               onChange={(e) => setRepoPath(e.target.value)}
               placeholder="/Users/you/Dev/your-repo"
-              className="flex-1 text-sm rounded-lg border border-mid-gray/20 bg-background-ui px-3 py-1 focus:outline-none focus:ring-2 focus:ring-logo-primary"
+              className="flex-1 text-sm rounded-lg border border-mid-gray/20 bg-background px-3 py-1 focus:outline-none focus:ring-2 focus:ring-logo-primary"
             />
             <button
               type="button"

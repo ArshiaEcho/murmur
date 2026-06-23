@@ -63,7 +63,7 @@ export const ConversationSettings: React.FC = () => {
   const stop = () => commands.converseCancel();
 
   const selectCls =
-    "text-sm rounded-lg border border-mid-gray/20 bg-background-ui px-2 py-1 focus:outline-none focus:ring-2 focus:ring-logo-primary";
+    "text-sm rounded-lg border border-mid-gray/20 bg-background px-2 py-1 focus:outline-none focus:ring-2 focus:ring-logo-primary";
 
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
@@ -112,7 +112,7 @@ export const ConversationSettings: React.FC = () => {
           >
             <option value="">{t("conversation.scope.auto")}</option>
             {projects.map((p) => (
-              <option key={p.dir} value={p.cwd}>
+              <option key={p.dir} value={p.dir}>
                 {p.cwd}
               </option>
             ))}
@@ -150,7 +150,7 @@ export const ConversationSettings: React.FC = () => {
             onChange={(e) => setQuestion(e.target.value)}
             placeholder={t("conversation.test.placeholder")}
             rows={2}
-            className="w-full text-sm rounded-lg border border-mid-gray/20 bg-background-ui px-3 py-2 focus:outline-none focus:ring-2 focus:ring-logo-primary resize-none"
+            className="w-full text-sm rounded-lg border border-mid-gray/20 bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-logo-primary resize-none"
           />
           <div className="flex items-center gap-2">
             <button

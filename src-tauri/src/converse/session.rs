@@ -24,24 +24,24 @@ fn claude_projects_dir() -> Option<PathBuf> {
     Some(PathBuf::from(home).join(".claude/projects"))
 }
 
-/// Map a cwd to its Claude Code project dir name: every '/' and '.' becomes '-'.
-pub fn cwd_to_project_dir(cwd: &str) -> String {
-    cwd.chars()
-        .map(|c| if c == '/' || c == '.' { '-' } else { c })
-        .collect()
-}
-
-/// Most-recently-modified `*.jsonl` transcript, optionally scoped to a cwd's
-/// project dir. `None`/empty scope walks all projects (the magical "auto" mode).
+/// Most-recently-modified main-session `*.jsonl` transcript, optionally scoped to
+/// a project DIR NAME (the dashed dir, e.g. "-Users-vabi-Dev-strat"). `None`/empty
+/// scope walks all projects ("auto"). Skips background activity: subagent subtrees
+/// (`subagents/`, `agent-*.jsonl`) and claude-mem observer projects — otherwise the
+/// newest file is usually a subagent or claude-mem, not the user's coding session.
 pub fn find_active_transcript(scope: Option<&str>) -> Option<PathBuf> {
     let root = claude_projects_dir()?;
     let search_root = match scope {
-        Some(cwd) if !cwd.is_empty() => root.join(cwd_to_project_dir(cwd)),
-        _ => root,
+        Some(dir) if !dir.is_empty() => root.join(dir),
+        _ => root.clone(),
     };
     let mut best: Option<(std::time::SystemTime, PathBuf)> = None;
     let mut stack = vec![search_root];
     while let Some(dir) = stack.pop() {
+        let dname = dir.file_name().and_then(|n| n.to_str()).unwrap_or("");
+        if dname == "subagents" || dir.to_string_lossy().contains("claude-mem") {
+            continue;
+        }
         let entries = match fs::read_dir(&dir) {
             Ok(e) => e,
             Err(_) => continue,
@@ -51,6 +51,10 @@ pub fn find_active_transcript(scope: Option<&str>) -> Option<PathBuf> {
             if path.is_dir() {
                 stack.push(path);
             } else if path.extension().and_then(|e| e.to_str()) == Some("jsonl") {
+                let fname = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+                if fname.starts_with("agent-") {
+                    continue; // subagent transcript, not a main session
+                }
                 if let Ok(modified) = entry.metadata().and_then(|m| m.modified()) {
                     if best.as_ref().map_or(true, |(t, _)| modified > *t) {
                         best = Some((modified, path));
@@ -60,6 +64,44 @@ pub fn find_active_transcript(scope: Option<&str>) -> Option<PathBuf> {
         }
     }
     best.map(|(_, p)| p)
+}
+
+/// Read the last `max_bytes` of a file as text, dropping the first (partial) line.
+fn read_tail(path: &Path, max_bytes: u64) -> String {
+    use std::io::{Read, Seek, SeekFrom};
+    let mut file = match fs::File::open(path) {
+        Ok(f) => f,
+        Err(_) => return String::new(),
+    };
+    let len = file.metadata().map(|m| m.len()).unwrap_or(0);
+    let start = len.saturating_sub(max_bytes);
+    if file.seek(SeekFrom::Start(start)).is_err() {
+        return String::new();
+    }
+    let mut buf = Vec::new();
+    if file.read_to_end(&mut buf).is_err() {
+        return String::new();
+    }
+    let s = String::from_utf8_lossy(&buf).into_owned();
+    if start > 0 {
+        if let Some(idx) = s.find('\n') {
+            return s[idx + 1..].to_string();
+        }
+    }
+    s
+}
+
+/// Read the first `max_bytes` of a file as text.
+fn read_head(path: &Path, max_bytes: usize) -> String {
+    use std::io::Read;
+    let mut file = match fs::File::open(path) {
+        Ok(f) => f,
+        Err(_) => return String::new(),
+    };
+    let mut buf = vec![0u8; max_bytes];
+    let n = file.read(&mut buf).unwrap_or(0);
+    buf.truncate(n);
+    String::from_utf8_lossy(&buf).into_owned()
 }
 
 /// List `(cwd, project_dir_name)` for every Claude Code project (for the scope picker).
@@ -97,7 +139,7 @@ fn newest_transcript_cwd(dir: &Path) -> Option<String> {
         }
     }
     let path = best?.1;
-    let content = fs::read_to_string(path).ok()?;
+    let content = read_head(&path, 16384);
     for line in content.lines() {
         if let Ok(v) = serde_json::from_str::<Value>(line) {
             if let Some(cwd) = v.get("cwd").and_then(|c| c.as_str()) {
@@ -157,7 +199,8 @@ fn block_to_text(block: &Value) -> Option<String> {
 /// Read the transcript, keep the last `max_turns` user/assistant turns (bounded to
 /// ~`max_bytes`), flattening tool calls and dropping chain-of-thought.
 pub fn tail_turns(path: &Path, max_turns: usize, max_bytes: usize) -> SessionContext {
-    let content = fs::read_to_string(path).unwrap_or_default();
+    // Read only the tail of the file (transcripts can be tens of MB).
+    let content = read_tail(path, 256 * 1024);
     let mut cwd = String::new();
     let mut git_branch = String::new();
     let mut turns: Vec<Turn> = Vec::new();
@@ -167,6 +210,13 @@ pub fn tail_turns(path: &Path, max_turns: usize, max_bytes: usize) -> SessionCon
             Ok(v) => v,
             Err(_) => continue,
         };
+        // Skip subagent (sidechain) and injected meta/skill-context lines.
+        if v.get("isSidechain").and_then(|b| b.as_bool()).unwrap_or(false) {
+            continue;
+        }
+        if v.get("isMeta").and_then(|b| b.as_bool()).unwrap_or(false) {
+            continue;
+        }
         if let Some(c) = v.get("cwd").and_then(|c| c.as_str()) {
             cwd = c.to_string();
         }
