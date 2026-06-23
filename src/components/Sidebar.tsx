@@ -10,11 +10,13 @@ import {
   Volume2,
   LayoutGrid,
   MessageSquare,
+  Bot,
 } from "lucide-react";
 import HandyTextLogo from "./icons/HandyTextLogo";
 import StratosMark from "./icons/StratosMark";
 import { Overview } from "./settings/overview/Overview";
 import { ConversationSettings } from "./settings/conversation/ConversationSettings";
+import { AgentsSettings } from "./settings/agents/AgentsSettings";
 import stratLogo from "../assets/strat-logo.png";
 import { useSettings } from "../hooks/useSettings";
 import {
@@ -74,6 +76,12 @@ export const SECTIONS_CONFIG = {
     labelKey: "sidebar.conversation",
     icon: MessageSquare,
     component: ConversationSettings,
+    enabled: () => true,
+  },
+  agents: {
+    labelKey: "sidebar.agents",
+    icon: Bot,
+    component: AgentsSettings,
     enabled: () => true,
   },
   advanced: {

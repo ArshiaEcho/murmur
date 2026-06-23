@@ -488,6 +488,16 @@ pub struct AppSettings {
     /// Conversation Mode: how many recent session turns to feed the model.
     #[serde(default = "default_converse_max_turns")]
     pub converse_max_turns: u32,
+    /// Voice Agent Control Center: per-session/per-repo voice (key = session_id or
+    /// repo_dashed -> ElevenLabs voice_id). Falls back to the global Read Aloud voice.
+    #[serde(default)]
+    pub session_voices: HashMap<String, String>,
+    /// Voice Agent Control Center: speak new session reports automatically (FIFO).
+    #[serde(default)]
+    pub agents_autospeak: bool,
+    /// Voice Agent Control Center: master on/off.
+    #[serde(default = "default_agents_enabled")]
+    pub agents_enabled: bool,
 }
 
 fn default_model() -> String {
@@ -512,6 +522,10 @@ fn default_converse_model() -> String {
 
 fn default_converse_max_turns() -> u32 {
     14
+}
+
+fn default_agents_enabled() -> bool {
+    true
 }
 
 fn default_translate_to_english() -> bool {
@@ -971,6 +985,9 @@ pub fn get_default_settings() -> AppSettings {
         converse_model: default_converse_model(),
         converse_project_scope: None,
         converse_max_turns: default_converse_max_turns(),
+        session_voices: HashMap::new(),
+        agents_autospeak: false,
+        agents_enabled: true,
     }
 }
 

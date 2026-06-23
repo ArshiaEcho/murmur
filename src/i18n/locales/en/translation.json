@@ -18,7 +18,8 @@
     "debug": "Debug",
     "about": "About",
     "overview": "Overview",
-    "conversation": "Conversation"
+    "conversation": "Conversation",
+    "agents": "Sessions"
   },
   "onboarding": {
     "subtitle": "To get started, choose a transcription model",
@@ -669,7 +670,9 @@
     "aboutHint": "Version & updates",
     "noModel": "No model",
     "systemVoice": "System voice",
-    "systemDefault": "System default"
+    "systemDefault": "System default",
+    "ready": "Ready",
+    "sessions": "Sessions"
   },
   "conversation": {
     "title": "Conversation Mode",
@@ -700,6 +703,21 @@
       "ask": "Ask",
       "thinking": "Thinking…",
       "stop": "Stop"
+    }
+  },
+  "agents": {
+    "title": "Voice Agents",
+    "subtitle": "Finished Claude Code sessions report here, ready to hear.",
+    "readyCount": "{{count}} ready",
+    "empty": "No agent reports yet. Connect a repo below, then finish a Claude Code session — its summary will appear here and can be read aloud.",
+    "untitled": "Session report",
+    "play": "Play",
+    "markReviewed": "Mark reviewed",
+    "delete": "Delete",
+    "connect": {
+      "title": "Connect a repo",
+      "description": "Install the Strat reporter into a repo's Claude Code so its sessions report back here when they finish.",
+      "enable": "Enable voice reports"
     }
   }
 }

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Cpu, Volume2, Sparkles, History, Cog, Info } from "lucide-react";
+import { Cpu, Volume2, Sparkles, History, Cog, Info, Bot } from "lucide-react";
 import { commands } from "@/bindings";
 import type { ElevenVoice } from "@/bindings";
 import { useSettings } from "../../../hooks/useSettings";
 import { useModelStore } from "../../../stores/modelStore";
+import { useAgentsStore } from "../../../stores/agentsStore";
 import { useOsType } from "../../../hooks/useOsType";
 import { useNavigate } from "../../../hooks/useNavigate";
 import { formatKeyCombination } from "../../../lib/utils/keyboard";
@@ -21,13 +22,19 @@ export const Overview: React.FC = () => {
   const osType = useOsType();
   const { getSetting } = useSettings();
   const { currentModel, models, downloadingModels } = useModelStore();
+  const agentRuns = useAgentsStore((s) => s.runs);
+  const initAgents = useAgentsStore((s) => s.init);
   const [elVoices, setElVoices] = useState<ElevenVoice[]>([]);
 
   useEffect(() => {
+    initAgents();
     commands.listElevenlabsVoices().then((r) => {
       if (r.status === "ok") setElVoices(r.data);
     });
-  }, []);
+  }, [initAgents]);
+
+  const agentsReady = agentRuns.filter((r) => r.status === "ready").length;
+  const agentSessions = new Set(agentRuns.map((r) => r.repo)).size;
 
   const bindings =
     (getSetting("bindings") as
@@ -80,6 +87,16 @@ export const Overview: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <SummaryCard
+          icon={Bot}
+          title={t("sidebar.agents")}
+          status={agentsReady > 0 ? "on" : "idle"}
+          onOpen={() => go("agents")}
+        >
+          <FieldRow label={t("overview.ready")} value={agentsReady} />
+          <FieldRow label={t("overview.sessions")} value={agentSessions} />
+        </SummaryCard>
+
         <SummaryCard
           icon={StratosMark}
           title={t("sidebar.general")}

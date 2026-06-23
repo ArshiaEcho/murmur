@@ -21,6 +21,7 @@ mod signal_handle;
 mod transcription_coordinator;
 mod tray;
 mod tray_i18n;
+mod agents;
 mod converse;
 mod tts;
 mod utils;
@@ -169,6 +170,11 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     app_handle.manage(model_manager.clone());
     app_handle.manage(transcription_manager.clone());
     app_handle.manage(history_manager.clone());
+
+    // Voice Agent Control Center: watch ~/.claude/strat/queue for finished-session reports.
+    let agent_queue = Arc::new(agents::AgentQueueManager::new(app_handle));
+    app_handle.manage(agent_queue.clone());
+    agent_queue.start();
 
     // Note: Shortcuts are NOT initialized here.
     // The frontend is responsible for calling the `initialize_shortcuts` command
@@ -447,8 +453,16 @@ pub fn run(cli_args: CliArgs) {
             commands::converse::set_converse_model,
             commands::converse::set_converse_scope,
             commands::converse::set_converse_api_key,
+            commands::agents::install_strat_reporter,
+            commands::agents::get_agent_runs,
+            commands::agents::play_agent_run,
+            commands::agents::dismiss_agent_run,
+            commands::agents::delete_agent_run,
         ])
-        .events(collect_events![managers::history::HistoryUpdatePayload,]);
+        .events(collect_events![
+            managers::history::HistoryUpdatePayload,
+            agents::AgentsUpdate,
+        ]);
 
     #[cfg(debug_assertions)] // <- Only export on non-release builds
     specta_builder
