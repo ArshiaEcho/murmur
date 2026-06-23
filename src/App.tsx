@@ -11,7 +11,11 @@ import { ModelStateEvent, RecordingErrorEvent } from "./lib/types/events";
 import "./App.css";
 import AccessibilityPermissions from "./components/AccessibilityPermissions";
 import Footer from "./components/footer";
-import Onboarding, { AccessibilityOnboarding } from "./components/onboarding";
+import Onboarding, {
+  AccessibilityOnboarding,
+  WelcomeOnboarding,
+  FinishOnboarding,
+} from "./components/onboarding";
 import { Sidebar, SidebarSection, SECTIONS_CONFIG } from "./components/Sidebar";
 import { NavigationContext } from "./hooks/useNavigate";
 import { useSettings } from "./hooks/useSettings";
@@ -19,7 +23,12 @@ import { useSettingsStore } from "./stores/settingsStore";
 import { commands } from "@/bindings";
 import { getLanguageDirection, initializeRTL } from "@/lib/utils/rtl";
 
-type OnboardingStep = "accessibility" | "model" | "done";
+type OnboardingStep =
+  | "welcome"
+  | "accessibility"
+  | "model"
+  | "finish"
+  | "done";
 
 const renderSettingsContent = (section: SidebarSection) => {
   const ActiveComponent =
@@ -214,14 +223,18 @@ function App() {
 
         setOnboardingStep("done");
       } else {
-        // New user - start full onboarding
+        // New user - start full onboarding with the welcome screen
         setIsReturningUser(false);
-        setOnboardingStep("accessibility");
+        setOnboardingStep("welcome");
       }
     } catch (error) {
       console.error("Failed to check onboarding status:", error);
       setOnboardingStep("accessibility");
     }
+  };
+
+  const handleWelcomeContinue = () => {
+    setOnboardingStep("accessibility");
   };
 
   const handleAccessibilityComplete = () => {
@@ -231,7 +244,11 @@ function App() {
   };
 
   const handleModelSelected = () => {
-    // Transition to main app - user has started a download
+    // New users get a finish/tips screen; returning users go straight to the app.
+    setOnboardingStep(isReturningUser ? "done" : "finish");
+  };
+
+  const handleFinish = () => {
     setOnboardingStep("done");
   };
 
@@ -240,12 +257,20 @@ function App() {
     return null;
   }
 
+  if (onboardingStep === "welcome") {
+    return <WelcomeOnboarding onContinue={handleWelcomeContinue} />;
+  }
+
   if (onboardingStep === "accessibility") {
     return <AccessibilityOnboarding onComplete={handleAccessibilityComplete} />;
   }
 
   if (onboardingStep === "model") {
     return <Onboarding onModelSelected={handleModelSelected} />;
+  }
+
+  if (onboardingStep === "finish") {
+    return <FinishOnboarding onDone={handleFinish} />;
   }
 
   return (
