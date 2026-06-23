@@ -447,6 +447,12 @@ pub struct AppSettings {
     pub whisper_gpu_device: i32,
     #[serde(default)]
     pub extra_recording_buffer_ms: u64,
+    /// Read Aloud (TTS): macOS `say` voice name; None = system default.
+    #[serde(default)]
+    pub tts_voice: Option<String>,
+    /// Read Aloud (TTS): speech rate in words per minute.
+    #[serde(default = "default_tts_rate")]
+    pub tts_rate: u32,
 }
 
 fn default_model() -> String {
@@ -455,6 +461,10 @@ fn default_model() -> String {
 
 fn default_always_on_microphone() -> bool {
     false
+}
+
+fn default_tts_rate() -> u32 {
+    175
 }
 
 fn default_translate_to_english() -> bool {
@@ -836,6 +846,22 @@ pub fn get_default_settings() -> AppSettings {
             output_target: OutputTarget::CaptureBuffer,
         },
     );
+    bindings.insert(
+        "read_selection".to_string(),
+        ShortcutBinding {
+            id: "read_selection".to_string(),
+            name: "Read selection aloud".to_string(),
+            description: "Speak the currently selected text aloud using a macOS voice."
+                .to_string(),
+            // Chord chosen for reliability: bare Insert/F13 are fn-layered or
+            // absent on many Mac keyboards (a bare Insert carries the Fn flag and
+            // never matches). Rebindable to any non-fn key in the Read Aloud settings.
+            default_binding: "option+ctrl+r".to_string(),
+            current_binding: "option+ctrl+r".to_string(),
+            prompt_id: None,
+            output_target: OutputTarget::Paste,
+        },
+    );
 
     AppSettings {
         bindings,
@@ -889,6 +915,8 @@ pub fn get_default_settings() -> AppSettings {
         ort_accelerator: OrtAcceleratorSetting::default(),
         whisper_gpu_device: default_whisper_gpu_device(),
         extra_recording_buffer_ms: 0,
+        tts_voice: None,
+        tts_rate: default_tts_rate(),
     }
 }
 

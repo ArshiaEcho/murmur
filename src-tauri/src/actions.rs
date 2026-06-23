@@ -20,6 +20,7 @@ use std::sync::Arc;
 use std::time::Instant;
 use tauri::Manager;
 use tauri::{AppHandle, Emitter};
+use tauri_plugin_clipboard_manager::ClipboardExt;
 
 #[derive(Clone, serde::Serialize)]
 struct RecordingErrorEvent {
@@ -743,6 +744,62 @@ impl ShortcutAction for TestAction {
     }
 }
 
+// Read-aloud (TTS) Action: speaks the current text selection via macOS `say`.
+// Not a transcribe binding, so it bypasses the recording coordinator entirely.
+struct ReadSelectionAction;
+
+impl ShortcutAction for ReadSelectionAction {
+    fn start(&self, app: &AppHandle, _binding_id: &str, _shortcut_str: &str) {
+        // Toggle: pressing the hotkey while it's speaking stops playback.
+        if crate::tts::is_speaking() {
+            crate::tts::stop();
+            return;
+        }
+
+        let app = app.clone();
+        std::thread::spawn(move || {
+            let clipboard = app.clipboard();
+            let saved = clipboard.read_text().unwrap_or_default();
+
+            // Copy the current selection. Keystroke injection must run on the
+            // main thread for reliability (same as the paste path).
+            let app_main = app.clone();
+            let _ = app.run_on_main_thread(move || {
+                if let Some(enigo_state) = app_main.try_state::<crate::input::EnigoState>() {
+                    if let Ok(mut enigo) = enigo_state.0.lock() {
+                        if let Err(e) = crate::input::send_copy_cmd_c(&mut enigo) {
+                            warn!("read_selection: copy keystroke failed: {}", e);
+                        }
+                    }
+                }
+            });
+
+            // Let the OS populate the pasteboard, then read + restore.
+            std::thread::sleep(std::time::Duration::from_millis(120));
+            let selection = clipboard.read_text().unwrap_or_default();
+            let _ = clipboard.write_text(&saved); // restore user's clipboard untouched
+
+            let trimmed = selection.trim();
+            if trimmed.is_empty() || selection == saved {
+                debug!("read_selection: no selection detected");
+                return;
+            }
+
+            let settings = get_settings(&app);
+            let rate = if settings.tts_rate > 0 {
+                Some(settings.tts_rate)
+            } else {
+                None
+            };
+            crate::tts::speak(trimmed, settings.tts_voice.as_deref(), rate);
+        });
+    }
+
+    fn stop(&self, _app: &AppHandle, _binding_id: &str, _shortcut_str: &str) {
+        // Fire-and-forget: nothing to do on key release.
+    }
+}
+
 // Static Action Map
 pub static ACTION_MAP: Lazy<HashMap<String, Arc<dyn ShortcutAction>>> = Lazy::new(|| {
     let mut map = HashMap::new();
@@ -771,6 +828,10 @@ pub static ACTION_MAP: Lazy<HashMap<String, Arc<dyn ShortcutAction>>> = Lazy::ne
     map.insert(
         "test".to_string(),
         Arc::new(TestAction) as Arc<dyn ShortcutAction>,
+    );
+    map.insert(
+        "read_selection".to_string(),
+        Arc::new(ReadSelectionAction) as Arc<dyn ShortcutAction>,
     );
     map
 });

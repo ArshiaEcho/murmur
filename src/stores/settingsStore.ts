@@ -83,6 +83,9 @@ const settingUpdaters: {
   audio_feedback_volume: (value) =>
     commands.changeAudioFeedbackVolumeSetting(value as number),
   sound_theme: (value) => commands.changeSoundThemeSetting(value as string),
+  tts_voice: (value) =>
+    commands.changeTtsVoiceSetting((value as string | null) ?? null),
+  tts_rate: (value) => commands.changeTtsRateSetting(value as number),
   start_hidden: (value) => commands.changeStartHiddenSetting(value as boolean),
   autostart_enabled: (value) =>
     commands.changeAutostartSetting(value as boolean),

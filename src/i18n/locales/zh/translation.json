@@ -11,6 +11,7 @@
   "sidebar": {
     "general": "通用",
     "models": "模型",
+    "readAloud": "Read Aloud",
     "advanced": "高级",
     "postProcessing": "后处理",
     "history": "历史记录",
@@ -172,6 +173,30 @@
       "noModelsMatch": "没有符合此筛选条件的模型。",
       "yourModels": "已下载的模型",
       "availableModels": "可供下载"
+    },
+    "readAloud": {
+      "title": "Read Aloud",
+      "voice": {
+        "title": "Voice",
+        "description": "Choose the system voice used to read selected text aloud.",
+        "systemDefault": "System default",
+        "none": "No voices were found on this system."
+      },
+      "rate": {
+        "title": "Speech rate",
+        "description": "How fast text is read, in words per minute."
+      },
+      "preview": {
+        "title": "Preview",
+        "description": "Hear a sample of the selected voice.",
+        "play": "Preview",
+        "stop": "Stop",
+        "sample": "This is how the Stratos voice sounds."
+      },
+      "hotkey": {
+        "title": "Read Aloud Shortcut",
+        "help": "Press the shortcut to read the current selection aloud. The default is the Insert key. F13 is a good alternative if Insert is on your laptop's fn-layer."
+      }
     },
     "general": {
       "title": "通用",

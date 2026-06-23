@@ -11,6 +11,7 @@
   "sidebar": {
     "general": "Chung",
     "models": "Mô hình",
+    "readAloud": "Read Aloud",
     "advanced": "Nâng cao",
     "postProcessing": "Xử lý sau",
     "history": "Lịch sử",
@@ -172,6 +173,30 @@
       "noModelsMatch": "Không có mô hình nào khớp với bộ lọc này.",
       "yourModels": "Mô hình đã tải",
       "availableModels": "Có sẵn để tải xuống"
+    },
+    "readAloud": {
+      "title": "Read Aloud",
+      "voice": {
+        "title": "Voice",
+        "description": "Choose the system voice used to read selected text aloud.",
+        "systemDefault": "System default",
+        "none": "No voices were found on this system."
+      },
+      "rate": {
+        "title": "Speech rate",
+        "description": "How fast text is read, in words per minute."
+      },
+      "preview": {
+        "title": "Preview",
+        "description": "Hear a sample of the selected voice.",
+        "play": "Preview",
+        "stop": "Stop",
+        "sample": "This is how the Stratos voice sounds."
+      },
+      "hotkey": {
+        "title": "Read Aloud Shortcut",
+        "help": "Press the shortcut to read the current selection aloud. The default is the Insert key. F13 is a good alternative if Insert is on your laptop's fn-layer."
+      }
     },
     "general": {
       "title": "Chung",

@@ -11,6 +11,7 @@
   "sidebar": {
     "general": "一般",
     "models": "モデル",
+    "readAloud": "Read Aloud",
     "advanced": "詳細設定",
     "postProcessing": "後処理",
     "history": "履歴",
@@ -172,6 +173,30 @@
       "noModelsMatch": "このフィルターに一致するモデルがありません。",
       "yourModels": "ダウンロード済みモデル",
       "availableModels": "ダウンロード可能"
+    },
+    "readAloud": {
+      "title": "Read Aloud",
+      "voice": {
+        "title": "Voice",
+        "description": "Choose the system voice used to read selected text aloud.",
+        "systemDefault": "System default",
+        "none": "No voices were found on this system."
+      },
+      "rate": {
+        "title": "Speech rate",
+        "description": "How fast text is read, in words per minute."
+      },
+      "preview": {
+        "title": "Preview",
+        "description": "Hear a sample of the selected voice.",
+        "play": "Preview",
+        "stop": "Stop",
+        "sample": "This is how the Stratos voice sounds."
+      },
+      "hotkey": {
+        "title": "Read Aloud Shortcut",
+        "help": "Press the shortcut to read the current selection aloud. The default is the Insert key. F13 is a good alternative if Insert is on your laptop's fn-layer."
+      }
     },
     "general": {
       "title": "一般",

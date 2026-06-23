@@ -4,5 +4,30 @@
 <dict>
   <key>NSMicrophoneUsageDescription</key>
   <string>Request microphone access to transcribe audio locally</string>
+
+  <key>NSServices</key>
+  <array>
+    <dict>
+      <key>NSMenuItem</key>
+      <dict>
+        <key>default</key>
+        <string>Read with Stratos House</string>
+      </dict>
+      <key>NSMessage</key>
+      <string>readWithStratos</string>
+      <key>NSPortName</key>
+      <string>Strat</string>
+      <key>NSSendTypes</key>
+      <array>
+        <string>public.utf8-plain-text</string>
+        <string>NSStringPboardType</string>
+      </array>
+      <key>NSRequiredContext</key>
+      <dict>
+        <key>NSTextContent</key>
+        <string>Text</string>
+      </dict>
+    </dict>
+  </array>
 </dict>
 </plist>

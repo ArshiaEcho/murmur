@@ -11,6 +11,7 @@
   "sidebar": {
     "general": "일반",
     "models": "모델",
+    "readAloud": "Read Aloud",
     "advanced": "고급",
     "postProcessing": "후처리",
     "history": "히스토리",
@@ -237,6 +238,30 @@
         "allLanguages": "모든 언어"
       },
       "noModelsMatch": "이 필터에 맞는 모델이 없습니다."
+    },
+    "readAloud": {
+      "title": "Read Aloud",
+      "voice": {
+        "title": "Voice",
+        "description": "Choose the system voice used to read selected text aloud.",
+        "systemDefault": "System default",
+        "none": "No voices were found on this system."
+      },
+      "rate": {
+        "title": "Speech rate",
+        "description": "How fast text is read, in words per minute."
+      },
+      "preview": {
+        "title": "Preview",
+        "description": "Hear a sample of the selected voice.",
+        "play": "Preview",
+        "stop": "Stop",
+        "sample": "This is how the Stratos voice sounds."
+      },
+      "hotkey": {
+        "title": "Read Aloud Shortcut",
+        "help": "Press the shortcut to read the current selection aloud. The default is the Insert key. F13 is a good alternative if Insert is on your laptop's fn-layer."
+      }
     },
     "advanced": {
       "title": "고급",

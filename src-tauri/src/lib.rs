@@ -13,12 +13,15 @@ mod managers;
 mod output;
 mod overlay;
 pub mod portable;
+#[cfg(target_os = "macos")]
+mod services_provider;
 mod settings;
 mod shortcut;
 mod signal_handle;
 mod transcription_coordinator;
 mod tray;
 mod tray_i18n;
+mod tts;
 mod utils;
 
 pub use cli::CliArgs;
@@ -427,6 +430,11 @@ pub fn run(cli_args: CliArgs) {
             commands::history::update_history_limit,
             commands::history::update_recording_retention_period,
             helpers::clamshell::is_laptop,
+            commands::tts::list_tts_voices,
+            commands::tts::preview_tts_voice,
+            commands::tts::stop_tts,
+            commands::tts::change_tts_voice_setting,
+            commands::tts::change_tts_rate_setting,
         ])
         .events(collect_events![managers::history::HistoryUpdatePayload,]);
 
@@ -542,6 +550,10 @@ pub fn run(cli_args: CliArgs) {
             app.manage(TranscriptionCoordinator::new(app_handle.clone()));
 
             initialize_core_logic(&app_handle);
+
+            // Register the macOS "Read with Stratos House" Services menu provider.
+            #[cfg(target_os = "macos")]
+            services_provider::register(&app_handle);
 
             // Pre-warm GPU/accelerator enumeration on a background thread.
             // The first call into transcribe_rs::whisper_cpp::gpu::list_gpu_devices
