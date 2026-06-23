@@ -258,9 +258,18 @@ const Detail: React.FC<{ session: SessionInfo; color: string; onClose: () => voi
   const scrollRef = useRef<HTMLDivElement>(null);
   const atBottomRef = useRef(true);
   const mounted = useRef(true);
+  const micRef = useRef<MicState>("idle");
+  useEffect(() => {
+    micRef.current = mic;
+  }, [mic]);
   useEffect(
     () => () => {
       mounted.current = false;
+      // Release a dangling recording if the drawer closes mid-listen, so the
+      // recorder doesn't stay on and block the global hotkey / next dictation.
+      if (micRef.current === "listening") {
+        commands.appStopDictation().catch(() => {});
+      }
     },
     [],
   );
