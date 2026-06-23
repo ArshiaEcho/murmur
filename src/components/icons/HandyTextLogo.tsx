@@ -22,14 +22,15 @@ const HandyTextLogo = ({
     >
       <text
         x="0"
-        y="50"
+        y="32"
+        dominantBaseline="central"
         fontFamily="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"
-        fontSize="56"
+        fontSize="48"
         fontWeight="800"
-        letterSpacing="-2"
+        letterSpacing="2"
         className="logo-primary"
       >
-        Strat
+        STRAT
       </text>
     </svg>
   );

@@ -111,6 +111,11 @@ transcribe-rs = { version = "0.3.3", features = ["whisper-vulkan"] }
 tauri-runtime = { git = "https://github.com/cjpais/tauri.git", branch = "handy-2.10.2" }
 tauri-runtime-wry = { git = "https://github.com/cjpais/tauri.git", branch = "handy-2.10.2" }
 tauri-utils = { git = "https://github.com/cjpais/tauri.git", branch = "handy-2.10.2" }
+# Local fork of handy-keys: macOS CGEventTap mask narrowed to keyboard-only so the
+# active (Default-mode) tap no longer stalls/drops mouse clicks under CPU load.
+# We keep Default mode (needed to swallow the bare `fn` hotkey); only the unused,
+# observe-only mouse event types are removed from the mask. See vendor/handy-keys.
+handy-keys = { path = "vendor/handy-keys" }
 
 [dev-dependencies]
 tempfile = "3"

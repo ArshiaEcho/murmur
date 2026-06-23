@@ -8,7 +8,12 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tauri::Manager;
 
-const STREAM_IDLE_TIMEOUT: Duration = Duration::from_secs(30);
+// Keep-alive window after a dictation ends before the mic stream is torn down.
+// With always_on_microphone OFF, lazy_stream_close=true reuses this still-open
+// stream for rapid re-dictation (instant start) while limiting how long the
+// macOS orange mic indicator lingers. Short by design: covers "press again in a
+// few seconds" without keeping the mic open continuously like always-on did.
+const STREAM_IDLE_TIMEOUT: Duration = Duration::from_secs(5);
 
 fn set_mute(mute: bool) {
     // Expected behavior:
