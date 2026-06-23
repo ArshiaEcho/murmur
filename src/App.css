@@ -106,3 +106,120 @@
   stroke: var(--color-logo-stroke);
   stroke-width: 1;
 }
+
+/* ── Design tokens: elevation + motion (additive) ───────────────────── */
+:root {
+  --elev-1: 0 1px 2px rgba(15, 15, 15, 0.06);
+  --elev-2: 0 2px 8px rgba(15, 15, 15, 0.08);
+  --elev-3: 0 8px 24px rgba(15, 15, 15, 0.12);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-io: cubic-bezier(0.45, 0, 0.55, 1);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --elev-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --elev-2: 0 2px 10px rgba(0, 0, 0, 0.45);
+    --elev-3: 0 10px 30px rgba(0, 0, 0, 0.55);
+  }
+}
+.elev-2 {
+  box-shadow: var(--elev-2);
+}
+.elev-3 {
+  box-shadow: var(--elev-3);
+}
+
+/* ── StratosMark hero animation (used by <StratosMark animated />) ───── */
+@keyframes sx-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.78);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes sx-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.035);
+    opacity: 0.92;
+  }
+}
+@keyframes sx-glow {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.sx-layer {
+  animation: sx-rise 0.7s var(--ease-out-quint) both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.sx-layer-2 {
+  animation-delay: 0.12s;
+}
+.sx-layer-3 {
+  animation-delay: 0.24s;
+}
+.sx-group {
+  animation: sx-breathe 3.2s var(--ease-io) infinite 0.9s;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.sx-base {
+  animation: sx-glow 3.2s var(--ease-io) infinite 1.2s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sx-layer,
+  .sx-group,
+  .sx-base {
+    animation: none;
+  }
+}
+
+/* ── Crafted slider thumb (buttery: elevated, hover/active grow) ─────── */
+.strat-slider {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.strat-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -5px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 2px solid var(--color-logo-primary);
+  box-shadow: var(--elev-2);
+  cursor: pointer;
+  transition:
+    transform 0.12s var(--ease-out-quint),
+    box-shadow 0.12s var(--ease-out-quint);
+}
+.strat-slider:hover::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+.strat-slider:active::-webkit-slider-thumb {
+  transform: scale(1.18);
+  box-shadow: var(--elev-3);
+}
+.strat-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 2px solid var(--color-logo-primary);
+  box-shadow: var(--elev-2);
+  cursor: pointer;
+}

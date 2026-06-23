@@ -151,10 +151,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           return (
             <div
               key={section.id}
-              className={`flex gap-2 items-center p-2 w-full rounded-lg cursor-pointer transition-colors ${
+              className={`flex gap-2 items-center p-2 w-full rounded-lg cursor-pointer transition-all duration-150 ${
                 isActive
-                  ? "bg-logo-primary/80"
-                  : "hover:bg-mid-gray/20 hover:opacity-100 opacity-85"
+                  ? "bg-logo-primary/15 text-logo-primary font-medium"
+                  : "text-text/80 hover:text-text hover:bg-mid-gray/15"
               }`}
               onClick={() => onSectionChange(section.id)}
             >
