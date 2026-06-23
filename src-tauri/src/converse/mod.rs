@@ -11,6 +11,7 @@ pub mod prompt;
 pub mod session;
 
 use crate::settings::AppSettings;
+use std::path::Path;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 /// Bumped on every turn / cancel so a superseded answer never speaks late.
@@ -22,26 +23,36 @@ pub fn run_turn(settings: &AppSettings, question: &str) -> Result<String, String
     if !settings.converse_enabled {
         return Err("Conversation Mode is off — enable it in the Conversation tab first.".to_string());
     }
+    let scope = settings.converse_project_scope.as_deref();
+    let path = session::find_active_transcript(scope)
+        .ok_or("No active Claude Code session transcript found")?;
+    run_turn_for_path(settings, question, &path)
+}
+
+/// Answer a question about a SPECIFIC session transcript (the Sessions view "Ask
+/// this session" box). Unlike `run_turn` this is not gated on `converse_enabled`,
+/// because the Sessions view is the new home for asking about a session.
+pub fn run_turn_for_path(
+    settings: &AppSettings,
+    question: &str,
+    path: &Path,
+) -> Result<String, String> {
     let my_gen = CONVERSE_GEN.fetch_add(1, Ordering::SeqCst) + 1;
 
     let api_key = settings
         .converse_api_key()
-        .ok_or("No Anthropic API key configured for Conversation Mode")?;
+        .ok_or("No Anthropic API key configured. Add it in Sessions settings.")?;
     let model = if settings.converse_model.trim().is_empty() {
         "claude-sonnet-4-6".to_string()
     } else {
         settings.converse_model.clone()
     };
-    let scope = settings.converse_project_scope.as_deref();
-
-    let path = session::find_active_transcript(scope)
-        .ok_or("No active Claude Code session transcript found")?;
     let max_turns = if settings.converse_max_turns == 0 {
         14
     } else {
         settings.converse_max_turns as usize
     };
-    let ctx = session::tail_turns(&path, max_turns, 12_000);
+    let ctx = session::tail_turns(path, max_turns, 12_000);
 
     let system = prompt::system_prompt();
     let user = prompt::user_prompt(question, &ctx);

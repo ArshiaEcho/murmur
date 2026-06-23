@@ -19,7 +19,8 @@
     "about": "About",
     "overview": "Overview",
     "conversation": "Conversation",
-    "agents": "Sessions"
+    "agents": "Sessions",
+    "sessions": "Sessions"
   },
   "onboarding": {
     "subtitle": "To get started, choose a transcription model",

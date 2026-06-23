@@ -10,13 +10,11 @@ import {
   Volume2,
   LayoutGrid,
   MessageSquare,
-  Bot,
 } from "lucide-react";
 import HandyTextLogo from "./icons/HandyTextLogo";
 import StratLogo from "./icons/StratLogo";
 import { Overview } from "./settings/overview/Overview";
-import { ConversationSettings } from "./settings/conversation/ConversationSettings";
-import { AgentsSettings } from "./settings/agents/AgentsSettings";
+import { SessionsView } from "./settings/sessions/SessionsView";
 import stratLogo from "../assets/strat-logo.png";
 import { useSettings } from "../hooks/useSettings";
 import {
@@ -72,16 +70,10 @@ export const SECTIONS_CONFIG = {
     component: ReadAloudSettings,
     enabled: () => true,
   },
-  conversation: {
-    labelKey: "sidebar.conversation",
+  sessions: {
+    labelKey: "sidebar.sessions",
     icon: MessageSquare,
-    component: ConversationSettings,
-    enabled: () => true,
-  },
-  agents: {
-    labelKey: "sidebar.agents",
-    icon: Bot,
-    component: AgentsSettings,
+    component: SessionsView,
     enabled: () => true,
   },
   advanced: {

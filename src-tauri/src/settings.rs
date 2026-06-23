@@ -498,6 +498,24 @@ pub struct AppSettings {
     /// Voice Agent Control Center: master on/off.
     #[serde(default = "default_agents_enabled")]
     pub agents_enabled: bool,
+    /// Sessions Observatory: auto-refresh Haiku summaries for active/pinned sessions.
+    #[serde(default)]
+    pub sessions_rolling_summaries: bool,
+    /// Sessions Observatory: pinned session ids (always summarized in rolling mode).
+    #[serde(default)]
+    pub sessions_pinned: Vec<String>,
+    /// Sessions Observatory: speak "X needs you" when a session needs attention.
+    #[serde(default)]
+    pub sessions_voice_alerts: bool,
+    /// Sessions Observatory: native macOS notification on waiting-for-you.
+    #[serde(default = "default_sessions_notifications")]
+    pub sessions_notifications: bool,
+    /// Sessions Observatory: hide SDK/automation (claude-mem) background sessions.
+    #[serde(default = "default_sessions_hide_background")]
+    pub sessions_hide_background: bool,
+    /// Sessions Observatory: model for the cheap one-line summaries (Haiku).
+    #[serde(default = "default_summary_model")]
+    pub summary_model: String,
 }
 
 fn default_model() -> String {
@@ -526,6 +544,18 @@ fn default_converse_max_turns() -> u32 {
 
 fn default_agents_enabled() -> bool {
     true
+}
+
+fn default_sessions_notifications() -> bool {
+    true
+}
+
+fn default_sessions_hide_background() -> bool {
+    true
+}
+
+fn default_summary_model() -> String {
+    "claude-haiku-4-5".to_string()
 }
 
 fn default_translate_to_english() -> bool {
@@ -988,6 +1018,12 @@ pub fn get_default_settings() -> AppSettings {
         session_voices: HashMap::new(),
         agents_autospeak: false,
         agents_enabled: true,
+        sessions_rolling_summaries: false,
+        sessions_pinned: Vec::new(),
+        sessions_voice_alerts: false,
+        sessions_notifications: default_sessions_notifications(),
+        sessions_hide_background: default_sessions_hide_background(),
+        summary_model: default_summary_model(),
     }
 }
 

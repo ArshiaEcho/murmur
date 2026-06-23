@@ -23,6 +23,7 @@ mod tray;
 mod tray_i18n;
 mod agents;
 mod converse;
+mod sessions;
 mod tts;
 mod utils;
 
@@ -189,6 +190,11 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     let agent_queue = Arc::new(agents::AgentQueueManager::new(app_handle));
     app_handle.manage(agent_queue.clone());
     agent_queue.start();
+
+    // Sessions Observatory: poll ~/.claude/sessions for live Claude Code sessions.
+    let session_registry = Arc::new(sessions::SessionRegistryManager::new(app_handle));
+    app_handle.manage(session_registry.clone());
+    session_registry.start();
 
     // Note: Shortcuts are NOT initialized here.
     // The frontend is responsible for calling the `initialize_shortcuts` command
@@ -473,10 +479,23 @@ pub fn run(cli_args: CliArgs) {
             commands::agents::dismiss_agent_run,
             commands::agents::delete_agent_run,
             commands::agents::mark_show_on_next_launch,
+            commands::sessions::get_sessions,
+            commands::sessions::summarize_session,
+            commands::sessions::get_session_transcript,
+            commands::sessions::ask_session,
+            commands::sessions::ask_session_cancel,
+            commands::sessions::speak_session_summary,
+            commands::sessions::focus_session_window,
+            commands::sessions::set_sessions_rolling,
+            commands::sessions::toggle_session_pin,
+            commands::sessions::set_sessions_voice_alerts,
+            commands::sessions::set_sessions_notifications,
+            commands::sessions::set_sessions_hide_background,
         ])
         .events(collect_events![
             managers::history::HistoryUpdatePayload,
             agents::AgentsUpdate,
+            sessions::SessionsUpdate,
         ]);
 
     #[cfg(debug_assertions)] // <- Only export on non-release builds

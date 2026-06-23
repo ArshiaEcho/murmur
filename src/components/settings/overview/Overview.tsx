@@ -84,9 +84,9 @@ export const Overview: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <SummaryCard
           icon={Bot}
-          title={t("sidebar.agents")}
+          title={t("sidebar.sessions")}
           status={agentsReady > 0 ? "on" : "idle"}
-          onOpen={() => go("agents")}
+          onOpen={() => go("sessions")}
         >
           <FieldRow label={t("overview.ready")} value={agentsReady} />
           <FieldRow label={t("overview.sessions")} value={agentSessions} />

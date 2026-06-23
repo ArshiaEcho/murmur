@@ -3,6 +3,7 @@ pub mod audio;
 pub mod converse;
 pub mod history;
 pub mod models;
+pub mod sessions;
 pub mod transcription;
 pub mod tts;
 
