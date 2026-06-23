@@ -516,6 +516,10 @@ pub struct AppSettings {
     /// Sessions Observatory: model for the cheap one-line summaries (Haiku).
     #[serde(default = "default_summary_model")]
     pub summary_model: String,
+    /// Sessions Observatory: per-project accent colors (key = project/workspace
+    /// basename or repo, value = hex like "#2dd4bf"). Empty = auto-assigned palette.
+    #[serde(default)]
+    pub project_colors: HashMap<String, String>,
 }
 
 fn default_model() -> String {
@@ -1024,6 +1028,7 @@ pub fn get_default_settings() -> AppSettings {
         sessions_notifications: default_sessions_notifications(),
         sessions_hide_background: default_sessions_hide_background(),
         summary_model: default_summary_model(),
+        project_colors: HashMap::new(),
     }
 }
 

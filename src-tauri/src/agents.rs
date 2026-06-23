@@ -1,5 +1,5 @@
 //! Voice Agent Control Center: a file-drop queue of "agent runs" (finished Claude
-//! Code session reports dropped by the Strat Stop hook / skill) that Strat watches,
+//! Code session reports dropped by the Murmur Stop hook / skill) that Murmur watches,
 //! lists in the Sessions dashboard, and speaks in the session's voice (Monoli by
 //! default). See docs/voice-agent-control-center.md.
 

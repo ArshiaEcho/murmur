@@ -201,3 +201,18 @@ pub fn set_sessions_hide_background(app: AppHandle, hidden: bool) -> Result<(), 
     settings::write_settings(&app, s);
     Ok(())
 }
+
+/// Set (or clear, when color is empty) a project's accent color. `key` is the
+/// project/workspace basename (or repo) the UI groups by.
+#[tauri::command]
+#[specta::specta]
+pub fn set_project_color(app: AppHandle, key: String, color: String) -> Result<(), String> {
+    let mut s = settings::get_settings(&app);
+    if color.trim().is_empty() {
+        s.project_colors.remove(&key);
+    } else {
+        s.project_colors.insert(key, color);
+    }
+    settings::write_settings(&app, s);
+    Ok(())
+}

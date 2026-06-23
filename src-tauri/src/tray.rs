@@ -87,9 +87,9 @@ pub fn tray_tooltip() -> String {
 
 fn version_label() -> String {
     if cfg!(debug_assertions) {
-        format!("Strat v{} (Dev)", env!("CARGO_PKG_VERSION"))
+        format!("Murmur v{} (Dev)", env!("CARGO_PKG_VERSION"))
     } else {
-        format!("Strat v{}", env!("CARGO_PKG_VERSION"))
+        format!("Murmur v{}", env!("CARGO_PKG_VERSION"))
     }
 }
 

@@ -129,7 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex flex-row items-center justify-center gap-2 mt-4 mb-2">
         <img
           src={stratLogo}
-          alt="Strat"
+          alt="Murmur"
           draggable={false}
           className="w-9 h-9 select-none shrink-0"
         />

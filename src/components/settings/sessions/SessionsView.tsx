@@ -7,10 +7,10 @@ import {
   GitBranch,
   Send,
   Square,
-  MessageSquare,
-  ChevronDown,
-  ChevronRight,
   Loader2,
+  Mic,
+  X,
+  SlidersHorizontal,
   Play,
   Radio,
 } from "lucide-react";
@@ -20,26 +20,20 @@ import { useSessionsStore } from "../../../stores/sessionsStore";
 import { useAgentsStore } from "../../../stores/agentsStore";
 import { useSettings } from "../../../hooks/useSettings";
 
-const STATUS_META: Record<
-  SessionStatus,
-  { dot: string; label: string; chip: string }
-> = {
-  working: {
-    dot: "bg-emerald-500",
-    label: "working",
-    chip: "bg-emerald-500/15 text-emerald-600",
-  },
-  waiting_for_you: {
-    dot: "bg-amber-400 animate-pulse",
-    label: "needs you",
-    chip: "bg-amber-400/15 text-amber-600",
-  },
-  idle: {
-    dot: "bg-mid-gray/40",
-    label: "idle",
-    chip: "bg-mid-gray/15 text-mid-gray",
-  },
-};
+// ---- color + status helpers --------------------------------------------------
+
+const PALETTE = [
+  "#2dd4bf", // teal
+  "#a78bfa", // violet
+  "#f59e0b", // amber
+  "#34d399", // emerald
+  "#60a5fa", // blue
+  "#f472b6", // pink
+  "#f87171", // red
+  "#22d3ee", // cyan
+  "#c084fc", // purple
+  "#fbbf24", // gold
+];
 
 function basename(p: string): string {
   const t = p.replace(/\/+$/, "");
@@ -47,23 +41,91 @@ function basename(p: string): string {
   return i >= 0 ? t.slice(i + 1) : t;
 }
 
+/** Stable auto-color for a project key when the user hasn't picked one. */
+function autoColor(key: string): string {
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+  return PALETTE[h % PALETTE.length];
+}
+
+function projectKeyOf(s: SessionInfo): string {
+  return s.workspace ? basename(s.workspace) : s.repo;
+}
+
 function rel(ms?: number | null): string {
   if (!ms) return "";
-  const s = Math.max(0, Math.floor((Date.now() - ms) / 1000));
-  if (s < 5) return "now";
-  if (s < 60) return `${s}s`;
-  const m = Math.floor(s / 60);
+  const sec = Math.max(0, Math.floor((Date.now() - ms) / 1000));
+  if (sec < 5) return "now";
+  if (sec < 60) return `${sec}s`;
+  const m = Math.floor(sec / 60);
   if (m < 60) return `${m}m`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h`;
   return `${Math.floor(h / 24)}d`;
 }
 
+const STATUS_META: Record<
+  SessionStatus,
+  { dot: string; label: string; chip: string }
+> = {
+  working: { dot: "bg-emerald-500", label: "working", chip: "bg-emerald-500/15 text-emerald-600" },
+  waiting_for_you: {
+    dot: "bg-amber-400 animate-pulse",
+    label: "needs you",
+    chip: "bg-amber-400/15 text-amber-600",
+  },
+  idle: { dot: "bg-mid-gray/40", label: "idle", chip: "bg-mid-gray/15 text-mid-gray" },
+};
+
 const StatusDot: React.FC<{ status: SessionStatus }> = ({ status }) => (
-  <span
-    className={`inline-block h-2.5 w-2.5 rounded-full shrink-0 ${STATUS_META[status].dot}`}
-  />
+  <span className={`inline-block h-2.5 w-2.5 rounded-full shrink-0 ${STATUS_META[status].dot}`} />
 );
+
+// ---- color swatch picker -----------------------------------------------------
+
+const SwatchPicker: React.FC<{ color: string; onPick: (c: string) => void }> = ({
+  color,
+  onPick,
+}) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
+        title="Project color"
+        className="h-3.5 w-3.5 rounded-full ring-2 ring-white/40 shrink-0"
+        style={{ backgroundColor: color }}
+      />
+      {open && (
+        <>
+          <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
+          <div className="absolute z-30 mt-1 left-0 flex flex-wrap gap-1.5 p-2 rounded-lg border border-mid-gray/20 bg-background shadow-lg w-[132px]">
+            {PALETTE.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => {
+                  onPick(c);
+                  setOpen(false);
+                }}
+                className={`h-5 w-5 rounded-full hover:scale-110 transition-transform ${
+                  c === color ? "ring-2 ring-offset-1 ring-mid-gray/50" : ""
+                }`}
+                style={{ backgroundColor: c }}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// ---- session row -------------------------------------------------------------
 
 const SessionRow: React.FC<{
   session: SessionInfo;
@@ -73,33 +135,26 @@ const SessionRow: React.FC<{
 }> = ({ session, active, onSelect, onPin }) => (
   <div
     onClick={onSelect}
-    className={`group flex items-start gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-colors ${
-      active
-        ? "bg-logo-primary/15"
-        : "hover:bg-mid-gray/10"
+    className={`group flex items-start gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors ${
+      active ? "bg-logo-primary/15" : "hover:bg-mid-gray/10"
     }`}
   >
-    <div className="pt-1">
+    <div className="pt-0.5">
       <StatusDot status={session.status} />
     </div>
     <div className="min-w-0 flex-1">
       <div className="flex items-center gap-1.5">
-        <p className="text-sm font-medium truncate flex-1" title={session.title ?? session.repo}>
+        <p className="text-[13px] font-medium truncate flex-1" title={session.title ?? session.repo}>
           {session.title ?? session.repo}
         </p>
-        <span className="text-[10px] text-mid-gray shrink-0">
-          {rel(session.last_activity_ms)}
+        <span className="text-[10px] text-mid-gray shrink-0">{rel(session.last_activity_ms)}</span>
+      </div>
+      {session.git_branch && (
+        <span className="flex items-center gap-0.5 text-[10px] text-mid-gray truncate">
+          <GitBranch size={9} />
+          {session.git_branch}
         </span>
-      </div>
-      <div className="flex items-center gap-1.5 text-[11px] text-mid-gray">
-        <span className="truncate">{session.repo}</span>
-        {session.git_branch && (
-          <span className="flex items-center gap-0.5 truncate">
-            <GitBranch size={10} />
-            {session.git_branch}
-          </span>
-        )}
-      </div>
+      )}
     </div>
     <button
       type="button"
@@ -114,32 +169,62 @@ const SessionRow: React.FC<{
           : "text-mid-gray opacity-0 group-hover:opacity-100"
       }`}
     >
-      <Pin size={13} fill={session.pinned ? "currentColor" : "none"} />
+      <Pin size={12} fill={session.pinned ? "currentColor" : "none"} />
     </button>
   </div>
 );
 
-const Group: React.FC<{
+// ---- project tile ------------------------------------------------------------
+
+const ProjectTile: React.FC<{
   name: string;
+  color: string;
   sessions: SessionInfo[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   onPin: (id: string) => void;
-}> = ({ name, sessions, selectedId, onSelect, onPin }) => {
-  const [open, setOpen] = useState(true);
+  onColor: (c: string) => void;
+}> = ({ name, color, sessions, selectedId, onSelect, onPin, onColor }) => {
+  const counts = sessions.reduce(
+    (a, s) => {
+      a[s.status] += 1;
+      return a;
+    },
+    { working: 0, waiting_for_you: 0, idle: 0 } as Record<SessionStatus, number>,
+  );
   return (
-    <div className="mb-1">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 w-full px-1.5 py-1 text-[11px] uppercase tracking-wide text-mid-gray hover:text-text"
-      >
-        {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-        <span className="truncate">{name}</span>
-        <span className="ml-auto">{sessions.length}</span>
-      </button>
-      {open &&
-        sessions.map((s) => (
+    <div
+      className="flex flex-col rounded-xl border border-mid-gray/15 bg-background overflow-hidden"
+      style={{ borderTopColor: color, borderTopWidth: 3 }}
+    >
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-mid-gray/10">
+        <SwatchPicker color={color} onPick={onColor} />
+        <h3 className="font-semibold text-sm truncate flex-1" title={name}>
+          {name}
+        </h3>
+        <div className="flex items-center gap-1.5 text-[10px]">
+          {counts.working > 0 && (
+            <span className="flex items-center gap-1 text-emerald-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              {counts.working}
+            </span>
+          )}
+          {counts.waiting_for_you > 0 && (
+            <span className="flex items-center gap-1 text-amber-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+              {counts.waiting_for_you}
+            </span>
+          )}
+          {counts.idle > 0 && (
+            <span className="flex items-center gap-1 text-mid-gray">
+              <span className="h-1.5 w-1.5 rounded-full bg-mid-gray/40" />
+              {counts.idle}
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="p-1.5 space-y-0.5">
+        {sessions.map((s) => (
           <SessionRow
             key={s.id}
             session={s}
@@ -148,11 +233,20 @@ const Group: React.FC<{
             onPin={() => onPin(s.id)}
           />
         ))}
+      </div>
     </div>
   );
 };
 
-const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
+// ---- detail (inside the drawer) ---------------------------------------------
+
+type MicState = "idle" | "listening" | "transcribing";
+
+const Detail: React.FC<{ session: SessionInfo; color: string; onClose: () => void }> = ({
+  session,
+  color,
+  onClose,
+}) => {
   const [turns, setTurns] = useState<TranscriptTurn[]>([]);
   const [summary, setSummary] = useState<string | null>(session.summary);
   const [summarizing, setSummarizing] = useState(false);
@@ -160,13 +254,10 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
   const [answer, setAnswer] = useState<string | null>(null);
   const [asking, setAsking] = useState(false);
   const [askErr, setAskErr] = useState<string | null>(null);
+  const [mic, setMic] = useState<MicState>("idle");
   const scrollRef = useRef<HTMLDivElement>(null);
   const atBottomRef = useRef(true);
   const mounted = useRef(true);
-
-  // Detail is keyed by session.id so it remounts on selection change (per-session
-  // state resets via initial useState); we only need an unmount flag for guarding
-  // setState after an in-flight ask/summarize when the user switches away.
   useEffect(
     () => () => {
       mounted.current = false;
@@ -174,12 +265,10 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
     [],
   );
 
-  // Keep the cached summary in sync as poll updates arrive.
   useEffect(() => {
     if (session.summary) setSummary(session.summary);
   }, [session.summary]);
 
-  // Live transcript: fetch on select, then poll while this session is open.
   useEffect(() => {
     let alive = true;
     const load = async () => {
@@ -194,8 +283,6 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
     };
   }, [session.id]);
 
-  // Auto-scroll to the newest turn only when the user is already at the bottom, so
-  // scrolling up to read history isn't yanked back down on every 2.5s poll.
   useEffect(() => {
     if (scrollRef.current && atBottomRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -224,14 +311,35 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
     else setAskErr(r.error);
   };
 
+  // Push-to-talk: click to start, click again to stop + transcribe into the box.
+  const toggleMic = async () => {
+    if (mic === "idle") {
+      const r = await commands.appStartDictation();
+      if (!mounted.current) return;
+      if (r.status === "ok") setMic("listening");
+      else setAskErr(r.error);
+    } else if (mic === "listening") {
+      setMic("transcribing");
+      const r = await commands.appStopDictation();
+      if (!mounted.current) return;
+      setMic("idle");
+      if (r.status === "ok") {
+        if (r.data) setQuestion((p) => (p.trim() ? p.trim() + " " : "") + r.data);
+      } else {
+        setAskErr(r.error);
+      }
+    }
+  };
+
   const meta = STATUS_META[session.status];
-  const btn =
-    "flex items-center gap-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5 border border-mid-gray/20 hover:bg-mid-gray/15 transition-colors";
+  const iconBtn =
+    "flex items-center justify-center h-8 w-8 rounded-lg border border-mid-gray/20 hover:bg-mid-gray/15 transition-colors";
 
   return (
     <div className="flex flex-col h-full min-w-0">
       {/* Header */}
-      <div className="flex items-start gap-3 pb-3 border-b border-mid-gray/15">
+      <div className="flex items-start gap-2 px-4 py-3 border-b border-mid-gray/15">
+        <span className="mt-1 h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold truncate" title={session.cwd}>
@@ -252,40 +360,32 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
             {session.is_background && <span>· background</span>}
           </div>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button type="button" className={btn} onClick={refreshSummary} disabled={summarizing}>
-            {summarizing ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
-            Summary
+        <div className="flex items-center gap-1 shrink-0">
+          <button type="button" className={iconBtn} onClick={refreshSummary} disabled={summarizing} title="Refresh summary">
+            {summarizing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+          </button>
+          <button type="button" className={iconBtn} onClick={() => commands.speakSessionSummary(session.id)} title="Speak summary">
+            <Volume2 size={14} />
+          </button>
+          <button type="button" className={iconBtn} onClick={() => commands.focusSessionWindow(session.id)} title="Focus this window">
+            <ExternalLink size={14} />
           </button>
           <button
             type="button"
-            className={btn}
-            onClick={() => commands.speakSessionSummary(session.id)}
-            title="Speak the summary"
-          >
-            <Volume2 size={13} />
-          </button>
-          <button
-            type="button"
-            className={btn}
-            onClick={() => commands.focusSessionWindow(session.id)}
-            title="Focus this session's window"
-          >
-            <ExternalLink size={13} />
-          </button>
-          <button
-            type="button"
-            className={`${btn} ${session.pinned ? "text-logo-primary" : ""}`}
+            className={`${iconBtn} ${session.pinned ? "text-logo-primary" : ""}`}
             onClick={() => commands.toggleSessionPin(session.id)}
             title={session.pinned ? "Unpin" : "Pin for live summaries"}
           >
-            <Pin size={13} fill={session.pinned ? "currentColor" : "none"} />
+            <Pin size={14} fill={session.pinned ? "currentColor" : "none"} />
+          </button>
+          <button type="button" className={iconBtn} onClick={onClose} title="Close">
+            <X size={16} />
           </button>
         </div>
       </div>
 
       {/* Summary */}
-      <div className="py-2.5 text-sm">
+      <div className="px-4 py-2.5 text-sm border-b border-mid-gray/10">
         {summary ? (
           <p className="text-text/90">{summary}</p>
         ) : (
@@ -305,10 +405,9 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
         ref={scrollRef}
         onScroll={(e) => {
           const el = e.currentTarget;
-          atBottomRef.current =
-            el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+          atBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
         }}
-        className="flex-1 overflow-y-auto rounded-lg bg-mid-gray/5 border border-mid-gray/10 p-3 space-y-2.5 min-h-0"
+        className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5 min-h-0"
       >
         {turns.length === 0 ? (
           <p className="text-xs text-mid-gray">No recent messages.</p>
@@ -322,24 +421,39 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
               >
                 {turn.role === "assistant" ? "Agent" : "You"}
               </span>
-              <p className="whitespace-pre-wrap break-words text-text/85 leading-snug">
-                {turn.text}
-              </p>
+              <p className="whitespace-pre-wrap break-words text-text/85 leading-snug">{turn.text}</p>
             </div>
           ))
         )}
       </div>
 
       {/* Ask box */}
-      <div className="pt-3">
+      <div className="px-4 py-3 border-t border-mid-gray/15">
         <div className="flex items-end gap-2">
+          <button
+            type="button"
+            onClick={toggleMic}
+            disabled={mic === "transcribing" || asking}
+            title={mic === "listening" ? "Stop & transcribe" : "Hold a thought — click to dictate"}
+            className={`flex items-center justify-center h-9 w-9 rounded-lg shrink-0 transition-colors ${
+              mic === "listening"
+                ? "bg-red-500 text-white animate-pulse"
+                : "border border-mid-gray/20 hover:bg-mid-gray/15"
+            } disabled:opacity-50`}
+          >
+            {mic === "transcribing" ? <Loader2 size={16} className="animate-spin" /> : <Mic size={16} />}
+          </button>
           <textarea
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) ask();
             }}
-            placeholder={`Ask about ${session.repo}…  (⌘/Ctrl+Enter to send · spoken back via Monoli)`}
+            placeholder={
+              mic === "listening"
+                ? "Listening… click the mic to stop"
+                : `Ask about ${session.repo}…  (mic or ⌘/Ctrl+Enter)`
+            }
             rows={2}
             className="flex-1 text-sm rounded-lg border border-mid-gray/20 bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-logo-primary resize-none"
           />
@@ -364,13 +478,58 @@ const Detail: React.FC<{ session: SessionInfo }> = ({ session }) => {
           </div>
         </div>
         {askErr && <p className="text-xs text-red-500 mt-1.5">{askErr}</p>}
-        {answer && (
-          <p className="text-sm bg-logo-primary/10 rounded-lg px-3 py-2 mt-1.5">{answer}</p>
-        )}
+        {answer && <p className="text-sm bg-logo-primary/10 rounded-lg px-3 py-2 mt-1.5">{answer}</p>}
       </div>
     </div>
   );
 };
+
+// ---- top-bar controls popover -----------------------------------------------
+
+const Controls: React.FC<{
+  rolling: boolean;
+  voiceAlerts: boolean;
+  hideBackground: boolean;
+  onRolling: () => void;
+  onVoiceAlerts: () => void;
+  onHideBackground: () => void;
+}> = ({ rolling, voiceAlerts, hideBackground, onRolling, onVoiceAlerts, onHideBackground }) => {
+  const [open, setOpen] = useState(false);
+  const row = "flex items-center gap-2 text-sm cursor-pointer px-1 py-1";
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 text-sm rounded-lg px-2.5 py-1.5 border border-mid-gray/20 hover:bg-mid-gray/15 transition-colors"
+        title="View options"
+      >
+        <SlidersHorizontal size={14} /> Options
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
+          <div className="absolute z-30 right-0 mt-1 w-64 p-2 rounded-xl border border-mid-gray/20 bg-background shadow-lg">
+            <label className={row}>
+              <input type="checkbox" checked={rolling} onChange={onRolling} />
+              Rolling summaries (auto-refresh)
+            </label>
+            <label className={row}>
+              <input type="checkbox" checked={voiceAlerts} onChange={onVoiceAlerts} />
+              Speak "needs you" alerts
+            </label>
+            <label className={row}>
+              <input type="checkbox" checked={!hideBackground} onChange={onHideBackground} />
+              Show background (SDK) sessions
+            </label>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// ---- main view ---------------------------------------------------------------
 
 export const SessionsView: React.FC = () => {
   const sessions = useSessionsStore((s) => s.sessions);
@@ -380,7 +539,6 @@ export const SessionsView: React.FC = () => {
   const reports = useAgentsStore((s) => s.runs);
   const initReports = useAgentsStore((s) => s.init);
   const { getSetting, refreshSettings } = useSettings();
-  const [showReports, setShowReports] = useState(false);
 
   useEffect(() => {
     init();
@@ -390,6 +548,7 @@ export const SessionsView: React.FC = () => {
   const hideBackground = getSetting("sessions_hide_background") ?? true;
   const rolling = !!getSetting("sessions_rolling_summaries");
   const voiceAlerts = !!getSetting("sessions_voice_alerts");
+  const projectColors = (getSetting("project_colors") ?? {}) as Record<string, string>;
 
   const visible = useMemo(
     () => sessions.filter((s) => !hideBackground || !s.is_background),
@@ -399,17 +558,23 @@ export const SessionsView: React.FC = () => {
   const groups = useMemo(() => {
     const g: Record<string, SessionInfo[]> = {};
     for (const s of visible) {
-      const key = s.workspace ? basename(s.workspace) : s.repo;
+      const key = projectKeyOf(s);
       (g[key] ??= []).push(s);
     }
-    return g;
+    // Sort projects: those needing attention first, then by name.
+    return Object.entries(g).sort((a, b) => {
+      const an = a[1].some((s) => s.status === "waiting_for_you") ? 1 : 0;
+      const bn = b[1].some((s) => s.status === "waiting_for_you") ? 1 : 0;
+      if (an !== bn) return bn - an;
+      return a[0].localeCompare(b[0]);
+    });
   }, [visible]);
 
+  const colorFor = (key: string) => projectColors[key] || autoColor(key);
   const liveCount = visible.length;
   const needCount = visible.filter((s) => s.status === "waiting_for_you").length;
   const selected = sessions.find((s) => s.id === selectedId) ?? null;
 
-  // Clear a dangling selection when the selected session ends and drops out.
   useEffect(() => {
     if (selectedId && !sessions.some((s) => s.id === selectedId)) select(null);
   }, [sessions, selectedId, select]);
@@ -426,102 +591,112 @@ export const SessionsView: React.FC = () => {
     await commands.setSessionsHideBackground(!hideBackground);
     await refreshSettings();
   };
-  const pin = (id: string) => commands.toggleSessionPin(id);
+  const pickColor = async (key: string, color: string) => {
+    await commands.setProjectColor(key, color);
+    await refreshSettings();
+  };
 
   return (
-    <div className="w-full flex gap-3 h-[78vh]">
-      {/* Left rail */}
-      <div className="w-72 shrink-0 flex flex-col rounded-xl border border-mid-gray/15 bg-background overflow-hidden">
-        <div className="px-3 py-2.5 border-b border-mid-gray/15">
-          <div className="flex items-center gap-2">
-            <Radio size={16} className="text-logo-primary" />
-            <h2 className="font-semibold text-sm">Sessions</h2>
-            <span className="ml-auto text-xs text-mid-gray">
-              {liveCount} live{needCount > 0 ? ` · ${needCount} need you` : ""}
-            </span>
-          </div>
-          <div className="flex flex-col gap-1 mt-2 text-[11px] text-mid-gray">
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" checked={rolling} onChange={toggleRolling} />
-              Rolling summaries (auto-refresh active + pinned)
-            </label>
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" checked={voiceAlerts} onChange={toggleVoiceAlerts} />
-              Speak "X needs you" alerts
-            </label>
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" checked={!hideBackground} onChange={toggleHideBackground} />
-              Show background (SDK) sessions
-            </label>
-          </div>
+    <div className="w-full flex flex-col gap-3 h-[80vh]">
+      {/* Top bar */}
+      <div className="flex items-center gap-3">
+        <Radio size={18} className="text-logo-primary shrink-0" />
+        <div className="flex items-baseline gap-2 flex-1 min-w-0">
+          <h1 className="text-lg font-semibold">Sessions</h1>
+          <span className="text-sm text-mid-gray truncate">
+            {liveCount} live{needCount > 0 ? ` · ${needCount} need you` : ""}
+          </span>
         </div>
-
-        <div className="flex-1 overflow-y-auto px-1.5 py-2">
-          {liveCount === 0 && (
-            <p className="text-xs text-mid-gray px-2 py-4">
-              No live Claude Code sessions found. Start one in a terminal or VS Code.
-            </p>
-          )}
-          {Object.entries(groups).map(([name, items]) => (
-            <Group
-              key={name}
-              name={name}
-              sessions={items}
-              selectedId={selectedId}
-              onSelect={select}
-              onPin={pin}
-            />
-          ))}
-
-          {/* Recently finished reports (from the Voice Agent queue). */}
-          {reports.length > 0 && (
-            <div className="mt-2 border-t border-mid-gray/15 pt-1">
-              <button
-                type="button"
-                onClick={() => setShowReports((o) => !o)}
-                className="flex items-center gap-1 w-full px-1.5 py-1 text-[11px] uppercase tracking-wide text-mid-gray hover:text-text"
-              >
-                {showReports ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                Recently finished
-                <span className="ml-auto">{reports.length}</span>
-              </button>
-              {showReports &&
-                reports.slice(0, 20).map((r) => (
-                  <div
-                    key={r.id}
-                    className="flex items-start gap-2 px-2.5 py-1.5 rounded-lg hover:bg-mid-gray/10"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm truncate" title={r.title ?? ""}>
-                        {r.title ?? "Session report"}
-                      </p>
-                      <p className="text-[11px] text-mid-gray truncate">{r.repo}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => commands.playAgentRun(r.id)}
-                      className="shrink-0 p-1 text-mid-gray hover:text-logo-primary"
-                      title="Play"
-                    >
-                      <Play size={13} />
-                    </button>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
+        <Controls
+          rolling={rolling}
+          voiceAlerts={voiceAlerts}
+          hideBackground={hideBackground}
+          onRolling={toggleRolling}
+          onVoiceAlerts={toggleVoiceAlerts}
+          onHideBackground={toggleHideBackground}
+        />
       </div>
 
-      {/* Detail pane */}
-      <div className="flex-1 min-w-0 rounded-xl border border-mid-gray/15 bg-background p-4">
-        {selected ? (
-          <Detail key={selected.id} session={selected} />
-        ) : (
+      {/* Project dashboard */}
+      <div className="flex-1 overflow-y-auto min-h-0 pr-1">
+        {liveCount === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center text-mid-gray gap-2">
-            <MessageSquare size={28} className="opacity-40" />
-            <p className="text-sm">Select a session to see its live chat, summary, and ask about it.</p>
+            <Radio size={28} className="opacity-40" />
+            <p className="text-sm">
+              No live Claude Code sessions found. Start one in a terminal or VS Code.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {groups.map(([name, items]) => (
+              <ProjectTile
+                key={name}
+                name={name}
+                color={colorFor(name)}
+                sessions={items}
+                selectedId={selectedId}
+                onSelect={select}
+                onPin={(id) => commands.toggleSessionPin(id)}
+                onColor={(c) => pickColor(name, c)}
+              />
+            ))}
           </div>
         )}
+
+        {/* Recently finished reports */}
+        {reports.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-[11px] uppercase tracking-wide text-mid-gray px-1 mb-1.5">
+              Recently finished ({reports.length})
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+              {reports.slice(0, 9).map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-start gap-2 px-3 py-2 rounded-lg border border-mid-gray/15 bg-background"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13px] truncate" title={r.title ?? ""}>
+                      {r.title ?? "Session report"}
+                    </p>
+                    <p className="text-[11px] text-mid-gray truncate">{r.repo}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => commands.playAgentRun(r.id)}
+                    className="shrink-0 p-1 text-mid-gray hover:text-logo-primary"
+                    title="Play"
+                  >
+                    <Play size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Right-side chat drawer */}
+      <div
+        className={`fixed inset-0 z-40 transition-opacity duration-200 ${
+          selected ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <div className="absolute inset-0 bg-black/30" onClick={() => select(null)} />
+        <div
+          className={`absolute top-0 right-0 h-full w-full sm:w-[460px] lg:w-[560px] bg-background border-s border-mid-gray/20 shadow-2xl transition-transform duration-300 ease-out ${
+            selected ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          {selected && (
+            <Detail
+              key={selected.id}
+              session={selected}
+              color={colorFor(projectKeyOf(selected))}
+              onClose={() => select(null)}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

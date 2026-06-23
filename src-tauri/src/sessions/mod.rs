@@ -656,7 +656,7 @@ impl SessionRegistryManager {
             // Only alert on a real transition (not on a session we just discovered).
             if became_waiting && was.is_some() {
                 if settings.sessions_notifications {
-                    notify("Strat", &format!("{} needs you", s.repo));
+                    notify("Murmur", &format!("{} needs you", s.repo));
                 }
                 if settings.sessions_voice_alerts {
                     crate::tts::speak_with_settings(settings, &format!("{} needs you", s.repo));

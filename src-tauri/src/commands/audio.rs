@@ -1,6 +1,7 @@
 use crate::audio_feedback;
 use crate::audio_toolkit::audio::{list_input_devices, list_output_devices};
 use crate::managers::audio::{AudioRecordingManager, MicrophoneMode};
+use crate::managers::transcription::TranscriptionManager;
 use crate::settings::{get_settings, write_settings};
 use log::warn;
 use serde::{Deserialize, Serialize};
@@ -309,4 +310,32 @@ pub fn get_clamshell_microphone(app: AppHandle) -> Result<String, String> {
 pub fn is_recording(app: AppHandle) -> bool {
     let audio_manager = app.state::<Arc<AudioRecordingManager>>();
     audio_manager.is_recording()
+}
+
+/// In-app push-to-talk: start recording for the Sessions Ask box. Uses a distinct
+/// binding id so it can't collide with the global dictation hotkey's recording
+/// state. Pair with `app_stop_dictation` to get the transcript back (NOT pasted).
+#[tauri::command]
+#[specta::specta]
+pub fn app_start_dictation(app: AppHandle) -> Result<(), String> {
+    let rm = app.state::<Arc<AudioRecordingManager>>();
+    rm.try_start_recording("app_dictation")
+}
+
+/// Stop the in-app recording, run local Whisper, and RETURN the transcript text
+/// (the caller drops it into the Ask box). Returns "" for an empty recording.
+#[tauri::command]
+#[specta::specta]
+pub fn app_stop_dictation(app: AppHandle) -> Result<String, String> {
+    let rm = app.state::<Arc<AudioRecordingManager>>();
+    let samples = rm
+        .stop_recording("app_dictation")
+        .ok_or("No in-app recording in progress")?;
+    if samples.is_empty() {
+        return Ok(String::new());
+    }
+    let tm = app.state::<Arc<TranscriptionManager>>();
+    tm.transcribe(samples)
+        .map(|t| t.trim().to_string())
+        .map_err(|e| format!("Transcription failed: {e}"))
 }

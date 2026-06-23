@@ -31,7 +31,7 @@ const HandyTextLogo = ({
         letterSpacing="2"
         className="logo-primary"
       >
-        STRAT
+        MURMUR
       </text>
     </svg>
   );

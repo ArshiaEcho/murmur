@@ -446,6 +446,8 @@ pub fn run(cli_args: CliArgs) {
             commands::audio::set_clamshell_microphone,
             commands::audio::get_clamshell_microphone,
             commands::audio::is_recording,
+            commands::audio::app_start_dictation,
+            commands::audio::app_stop_dictation,
             commands::transcription::set_model_unload_timeout,
             commands::transcription::get_model_load_status,
             commands::transcription::unload_model_manually,
@@ -491,6 +493,7 @@ pub fn run(cli_args: CliArgs) {
             commands::sessions::set_sessions_voice_alerts,
             commands::sessions::set_sessions_notifications,
             commands::sessions::set_sessions_hide_background,
+            commands::sessions::set_project_color,
         ])
         .events(collect_events![
             managers::history::HistoryUpdatePayload,
@@ -581,7 +584,7 @@ pub fn run(cli_args: CliArgs) {
             // for portable mode (redirects WebView2 cache to portable Data dir)
             let mut win_builder =
                 tauri::WebviewWindowBuilder::new(app, "main", tauri::WebviewUrl::App("/".into()))
-                    .title("Strat")
+                    .title("Murmur")
                     .inner_size(680.0, 570.0)
                     .min_inner_size(680.0, 570.0)
                     .resizable(true)

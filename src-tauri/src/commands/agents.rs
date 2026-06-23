@@ -92,7 +92,7 @@ def clean(t):
 
 spoken = clean(last_text)
 if len(spoken) > 1200:
-    spoken = spoken[:1200].rsplit(" ", 1)[0] + " ... open Strat for the full report."
+    spoken = spoken[:1200].rsplit(" ", 1)[0] + " ... open Murmur for the full report."
 
 repo = os.path.basename(cwd.rstrip("/")) or "session"
 repo_dashed = re.sub(r"[^A-Za-z0-9]", "-", cwd)
@@ -116,12 +116,12 @@ with open(statef, "w") as sf:
 
 const SKILL_MD: &str = r#"---
 name: strat-report
-description: Use at the end of a work session, or when the user says "report to strat", "strat report", "push to strat", "read this back", or "tell strat what we did". Delivers this session's end-of-work summary (what we did / what's next) to the Strat macOS app's Agent queue so it is read back aloud in this session's assigned voice. Also fires automatically via the Stop hook; invoke explicitly to push a clean spoken summary mid-session.
+description: Use at the end of a work session, or when the user says "report to strat", "strat report", "push to strat", "read this back", or "tell strat what we did". Delivers this session's end-of-work summary (what we did / what's next) to the Murmur macOS app's Agent queue so it is read back aloud in this session's assigned voice. Also fires automatically via the Stop hook; invoke explicitly to push a clean spoken summary mid-session.
 ---
 
-# Strat Report — push a spoken session summary to the Strat app
+# Murmur Report — push a spoken session summary to the Murmur app
 
-You are reporting this session's outcome to Strat (the macOS voice app). Strat reads your
+You are reporting this session's outcome to Murmur (the macOS voice app). Murmur reads your
 summary aloud and shows it in the Agents dashboard, labeled by this repo. Write for the ear.
 
 ## How to write the summary (voice-first)
@@ -141,7 +141,7 @@ summary aloud and shows it in the Agents dashboard, labeled by this repo. Write 
 3. Tell the user in one line that it was pushed and will be read back.
 
 ## Notes
-- The helper writes a queue entry to ~/.claude/strat/queue/; Strat owns the voice.
+- The helper writes a queue entry to ~/.claude/strat/queue/; Murmur owns the voice.
 - Do not include secrets or full file contents; the summary is spoken aloud and stored.
 "#;
 
@@ -168,7 +168,7 @@ run = {"v":1,"id":str(uuid.uuid4()),"kind":"session_report",
 fd, tmp = tempfile.mkstemp(dir=queue_dir, prefix=".tmp-", suffix=".json")
 with os.fdopen(fd,"w",encoding="utf-8") as f: json.dump(run,f,ensure_ascii=False)
 os.replace(tmp, os.path.join(queue_dir, run["id"]+".json"))
-print("strat-report: pushed to Strat queue")
+print("strat-report: pushed to Murmur queue")
 PY
 "#;
 
@@ -255,7 +255,7 @@ pub fn install_strat_reporter(repo_path: String) -> Result<String, String> {
     Ok(if already {
         "Already installed for this repo.".to_string()
     } else {
-        format!("Installed. Sessions in {} will now report to Strat.", repo_path)
+        format!("Installed. Sessions in {} will now report to Murmur.", repo_path)
     })
 }
 
