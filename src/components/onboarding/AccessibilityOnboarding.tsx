@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { commands } from "@/bindings";
 import { useSettingsStore } from "@/stores/settingsStore";
 import HandyTextLogo from "../icons/HandyTextLogo";
-import StratosMark from "../icons/StratosMark";
+import stratLogo from "../../assets/strat-logo.png";
 import { Keyboard, Mic, Check, Loader2 } from "lucide-react";
 
 interface AccessibilityOnboardingProps {
@@ -309,12 +309,11 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
   return (
     <div className="h-screen w-screen flex flex-col p-6 gap-6 items-center justify-center">
       <div className="flex flex-col items-center gap-2">
-        <StratosMark
-          variant="brand"
-          outline
-          animated
-          size={96}
-          className="select-none drop-shadow-[0_8px_24px_rgba(22,184,163,0.35)]"
+        <img
+          src={stratLogo}
+          alt="Stratos"
+          draggable={false}
+          className="w-24 h-24 select-none"
         />
         <HandyTextLogo width={200} />
       </div>

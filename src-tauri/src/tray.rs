@@ -219,7 +219,8 @@ pub fn update_tray_menu(app: &AppHandle, state: &TrayIconState, locale: Option<&
 
     let tray = app.state::<TrayIcon>();
     let _ = tray.set_menu(Some(menu));
-    let _ = tray.set_icon_as_template(true);
+    // Show the real Stratos logo in color (not a recolored monochrome silhouette).
+    let _ = tray.set_icon_as_template(false);
     let _ = tray.set_tooltip(Some(version_label));
 }
 

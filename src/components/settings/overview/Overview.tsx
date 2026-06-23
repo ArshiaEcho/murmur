@@ -9,7 +9,7 @@ import { useAgentsStore } from "../../../stores/agentsStore";
 import { useOsType } from "../../../hooks/useOsType";
 import { useNavigate } from "../../../hooks/useNavigate";
 import { formatKeyCombination } from "../../../lib/utils/keyboard";
-import StratosMark from "../../icons/StratosMark";
+import StratLogo from "../../icons/StratLogo";
 import HandyTextLogo from "../../icons/HandyTextLogo";
 import { SummaryCard } from "./SummaryCard";
 import { KeyChip, FieldRow } from "./fields";
@@ -74,12 +74,7 @@ export const Overview: React.FC = () => {
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
       <div className="flex items-center gap-4 rounded-2xl border border-logo-primary/20 bg-gradient-to-br from-logo-primary/10 to-transparent p-5">
-        <StratosMark
-          variant="brand"
-          outline
-          size={56}
-          className="shrink-0 drop-shadow-[0_6px_18px_rgba(22,184,163,0.30)]"
-        />
+        <StratLogo size={56} className="shrink-0 select-none" />
         <div className="min-w-0">
           <HandyTextLogo width={96} />
           <p className="text-sm text-mid-gray mt-1">{t("overview.tagline")}</p>
@@ -98,7 +93,7 @@ export const Overview: React.FC = () => {
         </SummaryCard>
 
         <SummaryCard
-          icon={StratosMark}
+          icon={StratLogo}
           title={t("sidebar.general")}
           onOpen={() => go("general")}
         >

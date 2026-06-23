@@ -13,7 +13,7 @@ import {
   Bot,
 } from "lucide-react";
 import HandyTextLogo from "./icons/HandyTextLogo";
-import StratosMark from "./icons/StratosMark";
+import StratLogo from "./icons/StratLogo";
 import { Overview } from "./settings/overview/Overview";
 import { ConversationSettings } from "./settings/conversation/ConversationSettings";
 import { AgentsSettings } from "./settings/agents/AgentsSettings";
@@ -56,7 +56,7 @@ export const SECTIONS_CONFIG = {
   },
   general: {
     labelKey: "sidebar.general",
-    icon: StratosMark,
+    icon: StratLogo,
     component: GeneralSettings,
     enabled: () => true,
   },
