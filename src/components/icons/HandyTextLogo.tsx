@@ -21,8 +21,9 @@ const HandyTextLogo = ({
       xmlns="http://www.w3.org/2000/svg"
     >
       <text
-        x="0"
+        x="105"
         y="32"
+        textAnchor="middle"
         dominantBaseline="central"
         fontFamily="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"
         fontSize="48"

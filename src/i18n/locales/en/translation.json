@@ -111,7 +111,8 @@
       },
       "accessibility": {
         "title": "Accessibility Access",
-        "description": "Required to type transcribed text into your applications."
+        "description": "Required to type transcribed text into your applications.",
+        "restartHint": "Already toggled it on? macOS only applies Accessibility after a restart — click below."
       },
       "grant": "Grant Permission",
       "granted": "Granted",
@@ -120,7 +121,8 @@
       "errors": {
         "checkFailed": "Failed to check permissions. Please try again.",
         "requestFailed": "Failed to request permission. Please try again."
-      }
+      },
+      "restart": "Restart Strat"
     }
   },
   "modelSelector": {
