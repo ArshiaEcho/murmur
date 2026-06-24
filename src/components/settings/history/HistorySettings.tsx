@@ -138,7 +138,9 @@ export const HistorySettings: React.FC = () => {
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [loading, hasMore, loadPage]);
+    // `query` is a dep so clearing a search re-mounts the sentinel and we
+    // re-observe it (otherwise infinite scroll would stay dead after a search).
+  }, [loading, hasMore, loadPage, query]);
 
   // Listen for new entries added from the transcription pipeline
   useEffect(() => {

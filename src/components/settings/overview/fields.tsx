@@ -8,14 +8,15 @@ export const KeyChip: React.FC<{ keys: string }> = ({ keys }) => (
   </span>
 );
 
-// Token-driven status dot. `active`/`on` read as live (signal/teal), `loading`
-// pulses (warn), `off` is the danger-free muted state and `idle` is neutral.
+// Token-driven status dot. `active`/`on` read as live (teal --live), `loading`
+// pulses (warn), `off` is the muted state and `idle` is neutral. (Gold --signal
+// is reserved for primary actions, not live state.)
 export const StatusDot: React.FC<{ state?: ChipState }> = ({
   state = "idle",
 }) => {
   const cls =
     state === "active" || state === "on"
-      ? "bg-signal"
+      ? "bg-live"
       : state === "loading"
         ? "bg-warn motion-safe:animate-pulse"
         : state === "off"

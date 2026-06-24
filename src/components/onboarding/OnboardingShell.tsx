@@ -1,13 +1,11 @@
 import React from "react";
+import StratLogo from "../icons/StratLogo";
 
 /**
- * The nested-diamond Murmur mark from the design handoff: two signal-stroke
- * facets over a solid lower facet washed with a gold gradient, plus a soft
- * breathing gold glow behind it. Honors reduced-motion via the media query
- * inside App.css's keyframe usage (the glow simply holds still).
+ * The real Stratos House mark with a soft breathing gold glow behind it. Honors
+ * reduced-motion via the motion-safe prefix (the glow simply holds still).
  */
 export const MurmurMark: React.FC<{ size?: number }> = ({ size = 74 }) => {
-  const gradId = React.useId();
   return (
     <div
       className="relative"
@@ -26,44 +24,7 @@ export const MurmurMark: React.FC<{ size?: number }> = ({ size = 74 }) => {
           opacity: 0.6,
         }}
       />
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 48 48"
-        fill="none"
-        className="relative"
-      >
-        <path
-          d="M24 6 L40 17.5 L24 29 L8 17.5 Z"
-          fill="none"
-          stroke="var(--signal)"
-          strokeOpacity="0.45"
-          strokeWidth="2.2"
-        />
-        <path
-          d="M24 12.5 L40 24 L24 35.5 L8 24 Z"
-          fill="none"
-          stroke="var(--signal)"
-          strokeOpacity="0.72"
-          strokeWidth="2.2"
-        />
-        <path
-          d="M24 18.5 L34 26 L24 33.5 L14 26 Z"
-          fill="var(--signal)"
-          fillOpacity="0.95"
-        />
-        <path
-          d="M24 18.5 L34 26 L24 33.5 L14 26 Z"
-          fill={`url(#${gradId})`}
-          fillOpacity="0.6"
-        />
-        <defs>
-          <linearGradient id={gradId} x1="0" y1="0.4" x2="0" y2="1">
-            <stop offset="0" stopColor="var(--signal)" stopOpacity="0" />
-            <stop offset="1" stopColor="var(--gold)" />
-          </linearGradient>
-        </defs>
-      </svg>
+      <StratLogo size={size} className="relative" />
     </div>
   );
 };

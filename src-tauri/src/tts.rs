@@ -370,6 +370,22 @@ fn split_for_reading(text: &str) -> Vec<String> {
                     if cur.len() + word.len() + 1 > MAX {
                         flush(&mut chunks, &mut cur);
                     }
+                    // A single word longer than MAX (e.g. a long URL/token) would
+                    // otherwise become an over-budget chunk: hard-split by chars.
+                    if word.len() > MAX {
+                        flush(&mut chunks, &mut cur);
+                        let mut piece = String::new();
+                        for ch in word.chars() {
+                            if piece.len() + ch.len_utf8() > MAX {
+                                chunks.push(std::mem::take(&mut piece));
+                            }
+                            piece.push(ch);
+                        }
+                        if !piece.is_empty() {
+                            cur.push_str(&piece);
+                        }
+                        continue;
+                    }
                     if !cur.is_empty() {
                         cur.push(' ');
                     }
@@ -494,8 +510,14 @@ fn speak_chunked<F>(
                 }
             }
         }
-        // Drop the receiver so the producer's next send fails, then wind it down.
-        drop(rx);
+        // Cancelled or finished: drain any synthesized-but-unplayed chunks (the
+        // depth-1 buffer + one in-flight send) and delete their temp files so a
+        // cancel mid-read doesn't leak. recv() ends once the producer drops tx.
+        while let Ok((_, result)) = rx.recv() {
+            if let Ok(path) = result {
+                let _ = std::fs::remove_file(&path);
+            }
+        }
         let _ = producer.join();
     });
 }

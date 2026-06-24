@@ -13,6 +13,9 @@ import { LogDirectory } from "../debug";
 const STRATOS_URL = "https://stratosagency.ai";
 const REPO_URL = "https://github.com/ArshiaEcho/murmur";
 
+const openExternal = (url: string) =>
+  openUrl(url).catch((e) => console.error("Failed to open URL:", e));
+
 export const AboutSettings: React.FC = () => {
   const { t } = useTranslation();
   const [version, setVersion] = useState("");
@@ -45,14 +48,14 @@ export const AboutSettings: React.FC = () => {
             <Button
               variant="primary"
               size="md"
-              onClick={() => openUrl(STRATOS_URL)}
+              onClick={() => openExternal(STRATOS_URL)}
             >
               {t("settings.about.stratos.website")}
             </Button>
             <Button
               variant="secondary"
               size="md"
-              onClick={() => openUrl(REPO_URL)}
+              onClick={() => openExternal(REPO_URL)}
             >
               <Github size={15} />
               {t("settings.about.stratos.github")}

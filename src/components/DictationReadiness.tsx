@@ -87,9 +87,10 @@ export const DictationReadiness: React.FC = () => {
     { key: "model", ok: model, fix: () => navigate("models") },
   ];
 
-  const known = items.filter((i) => i.ok !== null);
-  const remaining = known.filter((i) => i.ok === false).length;
-  const allReady = known.length > 0 && remaining === 0;
+  // Treat "still checking" (null) as not-ready so the header can't briefly flash
+  // "ready" before the permission checks settle.
+  const remaining = items.filter((i) => i.ok !== true).length;
+  const allReady = remaining === 0;
 
   const onGrant = async (item: ReadinessItem) => {
     if (item.grant) {
