@@ -1,0 +1,56 @@
+{
+  "_meta": {
+    "product": "Murmur",
+    "asOf": "2026-06-23",
+    "purpose": "Single source of truth for screenshot + brand-asset inventory and capture status. Supersedes any count mentioned in prose docs.",
+    "capturedCount": 22,
+    "todoCount": 6,
+    "windowSize": { "sections": "1280x860", "onboarding": "680x570" },
+    "captureNote": "PNGs captured from the running Murmur v0.9.0 app on macOS at 2x Retina; window-id capture (screencapture -o -l). Both light and dark where applicable."
+  },
+
+  "screenshots": [
+    { "file": "overview-dark.png",  "screen": "overview",  "theme": "dark",  "state": "populated", "status": "captured" },
+    { "file": "overview-light.png", "screen": "overview",  "theme": "light", "state": "populated", "status": "captured" },
+    { "file": "general-dark.png",   "screen": "general",   "theme": "dark",  "state": "default",   "status": "captured" },
+    { "file": "general-light.png",  "screen": "general",   "theme": "light", "state": "default",   "status": "captured" },
+    { "file": "models-dark.png",    "screen": "models",    "theme": "dark",  "state": "parakeet-active", "status": "captured" },
+    { "file": "models-light.png",   "screen": "models",    "theme": "light", "state": "parakeet-active", "status": "captured" },
+    { "file": "readaloud-dark.png", "screen": "readAloud", "theme": "dark",  "state": "default",   "status": "captured" },
+    { "file": "readaloud-light.png","screen": "readAloud", "theme": "light", "state": "default",   "status": "captured" },
+    { "file": "sessions-dashboard-dark.png",  "screen": "sessions", "theme": "dark",  "state": "populated-live", "status": "captured", "hero": true, "note": "live multi-project dashboard, mixed statuses, color-coded tiles" },
+    { "file": "sessions-dashboard-light.png", "screen": "sessions", "theme": "light", "state": "populated-live", "status": "captured", "hero": true },
+    { "file": "advanced-dark.png",  "screen": "advanced",  "theme": "dark",  "state": "default",   "status": "captured" },
+    { "file": "advanced-light.png", "screen": "advanced",  "theme": "light", "state": "default",   "status": "captured" },
+    { "file": "history-dark.png",   "screen": "history",   "theme": "dark",  "state": "populated", "status": "captured" },
+    { "file": "history-light.png",  "screen": "history",   "theme": "light", "state": "populated", "status": "captured" },
+    { "file": "postprocessing-dark.png",  "screen": "postprocessing", "theme": "dark",  "state": "apple-intelligence", "status": "captured" },
+    { "file": "postprocessing-light.png", "screen": "postprocessing", "theme": "light", "state": "apple-intelligence", "status": "captured" },
+    { "file": "about-dark.png",     "screen": "about",     "theme": "dark",  "state": "default",   "status": "captured" },
+    { "file": "about-light.png",    "screen": "about",     "theme": "light", "state": "default",   "status": "captured" },
+    { "file": "onboarding-welcome-dark.png",  "screen": "onboarding/welcome", "theme": "dark",  "state": "first-run", "status": "captured" },
+    { "file": "onboarding-welcome-light.png", "screen": "onboarding/welcome", "theme": "light", "state": "first-run", "status": "captured" },
+    { "file": "onboarding-model-dark.png",    "screen": "onboarding/model",   "theme": "dark",  "state": "first-run", "status": "captured" },
+    { "file": "onboarding-model-light.png",   "screen": "onboarding/model",   "theme": "light", "state": "first-run", "status": "captured" },
+
+    { "file": "sessions-drawer-dark.png",   "screen": "sessions/drawer", "theme": "dark",  "state": "open-summary-transcript-ask", "status": "todo", "hero": true, "note": "the hero interaction — open drawer w/ summary + multi-turn transcript + Ask box + mic" },
+    { "file": "sessions-drawer-light.png",  "screen": "sessions/drawer", "theme": "light", "state": "open-summary-transcript-ask", "status": "todo", "hero": true },
+    { "file": "sessions-mic-listening.png", "screen": "sessions/drawer", "theme": "any", "state": "mic-listening", "status": "todo", "note": "red pulsing mic (push-to-talk held)" },
+    { "file": "sessions-mic-transcribing.png", "screen": "sessions/drawer", "theme": "any", "state": "mic-transcribing", "status": "todo", "note": "spinner after release" },
+    { "file": "swatch-open.png",            "screen": "sessions/tile", "theme": "any", "state": "swatch-picker-open", "status": "todo" },
+    { "file": "options-popover-open.png",   "screen": "sessions",      "theme": "any", "state": "options-menu-open", "status": "todo" },
+    { "file": "overlay.png",                "screen": "recording-overlay", "theme": "any", "state": "dictating", "status": "todo", "note": "separate floating NSPanel window; press dictation hotkey" },
+    { "file": "onboarding-accessibility.png", "screen": "onboarding/accessibility", "theme": "dark", "state": "permission-gate", "status": "todo", "note": "only renders when a macOS permission is NOT granted" },
+    { "file": "onboarding-finish.png",      "screen": "onboarding/finish", "theme": "dark", "state": "first-run-complete", "status": "todo", "note": "renders only after completing a model download in first-run" }
+  ],
+
+  "brandAssets": {
+    "_comment": "Identity assets that must NOT change (shared Stratos identity). Restyle around them; do not redraw them.",
+    "items": [
+      { "file": "src/assets/strat-logo.png", "role": "Murmur app/sidebar mark (nested-diamonds), raster" },
+      { "component": "src/components/icons/StratLogo.tsx", "role": "nested-diamonds logo as SVG (fills use --color-logo-primary / --color-logo-stroke)" },
+      { "component": "src/components/icons/HandyTextLogo.tsx", "role": "MURMUR wordmark SVG (textLength-pinned; uses -webkit-text-stroke)" }
+    ],
+    "lockedIdentity": { "bundleId": "com.stratos.strat", "productName": "Murmur", "tagline": "a Stratos House product" }
+  }
+}
