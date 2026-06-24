@@ -320,7 +320,16 @@ function App() {
               <NavigationContext.Provider
                 value={(s) => setCurrentSection(s as SidebarSection)}
               >
-                {renderSettingsContent(currentSection)}
+                {/* Keyed wrapper: subtle slide-fade on section change (buttery,
+                    reduced-motion-safe via the global App.css block) while keeping
+                    the flex chain so full-height views like Sessions still fill. */}
+                <div
+                  key={currentSection}
+                  className="w-full flex-1 min-h-0 flex flex-col"
+                  style={{ animation: "mur-reveal 0.18s var(--ease-out-quint)" }}
+                >
+                  {renderSettingsContent(currentSection)}
+                </div>
               </NavigationContext.Provider>
             </div>
           </div>
