@@ -528,6 +528,17 @@
           "refreshModels": "Refresh models"
         }
       },
+      "presets": {
+        "title": "Refinement presets",
+        "description": "One-click cleanup prompts. Add one and it becomes your selected prompt.",
+        "items": {
+          "cleanup": "Clean up",
+          "fillers": "Remove fillers",
+          "selfcorrect": "Fix self-corrections",
+          "technical": "Preserve technical terms",
+          "professional": "Professional tone"
+        }
+      },
       "prompts": {
         "title": "Prompt",
         "selectedPrompt": {
