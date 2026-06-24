@@ -1,82 +1,151 @@
 @import "tailwindcss";
 
-@theme {
-  /* Design tokens */
-  --color-text: #0f0f0f;
-  --color-background: #fbfbfb;
-  --color-background-ui: #0FA697;
-  --color-logo-primary: #16B8A3;
-  --color-logo-stroke: #0E3B37;
-  --color-text-stroke: #f6f6f6;
-  --color-mid-gray: #808080;
-}
+/* ═══════════════════════════════════════════════════════════════════════
+   Murmur Design System v2 — "instrument canvas"
+   Near-black dark (primary) + bone light. Two teals collapsed into one
+   --signal (live state, active nav, primary fill, focus ring). Per-project
+   color is the organizing spine. Tokens are theme-switchable CSS custom
+   properties; @theme inline aliases expose them as Tailwind utilities.
+   ═══════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Typography */
+  /* Type families (the main app had NO font-family before — this fixes it) */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Monaco, monospace;
+
+  /* ── LIGHT (bone) — default ── */
+  --bg: #ECEBE3;
+  --bg-2: #F3F2EC;
+  --card: #FBFBF8;
+  --card-2: #FFFFFF;
+  --card-hover: #F2F1EA;
+  --line: rgba(22, 32, 28, 0.10);
+  --line-2: rgba(22, 32, 28, 0.17);
+  --text: #141A16;
+  --text-2: rgba(20, 26, 22, 0.56);
+  --text-3: rgba(20, 26, 22, 0.40);
+  --signal: #0FA697;
+  --on-signal: #FFFFFF;
+  --signal-soft: rgba(15, 166, 151, 0.12);
+  --accent-surface: #16201C;
+  --accent-on: #EEF3F1;
+  --warn: #C77A12;
+  --warn-soft: rgba(199, 122, 18, 0.12);
+  --ok: #0F9D6B;
+  --ok-soft: rgba(15, 157, 107, 0.12);
+  --danger: #E5484D;
+  --danger-soft: rgba(229, 72, 77, 0.12);
+  --gold: #C68A2E;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.5), 0 22px 46px rgba(20, 30, 26, 0.16);
+  --neutral: #5d6863; /* solid neutral for legacy /opacity borders */
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-io: cubic-bezier(0.45, 0, 0.55, 1);
+
+  /* Legacy mark tokens (the nested-diamond logo) */
+  --color-logo-stroke: var(--text);
+  --color-text-stroke: var(--bg);
+
+  --scrollbar-thumb: color-mix(in srgb, var(--text), transparent 85%);
+  --scrollbar-thumb-hover: color-mix(in srgb, var(--text), transparent 70%);
+
+  /* Base typography */
+  font-family: var(--font);
   font-size: 15px;
   line-height: 24px;
   font-weight: 400;
-
-  /* Colors - Light Theme */
-  /* --color-text: #0f0f0f;
-  --color-background: #fbfbfb;
-  --color-logo-primary: #16B8A3;
-  --color-logo-stroke: #382731;
-  --color-text-stroke: #f6f6f6; */
-
-  /* Typography settings */
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 
-  --scrollbar-thumb: color-mix(in srgb, var(--color-text), transparent 85%);
-  --scrollbar-thumb-hover: color-mix(
-    in srgb,
-    var(--color-text),
-    transparent 70%
-  );
-
-  /* Apply colors */
-  color: var(--color-text);
-  background-color: var(--color-background);
-}
-
-.container {
-  margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
+  color: var(--text);
+  background-color: var(--bg);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Colors - Dark Theme */
-    --color-text: #fbfbfb;
-    --color-background: #1B2422;
-    --color-logo-primary: #2FD3BD;
-    --color-logo-stroke: #CFEFE8;
+    /* ── DARK (instrument canvas) — primary ── */
+    --bg: #0A0C0B;
+    --bg-2: #0E1211;
+    --card: #141A18;
+    --card-2: #1A211E;
+    --card-hover: #1E2522;
+    --line: rgba(228, 240, 236, 0.085);
+    --line-2: rgba(228, 240, 236, 0.16);
+    --text: #F2F5F4;
+    --text-2: rgba(242, 245, 244, 0.56);
+    --text-3: rgba(242, 245, 244, 0.36);
+    --signal: #2FD3BD;
+    --on-signal: #06201C;
+    --signal-soft: rgba(47, 211, 189, 0.15);
+    --accent-surface: #CFEAE3;
+    --accent-on: #0A1A16;
+    --warn: #FBBF24;
+    --warn-soft: rgba(251, 191, 36, 0.16);
+    --ok: #34D399;
+    --ok-soft: rgba(52, 211, 153, 0.15);
+    --danger: #F87171;
+    --danger-soft: rgba(248, 113, 113, 0.16);
+    --gold: #E7B45C;
+    --shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 22px 50px rgba(0, 0, 0, 0.55);
+    --neutral: #9fb0ab;
   }
 }
 
-/* macOS - tint native overlay scrollbar thumb */
+/* ── Tailwind v4 utility aliases (theme-switchable via the vars above) ──
+   Gives bg-card / text-text-2 / border-line / text-signal / etc.
+   `inline` makes Tailwind emit var() references, not the resolved value,
+   so utilities follow light/dark. Legacy --color-* names are remapped to
+   the new system so not-yet-ported components recolor cleanly. */
+@theme inline {
+  --font-sans: var(--font);
+  --font-mono: var(--mono);
+
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-card-hover: var(--card-hover);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-signal: var(--signal);
+  --color-on-signal: var(--on-signal);
+  --color-signal-soft: var(--signal-soft);
+  --color-accent-surface: var(--accent-surface);
+  --color-accent-on: var(--accent-on);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-gold: var(--gold);
+
+  /* legacy names → new system (transition safety net) */
+  --color-background: var(--bg);
+  --color-background-ui: var(--signal);
+  --color-logo-primary: var(--signal);
+  --color-mid-gray: var(--neutral);
+  --color-logo-stroke: var(--color-logo-stroke);
+  --color-text-stroke: var(--color-text-stroke);
+}
+
+/* ── macOS native overlay scrollbars; custom only on Win/Linux ── */
 :root[data-platform="macos"] {
   scrollbar-color: var(--scrollbar-thumb) transparent;
 }
-
-/* Custom Scrollbar - only on Windows/Linux; macOS uses native overlay scrollbars */
 :root:not([data-platform="macos"]) ::-webkit-scrollbar {
   width: 14px;
   height: 14px;
 }
-
 :root:not([data-platform="macos"]) ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 :root:not([data-platform="macos"]) ::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-thumb);
   border-radius: 20px;
@@ -86,7 +155,6 @@
   background-clip: content-box;
   min-height: 32px;
 }
-
 :root:not([data-platform="macos"]) ::-webkit-scrollbar-thumb:hover {
   background-color: var(--scrollbar-thumb-hover);
 }
@@ -95,25 +163,27 @@
   .text-stroke {
     -webkit-text-stroke: 2px var(--color-text-stroke);
   }
+  /* tabular numerals for counts/timestamps (design system: big tabular nums) */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
+/* nested-diamond mark fills */
 .logo-primary {
-  fill: var(--color-logo-primary);
+  fill: var(--signal);
 }
-
 .logo-stroke {
   fill: var(--color-logo-stroke);
   stroke: var(--color-logo-stroke);
   stroke-width: 1;
 }
 
-/* ── Design tokens: elevation + motion (additive) ───────────────────── */
+/* legacy elevation tokens (kept; new system prefers --shadow) */
 :root {
   --elev-1: 0 1px 2px rgba(15, 15, 15, 0.06);
   --elev-2: 0 2px 8px rgba(15, 15, 15, 0.08);
   --elev-3: 0 8px 24px rgba(15, 15, 15, 0.12);
-  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-io: cubic-bezier(0.45, 0, 0.55, 1);
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -129,48 +199,54 @@
   box-shadow: var(--elev-3);
 }
 
-/* ── StratosMark hero animation (used by <StratosMark animated />) ───── */
+/* ═══ Animations (design system v2) ═══ */
+@keyframes mur-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes mur-dotpulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes mur-micring {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(2); opacity: 0; }
+}
+@keyframes mur-breathe {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+@keyframes mur-reveal {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes mur-shimmer {
+  0% { background-position: -180px 0; }
+  100% { background-position: 340px 0; }
+}
+@keyframes mur-ring-rotate {
+  to { transform: rotate(360deg); }
+}
+
+/* ── StratosMark hero animation (used by <StratosMark animated />) ── */
 @keyframes sx-rise {
-  0% {
-    opacity: 0;
-    transform: translateY(8px) scale(0.78);
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-  }
+  0% { opacity: 0; transform: translateY(8px) scale(0.78); }
+  100% { opacity: 1; transform: none; }
 }
 @keyframes sx-breathe {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.035);
-    opacity: 0.92;
-  }
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.035); opacity: 0.92; }
 }
 @keyframes sx-glow {
-  0%,
-  100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
-  }
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 .sx-layer {
   animation: sx-rise 0.7s var(--ease-out-quint) both;
   transform-box: fill-box;
   transform-origin: center;
 }
-.sx-layer-2 {
-  animation-delay: 0.12s;
-}
-.sx-layer-3 {
-  animation-delay: 0.24s;
-}
+.sx-layer-2 { animation-delay: 0.12s; }
+.sx-layer-3 { animation-delay: 0.24s; }
 .sx-group {
   animation: sx-breathe 3.2s var(--ease-io) infinite 0.9s;
   transform-box: fill-box;
@@ -179,15 +255,18 @@
 .sx-base {
   animation: sx-glow 3.2s var(--ease-io) infinite 1.2s;
 }
+
 @media (prefers-reduced-motion: reduce) {
+  *,
   .sx-layer,
   .sx-group,
   .sx-base {
-    animation: none;
+    animation: none !important;
+    transition: none !important;
   }
 }
 
-/* ── Crafted slider thumb (buttery: elevated, hover/active grow) ─────── */
+/* ── Crafted slider thumb ── */
 .strat-slider {
   -webkit-appearance: none;
   appearance: none;
@@ -199,8 +278,8 @@
   height: 18px;
   margin-top: -5px;
   border-radius: 9999px;
-  background: #ffffff;
-  border: 2px solid var(--color-logo-primary);
+  background: var(--card-2);
+  border: 2px solid var(--signal);
   box-shadow: var(--elev-2);
   cursor: pointer;
   transition:
@@ -218,8 +297,17 @@
   width: 18px;
   height: 18px;
   border-radius: 9999px;
-  background: #ffffff;
-  border: 2px solid var(--color-logo-primary);
+  background: var(--card-2);
+  border: 2px solid var(--signal);
   box-shadow: var(--elev-2);
   cursor: pointer;
+}
+
+.container {
+  margin: 0;
+  padding-top: 10vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
 }

@@ -23,6 +23,40 @@
     "sessions": "Sessions"
   },
   "onboarding": {
+    "welcome": {
+      "subtitle": "Your voice layer for Claude Code.",
+      "footnote": "a Stratos House product",
+      "getStarted": "Get started",
+      "dictate": {
+        "title": "Dictate anywhere",
+        "body": "Talk instead of type. A hotkey turns your voice into clean text in any app — including Claude Code."
+      },
+      "hearItBack": {
+        "title": "Hear it back",
+        "body": "Read Aloud speaks any selection in a natural voice (Monoli) — proofread with your ears."
+      },
+      "runSessions": {
+        "title": "Run your sessions",
+        "body": "See every live Claude Code session at a glance, ask any of them what's going on, and get told when one needs you."
+      }
+    },
+    "finish": {
+      "subtitle": "You're all set.",
+      "footnote": "Murmur is listening — here's how to get the most out of it.",
+      "start": "Start using Murmur",
+      "dictate": {
+        "title": "Dictate",
+        "body": "Press your dictation hotkey, speak, and the text lands in whatever's focused."
+      },
+      "readAloud": {
+        "title": "Read Aloud",
+        "body": "Select text and press ⌥⌃R to hear it in the Monoli voice."
+      },
+      "sessions": {
+        "title": "Sessions",
+        "body": "Open the Sessions tab to see every live Claude Code session, color-coded by project — click one to chat or ask by voice."
+      }
+    },
     "subtitle": "To get started, choose a transcription model",
     "recommended": "Recommended",
     "download": "Download",
@@ -675,7 +709,9 @@
     "systemVoice": "System voice",
     "systemDefault": "System default",
     "ready": "Ready",
-    "sessions": "Sessions"
+    "sessions": "Sessions",
+    "agentsNeedYou": "agents need you",
+    "live": "live"
   },
   "conversation": {
     "title": "Conversation Mode",
@@ -722,5 +758,30 @@
       "description": "Install the Murmur reporter into a repo's Claude Code so its sessions report back here when they finish.",
       "enable": "Enable voice reports"
     }
+  },
+  "sessions": {
+    "title": "Sessions",
+    "live": "live",
+    "needYou": "need you",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "empty": "No live Claude Code sessions. Start one and it'll appear here.",
+    "recentlyFinished": "Recently finished",
+    "openChat": "Open chat",
+    "noSummary": "No summary yet — open the chat to ask what this session is doing.",
+    "summary": "Summary",
+    "transcript": "Transcript",
+    "agent": "Agent",
+    "you": "You",
+    "noMessages": "No messages yet in this session.",
+    "askError": "Couldn't get an answer. {{error}}",
+    "ask": "Ask",
+    "stop": "Stop",
+    "background": "· background",
+    "timeAgo": "{{time}} ago",
+    "options": "Options",
+    "rollingSummaries": "Rolling summaries (auto-refresh)",
+    "voiceAlerts": "Speak \"needs you\" alerts",
+    "showBackground": "Show background sessions"
   }
 }

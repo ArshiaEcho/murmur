@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Cpu, Volume2, Sparkles, History, Cog, Info, Bot } from "lucide-react";
+import { Cpu, Volume2, Sparkles, History, Cog, Info } from "lucide-react";
 import { commands } from "@/bindings";
 import type { ElevenVoice } from "@/bindings";
 import { useSettings } from "../../../hooks/useSettings";
@@ -10,7 +10,6 @@ import { useOsType } from "../../../hooks/useOsType";
 import { useNavigate } from "../../../hooks/useNavigate";
 import { formatKeyCombination } from "../../../lib/utils/keyboard";
 import StratLogo from "../../icons/StratLogo";
-import HandyTextLogo from "../../icons/HandyTextLogo";
 import { SummaryCard } from "./SummaryCard";
 import { KeyChip, FieldRow } from "./fields";
 
@@ -72,26 +71,52 @@ export const Overview: React.FC = () => {
   const mic = getSetting("selected_microphone") || t("overview.systemDefault");
 
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
-      <div className="flex items-center gap-4 rounded-2xl border border-logo-primary/20 bg-gradient-to-br from-logo-primary/10 to-transparent p-5">
-        <StratLogo size={56} className="shrink-0 select-none" />
-        <div className="min-w-0">
-          <HandyTextLogo width={96} />
-          <p className="text-sm text-mid-gray mt-1">{t("overview.tagline")}</p>
-        </div>
+    <div className="mx-auto w-full max-w-5xl">
+      <div className="mb-5 flex flex-wrap items-end gap-3">
+        <h1 className="m-0 text-[28px] font-semibold tracking-[-0.5px] text-text">
+          {t("sidebar.overview")}
+        </h1>
+        <span className="pb-[5px] font-mono text-[12.5px] font-medium text-text-3">
+          {t("overview.tagline")}
+        </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        <SummaryCard
-          icon={Bot}
-          title={t("sidebar.sessions")}
-          status={agentsReady > 0 ? "on" : "idle"}
-          onOpen={() => go("sessions")}
-        >
-          <FieldRow label={t("overview.ready")} value={agentsReady} />
-          <FieldRow label={t("overview.sessions")} value={agentSessions} />
-        </SummaryCard>
+      {/* HERO — inverted accent surface, deep-links into Sessions */}
+      <button
+        type="button"
+        onClick={() => go("sessions")}
+        aria-label={`${t("sidebar.sessions")}: ${agentsReady} ${t("overview.ready")}, ${agentSessions} ${t("overview.sessions")}`}
+        className="relative mb-[13px] w-full overflow-hidden rounded-[20px] bg-accent-surface px-[26px] py-6 text-left text-accent-on transition-[filter] duration-150 [transition-timing-function:var(--ease-out-quint)] hover:brightness-[1.03] focus:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+      >
+        <div className="flex flex-wrap items-start gap-[18px]">
+          <div className="min-w-[200px] flex-1">
+            <div className="font-mono text-[11px] font-semibold uppercase tracking-[1.5px] opacity-[.62]">
+              {t("sidebar.sessions")}
+            </div>
+            <div className="mt-2.5 flex flex-wrap items-end gap-[13px]">
+              <span className="font-sans text-[58px] font-semibold leading-[0.9] tracking-[-2.5px] tnum">
+                {agentsReady}
+              </span>
+              <span className="pb-2 text-sm font-medium opacity-[.62]">
+                {t("overview.agentsNeedYou")} · {agentSessions}{" "}
+                {t("overview.live")}
+              </span>
+            </div>
+          </div>
+          <div className="flex max-w-[200px] flex-wrap gap-[7px] self-center">
+            {agentRuns.map((r) => (
+              <span
+                key={r.id}
+                className="h-[13px] w-[13px] rounded-full bg-accent-on"
+                style={{ opacity: r.status === "ready" ? 1 : 0.22 }}
+              />
+            ))}
+          </div>
+        </div>
+      </button>
 
+      {/* Summary cards — each deep-links into its settings section */}
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(232px,1fr))] gap-3">
         <SummaryCard
           icon={StratLogo}
           title={t("sidebar.general")}
@@ -154,7 +179,9 @@ export const Overview: React.FC = () => {
           title={t("sidebar.advanced")}
           onOpen={() => go("advanced")}
         >
-          <p className="text-sm text-mid-gray">{t("overview.advancedHint")}</p>
+          <p className="text-xs font-medium text-text-3">
+            {t("overview.advancedHint")}
+          </p>
         </SummaryCard>
 
         <SummaryCard
@@ -162,7 +189,9 @@ export const Overview: React.FC = () => {
           title={t("sidebar.about")}
           onOpen={() => go("about")}
         >
-          <p className="text-sm text-mid-gray">{t("overview.aboutHint")}</p>
+          <p className="text-xs font-medium text-text-3">
+            {t("overview.aboutHint")}
+          </p>
         </SummaryCard>
       </div>
     </div>

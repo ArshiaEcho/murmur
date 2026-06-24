@@ -55,7 +55,7 @@ export const TextDisplay: React.FC<TextDisplayProps> = ({
       <div className="flex items-center space-x-2">
         <div className="flex-1 min-w-0">
           <div
-            className={`px-2 min-h-8 flex items-center bg-mid-gray/10 border border-mid-gray/80 rounded-md text-xs ${textClasses} ${!value ? "opacity-60" : ""}`}
+            className={`px-3 min-h-8 flex items-center bg-card-2 border border-line-2 rounded-xl text-xs text-text-2 ${textClasses} ${!value ? "opacity-60" : ""}`}
           >
             {displayValue}
           </div>
@@ -63,8 +63,9 @@ export const TextDisplay: React.FC<TextDisplayProps> = ({
         {copyable && value && (
           <button
             onClick={handleCopy}
-            className="flex items-center justify-center px-2 py-1 w-12 min-h-8 text-xs font-semibold bg-mid-gray/10 hover:bg-logo-primary/10 border border-mid-gray/80 hover:border-logo-primary hover:text-logo-primary rounded-md transition-all duration-150 flex-shrink-0 cursor-pointer"
+            className="flex items-center justify-center px-2 py-1 w-12 min-h-8 text-xs font-medium text-text-2 bg-card-2 hover:text-signal border border-line-2 hover:border-signal rounded-xl transition-[background-color,border-color,color] duration-150 ease-[var(--ease-out-quint)] flex-shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
             title="Copy to clipboard"
+            aria-label="Copy to clipboard"
           >
             {showCopied ? (
               <div className="flex items-center space-x-1">

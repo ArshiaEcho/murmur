@@ -11,8 +11,7 @@ import {
 import { toast } from "sonner";
 import { commands } from "@/bindings";
 import { useSettingsStore } from "@/stores/settingsStore";
-import HandyTextLogo from "../icons/HandyTextLogo";
-import stratLogo from "../../assets/strat-logo.png";
+import OnboardingShell from "./OnboardingShell";
 import { Keyboard, Mic, Check, Loader2 } from "lucide-react";
 
 interface AccessibilityOnboardingProps {
@@ -303,8 +302,8 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
   // Still checking platform/initial permissions
   if (isChecking) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-text/50" />
+      <div className="flex h-screen w-screen items-center justify-center bg-bg">
+        <Loader2 className="h-8 w-8 animate-spin text-text-3" />
       </div>
     );
   }
@@ -312,68 +311,60 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
   // All permissions granted - show success briefly
   if (allGranted) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center gap-4">
-        <div className="p-4 rounded-full bg-emerald-500/20">
-          <Check className="w-12 h-12 text-emerald-400" />
+      <OnboardingShell showHeader={false}>
+        <div className="flex flex-col items-center gap-4 text-center">
+          <span className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-signal-soft text-signal">
+            <Check className="h-10 w-10" strokeWidth={2.4} />
+          </span>
+          <p className="text-lg font-medium text-text">
+            {t("onboarding.permissions.allGranted")}
+          </p>
         </div>
-        <p className="text-lg font-medium text-text">
-          {t("onboarding.permissions.allGranted")}
-        </p>
-      </div>
+      </OnboardingShell>
     );
   }
 
   // Show permissions request screen
   return (
-    <div className="h-screen w-screen flex flex-col p-6 gap-6 items-center justify-center">
-      <div className="flex flex-col items-center gap-2">
-        <img
-          src={stratLogo}
-          alt="Stratos"
-          draggable={false}
-          className="w-24 h-24 select-none"
-        />
-        <HandyTextLogo width={200} />
-      </div>
-
-      <div className="max-w-md w-full flex flex-col items-center gap-4">
-        <div className="text-center mb-2">
-          <h2 className="text-xl font-semibold text-text mb-2">
+    <OnboardingShell>
+      <div className="mt-9 flex w-full max-w-md flex-col items-center gap-4">
+        <div className="mb-1 text-center">
+          <h2 className="mb-1.5 text-xl font-semibold text-text">
             {t("onboarding.permissions.title")}
           </h2>
-          <p className="text-text/70">
+          <p className="text-sm text-text-2">
             {t("onboarding.permissions.description")}
           </p>
         </div>
 
         {/* Microphone Permission Card */}
         {showMicrophonePermission && (
-          <div className="w-full p-4 rounded-lg bg-white/5 border border-mid-gray/20">
+          <div className="w-full rounded-2xl border border-line bg-card p-4">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-logo-primary/20 shrink-0">
-                <Mic className="w-6 h-6 text-logo-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-text">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-signal-soft text-signal">
+                <Mic className="h-5 w-5" strokeWidth={1.9} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-semibold text-text">
                   {t("onboarding.permissions.microphone.title")}
                 </h3>
-                <p className="text-sm text-text/60 mb-3">
+                <p className="mb-3 text-xs leading-relaxed text-text-3">
                   {t("onboarding.permissions.microphone.description")}
                 </p>
                 {permissions.microphone === "granted" ? (
-                  <div className="flex items-center gap-2 text-emerald-400 text-sm">
-                    <Check className="w-4 h-4" />
+                  <div className="flex items-center gap-2 text-sm font-medium text-signal">
+                    <Check className="h-4 w-4" strokeWidth={2.4} />
                     {t("onboarding.permissions.granted")}
                   </div>
                 ) : permissions.microphone === "waiting" ? (
-                  <div className="flex items-center gap-2 text-text/50 text-sm">
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                  <div className="flex items-center gap-2 text-sm text-text-3">
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     {t("onboarding.permissions.waiting")}
                   </div>
                 ) : (
                   <button
                     onClick={handleGrantMicrophone}
-                    className="px-4 py-2 rounded-lg bg-logo-primary hover:bg-logo-primary/90 text-white text-sm font-medium transition-colors"
+                    className="rounded-full border border-signal bg-signal px-4 py-2 text-sm font-semibold text-on-signal transition-[filter] duration-150 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
                   >
                     {isWindows
                       ? t("accessibility.openSettings")
@@ -387,35 +378,35 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
 
         {/* Accessibility Permission Card */}
         {showAccessibilityPermission && (
-          <div className="w-full p-4 rounded-lg bg-white/5 border border-mid-gray/20">
+          <div className="w-full rounded-2xl border border-line bg-card p-4">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-logo-primary/20 shrink-0">
-                <Keyboard className="w-6 h-6 text-logo-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-text">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-signal-soft text-signal">
+                <Keyboard className="h-5 w-5" strokeWidth={1.9} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-semibold text-text">
                   {t("onboarding.permissions.accessibility.title")}
                 </h3>
-                <p className="text-sm text-text/60 mb-3">
+                <p className="mb-3 text-xs leading-relaxed text-text-3">
                   {t("onboarding.permissions.accessibility.description")}
                 </p>
                 {permissions.accessibility === "granted" ? (
-                  <div className="flex items-center gap-2 text-emerald-400 text-sm">
-                    <Check className="w-4 h-4" />
+                  <div className="flex items-center gap-2 text-sm font-medium text-signal">
+                    <Check className="h-4 w-4" strokeWidth={2.4} />
                     {t("onboarding.permissions.granted")}
                   </div>
                 ) : permissions.accessibility === "waiting" ? (
                   <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2 text-text/50 text-sm">
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                    <div className="flex items-center gap-2 text-sm text-text-3">
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       {t("onboarding.permissions.waiting")}
                     </div>
-                    <p className="text-xs text-text/50">
+                    <p className="text-xs text-text-3">
                       {t("onboarding.permissions.accessibility.restartHint")}
                     </p>
                     <button
                       onClick={handleRestart}
-                      className="self-start px-4 py-2 rounded-lg bg-logo-primary hover:bg-logo-primary/90 text-white text-sm font-medium transition-colors"
+                      className="self-start rounded-full border border-signal bg-signal px-4 py-2 text-sm font-semibold text-on-signal transition-[filter] duration-150 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
                     >
                       {t("onboarding.permissions.restart")}
                     </button>
@@ -423,7 +414,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
                 ) : (
                   <button
                     onClick={handleGrantAccessibility}
-                    className="px-4 py-2 rounded-lg bg-logo-primary hover:bg-logo-primary/90 text-white text-sm font-medium transition-colors"
+                    className="rounded-full border border-signal bg-signal px-4 py-2 text-sm font-semibold text-on-signal transition-[filter] duration-150 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
                   >
                     {t("onboarding.permissions.grant")}
                   </button>
@@ -433,7 +424,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </OnboardingShell>
   );
 };
 

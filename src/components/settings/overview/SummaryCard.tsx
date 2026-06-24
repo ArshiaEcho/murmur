@@ -22,14 +22,17 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   <button
     type="button"
     onClick={onOpen}
-    className="group w-full text-left p-4 rounded-xl border border-mid-gray/20 bg-background hover:bg-mid-gray/10 hover:border-logo-primary/40 transition-colors focus:outline-none focus:ring-2 focus:ring-logo-primary"
+    aria-label={title}
+    className="group flex min-h-[112px] w-full flex-col gap-3 rounded-2xl border border-line bg-card p-[17px] text-left transition-colors duration-150 [transition-timing-function:var(--ease-out-quint)] hover:bg-card-hover hover:border-line-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
   >
-    <div className="flex items-center gap-2 mb-2">
-      <Icon width={18} height={18} className="shrink-0 text-logo-primary" />
-      <span className="font-semibold text-sm flex-1 truncate">{title}</span>
-      {status && <StatusDot state={status} />}
-      <ChevronRight className="h-4 w-4 text-mid-gray opacity-60 group-hover:translate-x-0.5 transition-transform" />
+    <div className="flex items-center gap-2.5">
+      <Icon width={18} height={18} className="shrink-0 text-text-2" />
+      <span className="text-sm font-semibold text-text truncate">{title}</span>
+      <span className="ml-auto flex items-center gap-2">
+        {status && <StatusDot state={status} />}
+        <ChevronRight className="h-[15px] w-[15px] text-text-3 transition-transform duration-150 [transition-timing-function:var(--ease-out-quint)] motion-safe:group-hover:translate-x-0.5" />
+      </span>
     </div>
-    <div className="space-y-1">{children}</div>
+    <div className="mt-auto flex flex-col gap-1.5">{children}</div>
   </button>
 );
