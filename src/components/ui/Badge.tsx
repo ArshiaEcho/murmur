@@ -12,8 +12,8 @@ const Badge: React.FC<BadgeProps> = ({
   className = "",
 }) => {
   const variantClasses = {
-    primary: "bg-signal-soft text-signal",
-    live: "bg-live-soft text-live",
+    primary: "bg-signal-soft text-signal-ink",
+    live: "bg-live-soft text-live-ink",
     success: "bg-ok-soft text-ok",
     secondary: "bg-card-2 text-text-2",
   };

@@ -74,16 +74,16 @@ const selectStyles: StylesConfig<SelectOption, false> = {
   }),
   dropdownIndicator: (base, state) => ({
     ...base,
-    color: state.isFocused ? "var(--signal)" : "var(--text-3)",
+    color: state.isFocused ? "var(--signal-ink)" : "var(--text-3)",
     ":hover": {
-      color: "var(--signal)",
+      color: "var(--signal-ink)",
     },
   }),
   clearIndicator: (base) => ({
     ...base,
     color: "var(--text-3)",
     ":hover": {
-      color: "var(--signal)",
+      color: "var(--signal-ink)",
     },
   }),
   menu: (provided) => ({
@@ -103,7 +103,7 @@ const selectStyles: StylesConfig<SelectOption, false> = {
       : state.isFocused
         ? "var(--card-hover)"
         : "transparent",
-    color: state.isSelected ? "var(--signal)" : "var(--text)",
+    color: state.isSelected ? "var(--signal-ink)" : "var(--text)",
     fontWeight: state.isSelected ? 600 : 400,
     cursor: state.isDisabled ? "not-allowed" : base.cursor,
     opacity: state.isDisabled ? 0.5 : 1,

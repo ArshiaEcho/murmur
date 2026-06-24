@@ -60,7 +60,7 @@ export const SettingContainer: React.FC<SettingContainerProps> = ({
       onClick={toggleTooltip}
     >
       <svg
-        className="h-3.5 w-3.5 cursor-help text-text-3 transition-colors duration-150 hover:text-signal focus-visible:outline-none focus-visible:text-signal select-none"
+        className="h-3.5 w-3.5 cursor-help text-text-3 transition-colors duration-150 hover:text-signal-ink focus-visible:outline-none focus-visible:text-signal-ink select-none"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"

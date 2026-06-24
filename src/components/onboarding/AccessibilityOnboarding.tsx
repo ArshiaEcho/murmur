@@ -313,7 +313,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
     return (
       <OnboardingShell showHeader={false}>
         <div className="flex flex-col items-center gap-4 text-center">
-          <span className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-signal-soft text-signal">
+          <span className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-signal-soft text-signal-ink">
             <Check className="h-10 w-10" strokeWidth={2.4} />
           </span>
           <p className="text-lg font-medium text-text">
@@ -341,7 +341,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
         {showMicrophonePermission && (
           <div className="w-full rounded-2xl border border-line bg-card p-4">
             <div className="flex items-center gap-4">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-signal-soft text-signal">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-signal-soft text-signal-ink">
                 <Mic className="h-5 w-5" strokeWidth={1.9} />
               </span>
               <div className="min-w-0 flex-1">
@@ -352,7 +352,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
                   {t("onboarding.permissions.microphone.description")}
                 </p>
                 {permissions.microphone === "granted" ? (
-                  <div className="flex items-center gap-2 text-sm font-medium text-signal">
+                  <div className="flex items-center gap-2 text-sm font-medium text-signal-ink">
                     <Check className="h-4 w-4" strokeWidth={2.4} />
                     {t("onboarding.permissions.granted")}
                   </div>
@@ -380,7 +380,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
         {showAccessibilityPermission && (
           <div className="w-full rounded-2xl border border-line bg-card p-4">
             <div className="flex items-center gap-4">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-signal-soft text-signal">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-signal-soft text-signal-ink">
                 <Keyboard className="h-5 w-5" strokeWidth={1.9} />
               </span>
               <div className="min-w-0 flex-1">
@@ -391,7 +391,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
                   {t("onboarding.permissions.accessibility.description")}
                 </p>
                 {permissions.accessibility === "granted" ? (
-                  <div className="flex items-center gap-2 text-sm font-medium text-signal">
+                  <div className="flex items-center gap-2 text-sm font-medium text-signal-ink">
                     <Check className="h-4 w-4" strokeWidth={2.4} />
                     {t("onboarding.permissions.granted")}
                   </div>

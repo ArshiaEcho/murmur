@@ -63,7 +63,7 @@ export const TextDisplay: React.FC<TextDisplayProps> = ({
         {copyable && value && (
           <button
             onClick={handleCopy}
-            className="flex items-center justify-center px-2 py-1 w-12 min-h-8 text-xs font-medium text-text-2 bg-card-2 hover:text-signal border border-line-2 hover:border-signal rounded-xl transition-[background-color,border-color,color] duration-150 ease-[var(--ease-out-quint)] flex-shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
+            className="flex items-center justify-center px-2 py-1 w-12 min-h-8 text-xs font-medium text-text-2 bg-card-2 hover:text-signal-ink border border-line-2 hover:border-signal rounded-xl transition-[background-color,border-color,color] duration-150 ease-[var(--ease-out-quint)] flex-shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
             title="Copy to clipboard"
             aria-label="Copy to clipboard"
           >

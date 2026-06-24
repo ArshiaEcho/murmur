@@ -108,7 +108,7 @@ export const DictationReadiness: React.FC = () => {
   return (
     <div className="rounded-2xl border border-line bg-card overflow-hidden">
       <div className="flex items-center gap-2.5 px-[17px] py-[14px] border-b border-line">
-        <span className={allReady ? "text-ok" : "text-warn"}>
+        <span className={allReady ? "text-ok" : "text-warn-ink"}>
           {allReady ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
         </span>
         <div className="min-w-0">
@@ -126,7 +126,7 @@ export const DictationReadiness: React.FC = () => {
           onClick={refresh}
           title={t("readiness.recheck")}
           aria-label={t("readiness.recheck")}
-          className="ms-auto flex items-center justify-center w-8 h-8 rounded-full text-text-3 transition-colors duration-150 hover:text-signal hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal"
+          className="ms-auto flex items-center justify-center w-8 h-8 rounded-full text-text-3 transition-colors duration-150 hover:text-signal-ink hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal"
         >
           <RefreshCw size={14} className={checking ? "animate-spin" : ""} />
         </button>
@@ -149,7 +149,7 @@ export const DictationReadiness: React.FC = () => {
               <button
                 type="button"
                 onClick={() => onGrant(item)}
-                className="shrink-0 rounded-full border border-line-2 px-3 py-1 text-[12px] font-semibold text-signal transition-colors duration-150 hover:border-signal hover:bg-signal-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal"
+                className="shrink-0 rounded-full border border-line-2 px-3 py-1 text-[12px] font-semibold text-signal-ink transition-colors duration-150 hover:border-signal hover:bg-signal-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal"
               >
                 {item.grant ? t("readiness.grant") : t("readiness.install")}
               </button>

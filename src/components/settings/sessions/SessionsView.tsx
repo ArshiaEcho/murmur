@@ -110,7 +110,7 @@ export const SessionsView: React.FC = () => {
       {/* Header */}
       <div className="flex items-center gap-3.5 mb-4">
         <h1 className="text-[26px] font-semibold tracking-[-0.4px] text-text">{t("sessions.title")}</h1>
-        <span className="inline-flex items-center gap-1.5 font-mono text-[12px] font-semibold text-live">
+        <span className="inline-flex items-center gap-1.5 font-mono text-[12px] font-semibold text-live-ink">
           <span
             aria-hidden
             className="w-1.5 h-1.5 rounded-full bg-live"
@@ -119,7 +119,7 @@ export const SessionsView: React.FC = () => {
           <span className="tnum">{liveCount}</span> {t("sessions.live")}
         </span>
         {needCount > 0 && (
-          <span className="font-mono text-[12px] font-semibold text-warn">
+          <span className="font-mono text-[12px] font-semibold text-warn-ink">
             <span className="tnum">{needCount}</span> {t("sessions.needYou")}
           </span>
         )}
@@ -196,7 +196,7 @@ export const SessionsView: React.FC = () => {
                   aria-label="Play"
                   title="Play"
                   className={cx(
-                    "ml-auto flex items-center justify-center w-7 h-7 rounded-full border border-line-2 text-text-2 transition-colors duration-150 hover:border-signal hover:text-signal shrink-0",
+                    "ml-auto flex items-center justify-center w-7 h-7 rounded-full border border-line-2 text-text-2 transition-colors duration-150 hover:border-signal hover:text-signal-ink shrink-0",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-1 focus-visible:ring-offset-bg",
                   )}
                 >

@@ -40,8 +40,8 @@ const RELEASES: Release[] = [
 
 const KIND_CLASS: Record<ChangeKind, string> = {
   added: "bg-ok-soft text-ok",
-  fixed: "bg-signal-soft text-signal",
-  changed: "bg-live-soft text-live",
+  fixed: "bg-signal-soft text-signal-ink",
+  changed: "bg-live-soft text-live-ink",
 };
 
 export const ChangelogSettings: React.FC = () => {

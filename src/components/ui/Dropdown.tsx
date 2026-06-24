@@ -98,7 +98,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
                 type="button"
                 className={`w-full rounded-lg px-2.5 py-1.5 text-start text-sm transition-colors duration-150 hover:bg-card-hover ${
                   selectedValue === option.value
-                    ? "bg-signal-soft font-semibold text-signal"
+                    ? "bg-signal-soft font-semibold text-signal-ink"
                     : "text-text"
                 } ${option.disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
                 onClick={() => handleSelect(option.value)}

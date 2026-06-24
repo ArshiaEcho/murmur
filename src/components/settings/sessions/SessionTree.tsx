@@ -16,8 +16,8 @@ import {
 // ── per-project status badge ─────────────────────────────────────────────────
 
 const BADGE_STYLE: Record<StatusKind, { bg: string; color: string }> = {
-  working: { bg: "var(--live-soft)", color: "var(--live)" },
-  needs_you: { bg: "var(--warn-soft)", color: "var(--warn)" },
+  working: { bg: "var(--live-soft)", color: "var(--live-ink)" },
+  needs_you: { bg: "var(--warn-soft)", color: "var(--warn-ink)" },
   idle: { bg: "var(--card-2)", color: "var(--text-3)" },
   done: { bg: "var(--ok-soft)", color: "var(--ok)" },
   failed: { bg: "var(--danger-soft)", color: "var(--danger)" },
@@ -36,7 +36,7 @@ const CountChip: React.FC<{ n: number; tone: "warn" | "live" }> = ({ n, tone }) 
   <span
     className={cx(
       "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-md font-mono tnum text-[11px] font-semibold",
-      tone === "warn" ? "bg-warn-soft text-warn" : "bg-live-soft text-live",
+      tone === "warn" ? "bg-warn-soft text-warn-ink" : "bg-live-soft text-live-ink",
     )}
   >
     {n}
@@ -117,7 +117,7 @@ const SessionSubRow: React.FC<{
                 onOpenChat();
               }}
               className={cx(
-                "ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-signal bg-signal-soft text-signal text-[11px] font-semibold transition-colors duration-150 hover:bg-signal hover:text-on-signal",
+                "ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-signal bg-signal-soft text-signal-ink text-[11px] font-semibold transition-colors duration-150 hover:bg-signal hover:text-on-signal",
                 FOCUS_RING,
               )}
             >

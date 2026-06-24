@@ -158,7 +158,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     .map(([id, config]) => ({ id: id as SidebarSection, ...config }));
 
   const railBtn =
-    "flex items-center justify-center w-9 h-9 rounded-full border border-line text-text-2 transition-colors duration-150 outline-none hover:text-signal hover:border-signal hover:bg-signal-soft focus-visible:ring-2 focus-visible:ring-signal";
+    "flex items-center justify-center w-9 h-9 rounded-full border border-line text-text-2 transition-colors duration-150 outline-none hover:text-signal-ink hover:border-signal hover:bg-signal-soft focus-visible:ring-2 focus-visible:ring-signal";
 
   return (
     <div
@@ -224,7 +224,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     : "justify-center w-10 h-10"
                 } ${
                   isActive
-                    ? `bg-signal-soft text-signal${wide ? " font-semibold" : ""}`
+                    ? `bg-signal-soft text-signal-ink${wide ? " font-semibold" : ""}`
                     : "text-text-2 hover:text-text hover:bg-card-hover"
                 }`}
               >

@@ -22,13 +22,13 @@ const variantStyles: Record<
   },
   warning: {
     container: "bg-warn-soft",
-    icon: "text-warn",
-    text: "text-warn",
+    icon: "text-warn-ink",
+    text: "text-warn-ink",
   },
   info: {
     container: "bg-signal-soft",
-    icon: "text-signal",
-    text: "text-signal",
+    icon: "text-signal-ink",
+    text: "text-signal-ink",
   },
   success: {
     container: "bg-ok-soft",

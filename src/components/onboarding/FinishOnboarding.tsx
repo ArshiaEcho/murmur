@@ -38,7 +38,7 @@ const FinishOnboarding: React.FC<FinishOnboardingProps> = ({ onDone }) => {
             key={title}
             className="flex items-start gap-3 rounded-2xl border border-line bg-card p-4"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-signal-soft text-signal">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-signal-soft text-signal-ink">
               <Icon size={18} strokeWidth={1.9} />
             </span>
             <div>

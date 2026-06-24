@@ -44,7 +44,7 @@ const WelcomeOnboarding: React.FC<WelcomeOnboardingProps> = ({ onContinue }) => 
             key={title}
             className="flex flex-col gap-[11px] rounded-2xl border border-line bg-card p-[18px]"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-signal-soft text-signal">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-signal-soft text-signal-ink">
               <Icon size={20} strokeWidth={1.9} />
             </span>
             <h3 className="text-sm font-semibold text-text">{title}</h3>

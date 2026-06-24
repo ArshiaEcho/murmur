@@ -27,7 +27,7 @@ export const Button: React.FC<ButtonProps> = ({
     primary:
       "text-on-signal bg-signal border-signal hover:brightness-[1.08] active:brightness-95",
     "primary-soft":
-      "text-signal bg-signal-soft border-transparent hover:bg-signal hover:text-on-signal",
+      "text-signal-ink bg-signal-soft border-transparent hover:bg-signal hover:text-on-signal",
     secondary:
       "text-text-2 bg-card border-line-2 hover:text-text hover:border-signal",
     // teal "live" CTA — start session / record (the Murmur touch)

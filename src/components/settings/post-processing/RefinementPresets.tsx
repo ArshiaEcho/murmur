@@ -92,7 +92,7 @@ export const RefinementPresets: React.FC = () => {
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-signal disabled:opacity-50 ${
                 added
                   ? "border-transparent bg-ok-soft text-ok"
-                  : "border-line-2 text-text-2 hover:border-signal hover:text-signal hover:bg-signal-soft"
+                  : "border-line-2 text-text-2 hover:border-signal hover:text-signal-ink hover:bg-signal-soft"
               }`}
             >
               {added ? <Check size={13} /> : <Plus size={13} />}

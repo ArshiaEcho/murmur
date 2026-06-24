@@ -48,7 +48,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       onClick={toggleTheme}
       title={label}
       aria-label={label}
-      className={`relative flex items-center justify-center w-9 h-9 rounded-full border border-line text-text-2 transition-colors duration-150 outline-none hover:text-signal hover:border-signal hover:bg-signal-soft focus-visible:ring-2 focus-visible:ring-signal ${className}`}
+      className={`relative flex items-center justify-center w-9 h-9 rounded-full border border-line text-text-2 transition-colors duration-150 outline-none hover:text-signal-ink hover:border-signal hover:bg-signal-soft focus-visible:ring-2 focus-visible:ring-signal ${className}`}
     >
       {isDark ? <Sun width={17} height={17} /> : <Moon width={17} height={17} />}
     </button>

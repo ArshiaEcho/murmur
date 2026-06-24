@@ -8,7 +8,7 @@ import { FOCUS_RING } from "./controls";
 type MicState = "idle" | "listening" | "transcribing";
 
 const ICON_BTN =
-  "flex items-center justify-center w-[31px] h-[31px] rounded-full border border-line-2 bg-transparent text-text-2 transition-colors duration-150 hover:border-signal hover:text-signal disabled:opacity-50 " +
+  "flex items-center justify-center w-[31px] h-[31px] rounded-full border border-line-2 bg-transparent text-text-2 transition-colors duration-150 hover:border-signal hover:text-signal-ink disabled:opacity-50 " +
   FOCUS_RING;
 
 // ── the drawer body (one open session) ───────────────────────────────────────
@@ -247,7 +247,7 @@ const DrawerBody: React.FC<{
             </button>
             <button
               type="button"
-              className={cx(ICON_BTN, session.pinned && "text-signal border-signal")}
+              className={cx(ICON_BTN, session.pinned && "text-signal-ink border-signal")}
               onClick={() => commands.toggleSessionPin(session.id)}
               aria-label={session.pinned ? "Unpin session" : "Pin for live summaries"}
               aria-pressed={session.pinned}
@@ -290,7 +290,7 @@ const DrawerBody: React.FC<{
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--signal)" strokeWidth={1.8} aria-hidden>
               <path d="M12 3l1.7 4.6L18 9l-4.3 1.4L12 15l-1.7-4.6L6 9l4.3-1.4z" />
             </svg>
-            <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[1px] text-signal">
+            <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[1px] text-signal-ink">
               {t("sessions.summary")}
             </span>
           </div>
@@ -301,7 +301,7 @@ const DrawerBody: React.FC<{
               type="button"
               onClick={refreshSummary}
               disabled={summarizing}
-              className={cx("text-[13px] text-signal hover:underline", FOCUS_RING)}
+              className={cx("text-[13px] text-signal-ink hover:underline", FOCUS_RING)}
             >
               {summarizing ? "Summarizing…" : "Summarize what this session is doing"}
             </button>
@@ -335,7 +335,7 @@ const DrawerBody: React.FC<{
               <div key={`${i}:${turn.role}:${turn.text.slice(0, 24)}`}>
                 <div
                   className="font-mono text-[10px] font-semibold uppercase tracking-[1px] mb-1.5"
-                  style={{ color: turn.role === "assistant" ? "var(--signal)" : "var(--text-3)" }}
+                  style={{ color: turn.role === "assistant" ? "var(--signal-ink)" : "var(--text-3)" }}
                 >
                   {turn.role === "assistant" ? t("sessions.agent") : t("sessions.you")}
                 </div>
@@ -361,7 +361,7 @@ const DrawerBody: React.FC<{
               className="border border-line-2 bg-card rounded-[13px] px-3.5 py-3 mb-3"
               style={{ animation: "mur-reveal 0.2s var(--ease-out-quint)" }}
             >
-              <div className="font-mono text-[10px] font-semibold uppercase tracking-[1px] text-signal mb-1.5">
+              <div className="font-mono text-[10px] font-semibold uppercase tracking-[1px] text-signal-ink mb-1.5">
                 {t("sessions.agent")}
               </div>
               <div className="text-[13px] leading-[1.55] text-text select-text">{answer}</div>
@@ -416,7 +416,7 @@ const DrawerBody: React.FC<{
 
           <div className="flex-1 flex flex-col gap-2 min-w-0">
             {mic !== "idle" && (
-              <div className="font-mono text-[11px] text-signal pl-0.5">
+              <div className="font-mono text-[11px] text-signal-ink pl-0.5">
                 {mic === "listening" ? "Listening…" : "Transcribing…"}
               </div>
             )}

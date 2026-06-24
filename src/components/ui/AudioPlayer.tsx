@@ -234,7 +234,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
       <button
         onClick={togglePlay}
         disabled={isLoading}
-        className="rounded-full p-0.5 text-text transition-colors duration-150 ease-[var(--ease-out-quint)] hover:text-signal focus:outline-none focus-visible:ring-2 focus-visible:ring-signal disabled:opacity-50 cursor-pointer"
+        className="rounded-full p-0.5 text-text transition-colors duration-150 ease-[var(--ease-out-quint)] hover:text-signal-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-signal disabled:opacity-50 cursor-pointer"
         aria-label={isPlaying ? "Pause" : "Play"}
       >
         {isPlaying ? (

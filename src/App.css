@@ -34,6 +34,11 @@
   --live: #0E9E90;
   --on-live: #FFFFFF;
   --live-soft: rgba(14, 158, 144, 0.14);
+  /* TEXT/icon variants: the bright fills above fail WCAG AA as small text on
+     near-white, so use these deeper inks for text/icons (fills stay bright). */
+  --signal-ink: #8A6516;
+  --live-ink: #0A7468;
+  --warn-ink: #8A5400;
   --accent-surface: #1C1A15;
   --accent-on: #F2F1EE;
   --warn: #C77A12;
@@ -92,6 +97,10 @@
   --live: #2FD3BD;
   --on-live: #06201C;
   --live-soft: rgba(47, 211, 189, 0.16);
+  /* On near-black the bright accents are already legible as text. */
+  --signal-ink: #E0B65C;
+  --live-ink: #2FD3BD;
+  --warn-ink: #FBBF24;
   --accent-surface: #E6E3DB;
   --accent-on: #15140F;
   --warn: #FBBF24;
@@ -130,6 +139,9 @@
   --color-live: var(--live);
   --color-on-live: var(--on-live);
   --color-live-soft: var(--live-soft);
+  --color-signal-ink: var(--signal-ink);
+  --color-live-ink: var(--live-ink);
+  --color-warn-ink: var(--warn-ink);
   --color-accent-surface: var(--accent-surface);
   --color-accent-on: var(--accent-on);
   --color-warn: var(--warn);
