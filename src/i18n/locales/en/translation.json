@@ -564,6 +564,12 @@
     "history": {
       "title": "History",
       "openFolder": "Open Recordings Folder",
+      "searchPlaceholder": "Search transcripts",
+      "export": "Export",
+      "exported_one": "Copied {{count}} entry as Markdown",
+      "exported_other": "Copied {{count}} entries as Markdown",
+      "exportError": "Couldn't copy to clipboard",
+      "noMatches": "No transcripts match your search",
       "loading": "Loading history...",
       "empty": "No transcriptions yet. Start recording to build your history!",
       "copyToClipboard": "Copy transcription to clipboard",
