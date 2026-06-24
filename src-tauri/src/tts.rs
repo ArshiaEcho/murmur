@@ -274,12 +274,26 @@ fn tmp_audio_path(ext: &str) -> PathBuf {
     std::env::temp_dir().join(format!("strat-tts-{n}.{ext}"))
 }
 
-/// Split text into readable chunks (~sentences, each <= ~400 chars) so the
-/// first chunk plays in ~1s instead of waiting for the whole selection.
+/// Sentence-aware splitter for Read-Aloud. Breaks on . ! ? (and CJK 。！？) and
+/// newlines, but NOT on decimals (3.5), common abbreviations (Dr., e.g.), or
+/// ellipses — so chunks fall on natural pauses, not mid-thought. Each chunk is
+/// kept <= ~MAX chars so the first chunk plays in ~1s.
 fn split_for_reading(text: &str) -> Vec<String> {
     const MAX: usize = 400;
-    let mut chunks: Vec<String> = Vec::new();
-    let mut cur = String::new();
+    const ABBREVS: &[&str] = &[
+        "mr", "mrs", "ms", "dr", "prof", "sr", "jr", "st", "vs", "etc", "fig", "no",
+        "dept", "inc", "ltd", "co", "jan", "feb", "mar", "apr", "jun", "jul", "aug",
+        "sep", "sept", "oct", "nov", "dec", "e.g", "i.e", "a.m", "p.m", "u.s", "u.k",
+        "ph.d",
+    ];
+
+    fn push_sentence(out: &mut Vec<String>, slice: &[char]) {
+        let s: String = slice.iter().collect();
+        let s = s.trim();
+        if !s.is_empty() {
+            out.push(s.to_string());
+        }
+    }
     fn flush(chunks: &mut Vec<String>, cur: &mut String) {
         let s = cur.trim();
         if !s.is_empty() {
@@ -287,29 +301,102 @@ fn split_for_reading(text: &str) -> Vec<String> {
         }
         cur.clear();
     }
-    for piece in text.split_inclusive(|c: char| matches!(c, '.' | '!' | '?' | '\n')) {
-        let piece = piece.trim();
-        if piece.is_empty() {
+
+    // 1) Split into sentences on real terminators.
+    let chars: Vec<char> = text.chars().collect();
+    let mut sentences: Vec<String> = Vec::new();
+    let mut start = 0usize;
+    let mut i = 0usize;
+    while i < chars.len() {
+        let c = chars[i];
+        if c == '\n' {
+            push_sentence(&mut sentences, &chars[start..i]);
+            start = i + 1;
+            i += 1;
             continue;
         }
-        if cur.len() + piece.len() + 1 > MAX {
-            flush(&mut chunks, &mut cur);
-        }
-        if piece.len() > MAX {
-            for word in piece.split_whitespace() {
-                if cur.len() + word.len() + 1 > MAX {
-                    flush(&mut chunks, &mut cur);
-                }
-                if !cur.is_empty() {
-                    cur.push(' ');
-                }
-                cur.push_str(word);
+        if matches!(c, '.' | '!' | '?' | '。' | '！' | '？') {
+            // Collapse runs of terminators ("?!", "...").
+            let mut j = i;
+            while j + 1 < chars.len()
+                && matches!(chars[j + 1], '.' | '!' | '?' | '。' | '！' | '？')
+            {
+                j += 1;
             }
+            // Next non-space char decides if this is a real boundary.
+            let mut k = j + 1;
+            while k < chars.len() && chars[k].is_whitespace() {
+                k += 1;
+            }
+            let next_ok = k >= chars.len()
+                || chars[k].is_uppercase()
+                || matches!(chars[k], '"' | '\'' | '(' | '[' | '“' | '‘' | '《' | '「')
+                || (chars[k] as u32) >= 0x3000;
+            let prev = if i > 0 { chars[i - 1] } else { ' ' };
+            let imm = if j + 1 < chars.len() { chars[j + 1] } else { ' ' };
+            let is_decimal = c == '.' && prev.is_ascii_digit() && imm.is_ascii_digit();
+            let is_abbrev = c == '.' && {
+                let mut a = i;
+                while a > start && (chars[a - 1].is_alphanumeric() || chars[a - 1] == '.') {
+                    a -= 1;
+                }
+                let word: String = chars[a..i].iter().collect::<String>().to_lowercase();
+                let word = word.trim_matches('.');
+                ABBREVS.contains(&word)
+                    || (word.chars().count() == 1
+                        && chars.get(a).map_or(false, |ch| ch.is_uppercase()))
+            };
+            if next_ok && !is_decimal && !is_abbrev {
+                push_sentence(&mut sentences, &chars[start..=j]);
+                start = j + 1;
+            }
+            i = j + 1;
+            continue;
+        }
+        i += 1;
+    }
+    if start < chars.len() {
+        push_sentence(&mut sentences, &chars[start..]);
+    }
+
+    // 2) Group sentences into <= MAX-char chunks (splitting any over-long one).
+    let mut chunks: Vec<String> = Vec::new();
+    let mut cur = String::new();
+    for sent in sentences {
+        if sent.len() > MAX {
+            flush(&mut chunks, &mut cur);
+            if sent.contains(' ') {
+                for word in sent.split_whitespace() {
+                    if cur.len() + word.len() + 1 > MAX {
+                        flush(&mut chunks, &mut cur);
+                    }
+                    if !cur.is_empty() {
+                        cur.push(' ');
+                    }
+                    cur.push_str(word);
+                }
+            } else {
+                // No spaces (e.g. CJK): hard-split by char budget.
+                let mut piece = String::new();
+                for ch in sent.chars() {
+                    if piece.len() + ch.len_utf8() > MAX {
+                        chunks.push(std::mem::take(&mut piece));
+                    }
+                    piece.push(ch);
+                }
+                if !piece.trim().is_empty() {
+                    chunks.push(piece);
+                }
+            }
+            flush(&mut chunks, &mut cur);
         } else {
+            if cur.len() + sent.len() + 1 > MAX {
+                flush(&mut chunks, &mut cur);
+            }
             if !cur.is_empty() {
                 cur.push(' ');
             }
-            cur.push_str(piece);
+            cur.push_str(&sent);
         }
     }
     flush(&mut chunks, &mut cur);
@@ -335,6 +422,10 @@ fn play_and_wait(path: &Path, my_gen: u64) -> bool {
 /// order, so audio starts quickly. `synth` turns one chunk into a playable
 /// audio file. On synth failure it surfaces a notice and reads the rest via
 /// macOS `say`. Runs on a background thread; cancels cleanly on stop()/Esc.
+///
+/// Pipelined for buttery, gapless reading: a producer thread synthesizes the
+/// NEXT chunk while the current one is still playing (bounded channel, depth 1),
+/// so there's no audible silence between sentences waiting on synthesis.
 fn speak_chunked<F>(
     text: &str,
     fallback_say_voice: Option<String>,
@@ -342,7 +433,7 @@ fn speak_chunked<F>(
     message: &'static str,
     synth: F,
 ) where
-    F: Fn(&str) -> Result<PathBuf, String> + Send + 'static,
+    F: Fn(&str) -> Result<PathBuf, String> + Send + Sync + 'static,
 {
     let full = text.trim().to_string();
     if full.is_empty() {
@@ -352,16 +443,45 @@ fn speak_chunked<F>(
     let my_gen = GEN.load(Ordering::SeqCst);
     std::thread::spawn(move || {
         let chunks = split_for_reading(&full);
-        for (i, chunk) in chunks.iter().enumerate() {
-            if GEN.load(Ordering::SeqCst) != my_gen {
-                return;
+        if chunks.is_empty() {
+            return;
+        }
+        let synth = std::sync::Arc::new(synth);
+
+        // Producer: synthesize chunks ahead of playback. Depth-1 sync_channel
+        // keeps it ~1 chunk ahead (hides synth latency) without over-synthesizing.
+        let (tx, rx) = std::sync::mpsc::sync_channel::<(usize, Result<PathBuf, String>)>(1);
+        let prod_chunks = chunks.clone();
+        let prod_synth = synth.clone();
+        let producer = std::thread::spawn(move || {
+            for (i, chunk) in prod_chunks.iter().enumerate() {
+                if GEN.load(Ordering::SeqCst) != my_gen {
+                    break;
+                }
+                let result = prod_synth(chunk);
+                let failed = result.is_err();
+                // Receiver gone (cancelled) -> stop synthesizing.
+                if tx.send((i, result)).is_err() {
+                    break;
+                }
+                // Surfaced the failure to the consumer; let it handle fallback.
+                if failed {
+                    break;
+                }
             }
-            match synth(chunk) {
+        });
+
+        // Consumer: play each synthesized chunk in order.
+        while let Ok((i, result)) = rx.recv() {
+            if GEN.load(Ordering::SeqCst) != my_gen {
+                break;
+            }
+            match result {
                 Ok(path) => {
                     let played = play_and_wait(&path, my_gen);
                     let _ = std::fs::remove_file(&path);
                     if !played {
-                        return;
+                        break;
                     }
                 }
                 Err(e) => {
@@ -370,10 +490,13 @@ fn speak_chunked<F>(
                         emit_degraded(reason, message);
                         speak(&chunks[i..].join(" "), fallback_say_voice.as_deref(), None);
                     }
-                    return;
+                    break;
                 }
             }
         }
+        // Drop the receiver so the producer's next send fails, then wind it down.
+        drop(rx);
+        let _ = producer.join();
     });
 }
 
