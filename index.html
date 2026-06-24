@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Strat</title>
+    <!-- Anti-FOUC: apply the persisted theme before first paint. Light is the
+         default; only the explicit ".dark" class flips App.css to dark. main.tsx
+         reconciles this harmlessly via applyThemeClass(). -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("murmur-theme");
+          document.documentElement.classList.toggle("dark", t === "dark");
+          document.documentElement.dataset.theme = t === "dark" ? "dark" : "light";
+        } catch (e) {}
+      })();
+    </script>
   </head>
 
   <body>

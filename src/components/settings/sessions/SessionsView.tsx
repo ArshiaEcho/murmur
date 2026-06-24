@@ -110,10 +110,10 @@ export const SessionsView: React.FC = () => {
       {/* Header */}
       <div className="flex items-center gap-3.5 mb-4">
         <h1 className="text-[26px] font-semibold tracking-[-0.4px] text-text">{t("sessions.title")}</h1>
-        <span className="inline-flex items-center gap-1.5 font-mono text-[12px] font-semibold text-signal">
+        <span className="inline-flex items-center gap-1.5 font-mono text-[12px] font-semibold text-live">
           <span
             aria-hidden
-            className="w-1.5 h-1.5 rounded-full bg-signal"
+            className="w-1.5 h-1.5 rounded-full bg-live"
             style={{ animation: "mur-dotpulse 2.2s var(--ease-io) infinite" }}
           />
           <span className="tnum">{liveCount}</span> {t("sessions.live")}

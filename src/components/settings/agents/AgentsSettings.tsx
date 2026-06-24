@@ -31,9 +31,9 @@ const AgentCard: React.FC<{ run: AgentRun }> = ({ run }) => {
       {run.summary && (
         <p className="text-sm text-mid-gray line-clamp-3">{run.summary}</p>
       )}
-      {run.next_steps.length > 0 && (
+      {(run.next_steps ?? []).length > 0 && (
         <ul className="text-xs text-mid-gray list-disc ms-5">
-          {run.next_steps.slice(0, 3).map((s, i) => (
+          {(run.next_steps ?? []).slice(0, 3).map((s, i) => (
             <li key={i}>{s}</li>
           ))}
         </ul>

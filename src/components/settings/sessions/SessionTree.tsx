@@ -16,7 +16,7 @@ import {
 // ── per-project status badge ─────────────────────────────────────────────────
 
 const BADGE_STYLE: Record<StatusKind, { bg: string; color: string }> = {
-  working: { bg: "var(--signal-soft)", color: "var(--signal)" },
+  working: { bg: "var(--live-soft)", color: "var(--live)" },
   needs_you: { bg: "var(--warn-soft)", color: "var(--warn)" },
   idle: { bg: "var(--card-2)", color: "var(--text-3)" },
   done: { bg: "var(--ok-soft)", color: "var(--ok)" },
@@ -32,11 +32,11 @@ const StatusBadge: React.FC<{ kind: StatusKind }> = ({ kind }) => (
   </span>
 );
 
-const CountChip: React.FC<{ n: number; tone: "warn" | "signal" }> = ({ n, tone }) => (
+const CountChip: React.FC<{ n: number; tone: "warn" | "live" }> = ({ n, tone }) => (
   <span
     className={cx(
       "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-md font-mono tnum text-[11px] font-semibold",
-      tone === "warn" ? "bg-warn-soft text-warn" : "bg-signal-soft text-signal",
+      tone === "warn" ? "bg-warn-soft text-warn" : "bg-live-soft text-live",
     )}
   >
     {n}
@@ -192,7 +192,7 @@ export const ProjectRow: React.FC<{
 
         <div className="flex items-center gap-2 shrink-0">
           {needN > 0 && <CountChip n={needN} tone="warn" />}
-          {workN > 0 && <CountChip n={workN} tone="signal" />}
+          {workN > 0 && <CountChip n={workN} tone="live" />}
           <StatusBadge kind={pst} />
           {/* Swatch picker — keeps the per-project color wiring (setProjectColor). */}
           <SwatchPicker color={color} onPick={onColor} />

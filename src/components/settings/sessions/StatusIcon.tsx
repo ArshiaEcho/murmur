@@ -33,7 +33,7 @@ export const StatusIcon: React.FC<{ kind: StatusKind; size?: number }> = ({
     return (
       <svg
         {...base}
-        style={{ stroke: "var(--signal)", animation: "mur-spin 4.5s linear infinite" }}
+        style={{ stroke: "var(--live)", animation: "mur-spin 4.5s linear infinite" }}
       >
         <circle cx={12} cy={12} r={9} strokeDasharray="2.4 3.4" />
       </svg>

@@ -1,4 +1,12 @@
 {
+  "theme": {
+    "title": "Appearance",
+    "description": "Switch between light and dark.",
+    "switchToLight": "Light mode",
+    "switchToDark": "Dark mode",
+    "light": "Light",
+    "dark": "Dark"
+  },
   "tray": {
     "settings": "Settings...",
     "checkUpdates": "Check for Updates...",
@@ -20,7 +28,11 @@
     "overview": "Overview",
     "conversation": "Conversation",
     "agents": "Sessions",
-    "sessions": "Sessions"
+    "sessions": "Sessions",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "pin": "Pin sidebar open",
+    "unpin": "Unpin sidebar"
   },
   "onboarding": {
     "welcome": {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Cog,
@@ -10,8 +10,14 @@ import {
   Volume2,
   LayoutGrid,
   MessageSquare,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Pin,
+  PinOff,
 } from "lucide-react";
 import StratLogo from "./icons/StratLogo";
+import { ThemeToggle } from "./ui/ThemeToggle";
+import { useSidebarStore } from "../stores/sidebarStore";
 import { Overview } from "./settings/overview/Overview";
 import { SessionsView } from "./settings/sessions/SessionsView";
 import { useSettings } from "../hooks/useSettings";
@@ -111,123 +117,156 @@ interface SidebarProps {
   onSectionChange: (section: SidebarSection) => void;
 }
 
-/**
- * The nested-diamond Murmur brand mark. Geometry is preserved from the design
- * handoff; strokes use the theme `--signal` token and the lower facet carries a
- * signal→gold vertical gradient so it recolors in light + dark.
- */
-const BrandMark: React.FC<{ size?: number }> = ({ size = 28 }) => {
-  const gradId = "murmur-mark-gold";
-  return (
-    <span
-      className="relative shrink-0"
-      style={{ width: size, height: size }}
-      aria-hidden="true"
-    >
-      {/* gold breathing glow behind the lower facet */}
-      <span
-        className="absolute left-1/2 -translate-x-1/2 rounded-full bg-gold"
-        style={{
-          top: "62%",
-          width: size * 0.79,
-          height: size * 0.43,
-          filter: "blur(6px)",
-          opacity: 0.55,
-          animation: "mur-breathe 3.2s var(--ease-out-quint) infinite",
-        }}
-      />
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 48 48"
-        fill="none"
-        className="relative"
-      >
-        <path
-          d="M24 6 L40 17.5 L24 29 L8 17.5 Z"
-          fill="none"
-          stroke="var(--signal)"
-          strokeOpacity="0.45"
-          strokeWidth="2.2"
-        />
-        <path
-          d="M24 12.5 L40 24 L24 35.5 L8 24 Z"
-          fill="none"
-          stroke="var(--signal)"
-          strokeOpacity="0.72"
-          strokeWidth="2.2"
-        />
-        <path
-          d="M24 18.5 L34 26 L24 33.5 L14 26 Z"
-          fill="var(--signal)"
-          fillOpacity="0.95"
-        />
-        <path
-          d="M24 18.5 L34 26 L24 33.5 L14 26 Z"
-          fill={`url(#${gradId})`}
-          fillOpacity="0.55"
-        />
-        <defs>
-          <linearGradient id={gradId} x1="0" y1="0.4" x2="0" y2="1">
-            <stop offset="0" stopColor="var(--signal)" stopOpacity="0" />
-            <stop offset="1" stopColor="var(--gold)" />
-          </linearGradient>
-        </defs>
-      </svg>
-    </span>
-  );
-};
+const RAIL_NARROW = 60;
+const RAIL_WIDE = 212;
 
+/**
+ * Collapsible + lockable navigation rail.
+ *  - Pinned (locked) + expanded: full-width icons + text, in-flow (content shifts).
+ *  - Pinned + collapsed: the narrow icon rail, in-flow.
+ *  - Unlocked: narrow rail that expands as a hover overlay (content does not jump).
+ * State persists via sidebarStore (localStorage). Uses the real Stratos House logo.
+ */
 export const Sidebar: React.FC<SidebarProps> = ({
   activeSection,
   onSectionChange,
 }) => {
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const expanded = useSidebarStore((s) => s.expanded);
+  const locked = useSidebarStore((s) => s.locked);
+  const toggleExpanded = useSidebarStore((s) => s.toggleExpanded);
+  const toggleLocked = useSidebarStore((s) => s.toggleLocked);
+  const [hovering, setHovering] = useState(false);
+
+  // Visual width vs the in-flow footprint. When unlocked, the rail keeps a narrow
+  // footprint and the expanded panel floats over the content on hover.
+  const wide = locked ? expanded : hovering;
+  const footprint = locked && expanded ? RAIL_WIDE : RAIL_NARROW;
+  const overlay = wide && footprint === RAIL_NARROW;
 
   const availableSections = Object.entries(SECTIONS_CONFIG)
     .filter(([_, config]) => config.enabled(settings))
     .map(([id, config]) => ({ id: id as SidebarSection, ...config }));
 
+  const railBtn =
+    "flex items-center justify-center w-9 h-9 rounded-full border border-line text-text-2 transition-colors duration-150 outline-none hover:text-signal hover:border-signal hover:bg-signal-soft focus-visible:ring-2 focus-visible:ring-signal";
+
   return (
-    <aside className="flex flex-col w-[212px] shrink-0 h-full bg-bg-2 border-e border-line">
-      {/* Brand lockup */}
-      <div className="flex items-center gap-2.5 px-[18px] pt-[46px] pb-[18px]">
-        <BrandMark size={28} />
-        <span
-          className="font-semibold text-[14px] text-text"
-          style={{ letterSpacing: "2.5px" }}
+    <div
+      className="relative shrink-0 h-full transition-[width] duration-200 ease-[var(--ease-out-quint)]"
+      style={{ width: footprint }}
+      onMouseEnter={() => !locked && setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+    >
+      <aside
+        data-tauri-drag-region
+        style={{ width: wide ? RAIL_WIDE : RAIL_NARROW }}
+        className={`absolute inset-y-0 start-0 z-30 flex flex-col bg-bg-2 border-e border-line pt-[42px] pb-3 transition-[width] duration-200 ease-[var(--ease-out-quint)] ${
+          overlay ? "shadow-[var(--elev-3)]" : ""
+        }`}
+      >
+        {/* Brand — the real Stratos House logo (glows gold in dark via .sidebar-logo) */}
+        <div
+          className={`flex items-center mb-4 ${
+            wide ? "px-[18px] gap-2.5" : "justify-center"
+          }`}
         >
-          MURMUR
-        </span>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex flex-col gap-0.5 px-3 py-1 flex-1 overflow-auto">
-        {availableSections.map((section) => {
-          const Icon = section.icon;
-          const isActive = activeSection === section.id;
-          const label = t(section.labelKey);
-
-          return (
-            <button
-              key={section.id}
-              type="button"
-              onClick={() => onSectionChange(section.id)}
-              aria-current={isActive ? "page" : undefined}
-              title={label}
-              className={`flex items-center gap-3 px-2.5 py-2 rounded-[10px] text-left text-[13px] font-medium transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-signal ${
-                isActive
-                  ? "bg-card text-signal font-semibold shadow-[inset_2.5px_0_0_var(--signal)]"
-                  : "text-text-2 hover:text-text hover:bg-card-hover"
-              }`}
+          <button
+            type="button"
+            onClick={() => onSectionChange("overview")}
+            title="Murmur"
+            aria-label={t("sidebar.overview")}
+            className="sidebar-logo shrink-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-signal"
+          >
+            <StratLogo size={30} />
+          </button>
+          {wide && (
+            <span
+              className="font-semibold text-[14px] text-text whitespace-nowrap"
+              style={{ letterSpacing: "2.5px" }}
             >
-              <Icon width={18} height={18} className="shrink-0" />
-              <span className="truncate">{label}</span>
+              MURMUR
+            </span>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <nav
+          className={`flex flex-col gap-1 flex-1 overflow-y-auto overflow-x-hidden ${
+            wide ? "px-3" : "items-center px-2"
+          }`}
+        >
+          {availableSections.map((section) => {
+            const Icon = section.icon;
+            const isActive = activeSection === section.id;
+            const label = t(section.labelKey);
+
+            return (
+              <button
+                key={section.id}
+                type="button"
+                onClick={() => onSectionChange(section.id)}
+                aria-current={isActive ? "page" : undefined}
+                aria-label={label}
+                title={wide ? undefined : label}
+                className={`relative flex items-center rounded-[10px] transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-signal ${
+                  wide
+                    ? "gap-3 px-2.5 py-2 w-full text-left text-[13px] font-medium"
+                    : "justify-center w-10 h-10"
+                } ${
+                  isActive
+                    ? `bg-signal-soft text-signal${wide ? " font-semibold" : ""}`
+                    : "text-text-2 hover:text-text hover:bg-card-hover"
+                }`}
+              >
+                {isActive && (
+                  <span
+                    aria-hidden
+                    className="absolute start-0 top-1/2 -translate-y-1/2 h-5 w-[2.5px] rounded-full bg-signal"
+                  />
+                )}
+                <Icon width={19} height={19} className="shrink-0" />
+                {wide && <span className="truncate">{label}</span>}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Controls: theme · collapse (when pinned) · lock */}
+        <div
+          className={`mt-2 shrink-0 flex ${
+            wide ? "px-3 items-center gap-1" : "flex-col items-center gap-1"
+          }`}
+        >
+          <ThemeToggle variant="icon" />
+          {locked && (
+            <button
+              type="button"
+              onClick={toggleExpanded}
+              title={expanded ? t("sidebar.collapse") : t("sidebar.expand")}
+              aria-label={expanded ? t("sidebar.collapse") : t("sidebar.expand")}
+              className={`${railBtn} ${wide ? "ms-auto" : ""}`}
+            >
+              {expanded ? (
+                <PanelLeftClose width={16} height={16} />
+              ) : (
+                <PanelLeftOpen width={16} height={16} />
+              )}
             </button>
-          );
-        })}
-      </nav>
-    </aside>
+          )}
+          <button
+            type="button"
+            onClick={toggleLocked}
+            title={locked ? t("sidebar.unpin") : t("sidebar.pin")}
+            aria-label={locked ? t("sidebar.unpin") : t("sidebar.pin")}
+            aria-pressed={locked}
+            className={railBtn}
+          >
+            {locked ? <Pin width={16} height={16} /> : <PinOff width={16} height={16} />}
+          </button>
+        </div>
+      </aside>
+    </div>
   );
 };

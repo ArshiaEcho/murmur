@@ -13,31 +13,38 @@
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Monaco, monospace;
 
-  /* ── LIGHT (bone) — default ── */
-  --bg: #ECEBE3;
-  --bg-2: #F3F2EC;
-  --card: #FBFBF8;
+  /* ── LIGHT — default, PRIORITY ──
+     VoiceBox's clean near-white studio surfaces with a whisper of Murmur warmth.
+     --signal is now GOLD (VoiceBox's signature accent) used app-wide for primary
+     fills, active nav, focus rings. --live (teal) is the Murmur "touch of us",
+     reserved for live/recording/streaming session indicators. */
+  --bg: #F2F1EE;
+  --bg-2: #E9E8E4;
+  --card: #FBFBF9;
   --card-2: #FFFFFF;
-  --card-hover: #F2F1EA;
-  --line: rgba(22, 32, 28, 0.10);
-  --line-2: rgba(22, 32, 28, 0.17);
-  --text: #141A16;
-  --text-2: rgba(20, 26, 22, 0.56);
-  --text-3: rgba(20, 26, 22, 0.40);
-  --signal: #0FA697;
-  --on-signal: #FFFFFF;
-  --signal-soft: rgba(15, 166, 151, 0.12);
-  --accent-surface: #16201C;
-  --accent-on: #EEF3F1;
+  --card-hover: #EFEEEA;
+  --line: rgba(26, 22, 14, 0.10);
+  --line-2: rgba(26, 22, 14, 0.16);
+  --text: #1A1813;
+  --text-2: rgba(26, 24, 19, 0.56);
+  --text-3: rgba(26, 24, 19, 0.40);
+  --signal: #C49433;
+  --on-signal: #231A06;
+  --signal-soft: rgba(196, 148, 51, 0.14);
+  --live: #0E9E90;
+  --on-live: #FFFFFF;
+  --live-soft: rgba(14, 158, 144, 0.14);
+  --accent-surface: #1C1A15;
+  --accent-on: #F2F1EE;
   --warn: #C77A12;
-  --warn-soft: rgba(199, 122, 18, 0.12);
+  --warn-soft: rgba(199, 122, 18, 0.13);
   --ok: #0F9D6B;
-  --ok-soft: rgba(15, 157, 107, 0.12);
+  --ok-soft: rgba(15, 157, 107, 0.13);
   --danger: #E5484D;
-  --danger-soft: rgba(229, 72, 77, 0.12);
-  --gold: #C68A2E;
-  --shadow: 0 1px 0 rgba(255, 255, 255, 0.5), 0 22px 46px rgba(20, 30, 26, 0.16);
-  --neutral: #5d6863; /* solid neutral for legacy /opacity borders */
+  --danger-soft: rgba(229, 72, 77, 0.13);
+  --gold: #C49433;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.6), 0 18px 40px rgba(20, 18, 12, 0.14);
+  --neutral: #6f6a60; /* solid neutral for legacy /opacity borders */
 
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-io: cubic-bezier(0.45, 0, 0.55, 1);
@@ -64,34 +71,38 @@
   background-color: var(--bg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* ── DARK (instrument canvas) — primary ── */
-    --bg: #0A0C0B;
-    --bg-2: #0E1211;
-    --card: #141A18;
-    --card-2: #1A211E;
-    --card-hover: #1E2522;
-    --line: rgba(228, 240, 236, 0.085);
-    --line-2: rgba(228, 240, 236, 0.16);
-    --text: #F2F5F4;
-    --text-2: rgba(242, 245, 244, 0.56);
-    --text-3: rgba(242, 245, 244, 0.36);
-    --signal: #2FD3BD;
-    --on-signal: #06201C;
-    --signal-soft: rgba(47, 211, 189, 0.15);
-    --accent-surface: #CFEAE3;
-    --accent-on: #0A1A16;
-    --warn: #FBBF24;
-    --warn-soft: rgba(251, 191, 36, 0.16);
-    --ok: #34D399;
-    --ok-soft: rgba(52, 211, 153, 0.15);
-    --danger: #F87171;
-    --danger-soft: rgba(248, 113, 113, 0.16);
-    --gold: #E7B45C;
-    --shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 22px 50px rgba(0, 0, 0, 0.55);
-    --neutral: #9fb0ab;
-  }
+/* ── DARK — class-based (.dark on <html>), opt-in via the theme toggle ──
+   VoiceBox's near-black studio canvas + brighter gold accent. Class-based (not
+   a media query) so the in-app light/dark toggle controls it; light is the
+   default when no class is present. */
+:root.dark {
+  --bg: #0E0E0C;
+  --bg-2: #080807;
+  --card: #161513;
+  --card-2: #1C1B18;
+  --card-hover: #201F1B;
+  --line: rgba(242, 240, 232, 0.09);
+  --line-2: rgba(242, 240, 232, 0.16);
+  --text: #F3F1EC;
+  --text-2: rgba(243, 241, 236, 0.58);
+  --text-3: rgba(243, 241, 236, 0.38);
+  --signal: #E0B65C;
+  --on-signal: #1A1304;
+  --signal-soft: rgba(224, 182, 92, 0.16);
+  --live: #2FD3BD;
+  --on-live: #06201C;
+  --live-soft: rgba(47, 211, 189, 0.16);
+  --accent-surface: #E6E3DB;
+  --accent-on: #15140F;
+  --warn: #FBBF24;
+  --warn-soft: rgba(251, 191, 36, 0.16);
+  --ok: #34D399;
+  --ok-soft: rgba(52, 211, 153, 0.15);
+  --danger: #F87171;
+  --danger-soft: rgba(248, 113, 113, 0.16);
+  --gold: #E0B65C;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 22px 50px rgba(0, 0, 0, 0.6);
+  --neutral: #9a948a;
 }
 
 /* ── Tailwind v4 utility aliases (theme-switchable via the vars above) ──
@@ -116,6 +127,9 @@
   --color-signal: var(--signal);
   --color-on-signal: var(--on-signal);
   --color-signal-soft: var(--signal-soft);
+  --color-live: var(--live);
+  --color-on-live: var(--on-live);
+  --color-live-soft: var(--live-soft);
   --color-accent-surface: var(--accent-surface);
   --color-accent-on: var(--accent-on);
   --color-warn: var(--warn);
@@ -179,18 +193,22 @@
   stroke-width: 1;
 }
 
+/* Gold halo on the rail brand mark in dark mode (VoiceBox signature glow). */
+:root.dark .sidebar-logo {
+  filter: drop-shadow(0 0 5px rgba(224, 182, 92, 0.45))
+    drop-shadow(0 0 14px rgba(224, 182, 92, 0.25));
+}
+
 /* legacy elevation tokens (kept; new system prefers --shadow) */
 :root {
   --elev-1: 0 1px 2px rgba(15, 15, 15, 0.06);
   --elev-2: 0 2px 8px rgba(15, 15, 15, 0.08);
   --elev-3: 0 8px 24px rgba(15, 15, 15, 0.12);
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --elev-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --elev-2: 0 2px 10px rgba(0, 0, 0, 0.45);
-    --elev-3: 0 10px 30px rgba(0, 0, 0, 0.55);
-  }
+:root.dark {
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --elev-2: 0 2px 10px rgba(0, 0, 0, 0.45);
+  --elev-3: 0 10px 30px rgba(0, 0, 0, 0.55);
 }
 .elev-2 {
   box-shadow: var(--elev-2);

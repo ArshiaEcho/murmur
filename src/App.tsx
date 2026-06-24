@@ -20,6 +20,7 @@ import { Sidebar, SidebarSection, SECTIONS_CONFIG } from "./components/Sidebar";
 import { NavigationContext } from "./hooks/useNavigate";
 import { useSettings } from "./hooks/useSettings";
 import { useSettingsStore } from "./stores/settingsStore";
+import { useThemeStore } from "./stores/themeStore";
 import { commands } from "@/bindings";
 import { getLanguageDirection, initializeRTL } from "@/lib/utils/rtl";
 
@@ -47,6 +48,7 @@ function App() {
   const [currentSection, setCurrentSection] =
     useState<SidebarSection>("overview");
   const { settings, updateSetting } = useSettings();
+  const theme = useThemeStore((state) => state.theme);
   const direction = getLanguageDirection(i18n.language);
   const refreshAudioDevices = useSettingsStore(
     (state) => state.refreshAudioDevices,
@@ -290,17 +292,17 @@ function App() {
   return (
     <div
       dir={direction}
-      className="h-screen flex flex-col select-none cursor-default"
+      className="h-screen flex flex-col select-none cursor-default bg-bg text-text"
     >
       <Toaster
-        theme="system"
+        theme={theme}
         toastOptions={{
           unstyled: true,
           classNames: {
             toast:
-              "bg-background border border-mid-gray/20 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3 text-sm",
+              "bg-card border border-line text-text rounded-[12px] shadow-[var(--shadow)] px-4 py-3 flex items-center gap-3 text-sm",
             title: "font-medium",
-            description: "text-mid-gray",
+            description: "text-text-2",
           },
         }}
       />

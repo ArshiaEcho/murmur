@@ -5,6 +5,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     | "primary"
     | "primary-soft"
     | "secondary"
+    | "live"
     | "danger"
     | "danger-ghost"
     | "ghost";
@@ -18,8 +19,9 @@ export const Button: React.FC<ButtonProps> = ({
   size = "md",
   ...props
 }) => {
+  // VoiceBox shape: pill buttons (rounded-full). Gold = the single CTA accent.
   const baseClasses =
-    "inline-flex items-center justify-center gap-2 font-medium rounded-lg border cursor-pointer transition-[background-color,border-color,color,transform,filter] duration-150 ease-[var(--ease-out-quint)] focus:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center gap-2 font-medium rounded-full border cursor-pointer whitespace-nowrap transition-[background-color,border-color,color,transform,filter] duration-150 ease-[var(--ease-out-quint)] focus:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variantClasses = {
     primary:
@@ -28,6 +30,8 @@ export const Button: React.FC<ButtonProps> = ({
       "text-signal bg-signal-soft border-transparent hover:bg-signal hover:text-on-signal",
     secondary:
       "text-text-2 bg-card border-line-2 hover:text-text hover:border-signal",
+    // teal "live" CTA — start session / record (the Murmur touch)
+    live: "text-on-live bg-live border-live hover:brightness-[1.08] active:brightness-95",
     danger:
       "text-white bg-danger border-danger hover:brightness-[1.08] active:brightness-95",
     "danger-ghost":
