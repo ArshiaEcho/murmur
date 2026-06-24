@@ -38,8 +38,11 @@ pub fn preview_tts_voice(app: AppHandle, voice: String, text: String) -> Result<
     } else {
         text
     };
-    if matches!(settings.tts_provider, settings::TtsProvider::ElevenLabs) {
-        // Preview the currently-configured ElevenLabs voice.
+    if matches!(
+        settings.tts_provider,
+        settings::TtsProvider::ElevenLabs | settings::TtsProvider::Kokoro
+    ) {
+        // Preview the currently-configured cloud/neural voice.
         crate::tts::speak_with_settings(&settings, &sample);
     } else {
         let rate = if settings.tts_rate > 0 {
@@ -118,6 +121,7 @@ pub fn change_tts_provider_setting(app: AppHandle, provider: String) -> Result<(
     let mut settings = settings::get_settings(&app);
     settings.tts_provider = match provider.as_str() {
         "eleven_labs" => settings::TtsProvider::ElevenLabs,
+        "kokoro" => settings::TtsProvider::Kokoro,
         _ => settings::TtsProvider::Say,
     };
     settings::write_settings(&app, settings);
@@ -151,6 +155,26 @@ pub fn change_elevenlabs_api_key_setting(app: AppHandle, key: String) -> Result<
             .tts_secrets
             .insert("elevenlabs".to_string(), trimmed);
     }
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
+/// List the downloaded Kokoro voices (file-stem ids like "af_heart").
+#[tauri::command]
+#[specta::specta]
+pub fn list_kokoro_voices() -> Result<Vec<String>, String> {
+    Ok(crate::tts::list_kokoro_voices())
+}
+
+/// Set the active Kokoro voice (file-stem id; None / empty = default).
+#[tauri::command]
+#[specta::specta]
+pub fn change_kokoro_voice_setting(
+    app: AppHandle,
+    voice_id: Option<String>,
+) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.kokoro_voice_id = voice_id.filter(|v| !v.is_empty());
     settings::write_settings(&app, settings);
     Ok(())
 }

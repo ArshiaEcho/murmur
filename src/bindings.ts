@@ -112,6 +112,22 @@ async listElevenlabsVoices() : Promise<Result<ElevenVoice[], string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async listKokoroVoices() : Promise<Result<string[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_kokoro_voices") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeKokoroVoiceSetting(voiceId: string | null) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_kokoro_voice_setting", { voiceId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async converseTest(question: string) : Promise<Result<string, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("converse_test", { question }) };
@@ -1125,10 +1141,10 @@ sessionsUpdate: "sessions-update"
 
 /** user-defined types **/
 
-export type AppSettings = { bindings: Partial<{ [key in string]: ShortcutBinding }>; push_to_talk: boolean; audio_feedback: boolean; audio_feedback_volume?: number; sound_theme?: SoundTheme; start_hidden?: boolean; autostart_enabled?: boolean; update_checks_enabled?: boolean; selected_model?: string; always_on_microphone?: boolean; selected_microphone?: string | null; clamshell_microphone?: string | null; selected_output_device?: string | null; translate_to_english?: boolean; selected_language?: string; overlay_position?: OverlayPosition; debug_mode?: boolean; log_level?: LogLevel; custom_words?: string[]; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; paste_method?: PasteMethod; clipboard_handling?: ClipboardHandling; auto_submit?: boolean; auto_submit_key?: AutoSubmitKey; post_process_enabled?: boolean; post_process_provider_id?: string; post_process_providers?: PostProcessProvider[]; post_process_api_keys?: SecretMap; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; post_process_selected_prompt_id?: string | null; mute_while_recording?: boolean; append_trailing_space?: boolean; app_language?: string; experimental_enabled?: boolean; lazy_stream_close?: boolean; keyboard_implementation?: KeyboardImplementation; show_tray_icon?: boolean; paste_delay_ms?: number; typing_tool?: TypingTool; external_script_path: string | null; custom_filler_words?: string[] | null; whisper_accelerator?: WhisperAcceleratorSetting; ort_accelerator?: OrtAcceleratorSetting; whisper_gpu_device?: number; extra_recording_buffer_ms?: number; tts_voice?: string | null; tts_rate?: number; tts_provider?: TtsProvider; elevenlabs_voice_id?: string | null; tts_secrets?: SecretMap; converse_enabled?: boolean; converse_model?: string; converse_project_scope?: string | null; converse_max_turns?: number; session_voices?: Partial<{ [key in string]: string }>; agents_autospeak?: boolean; agents_enabled?: boolean; sessions_rolling_summaries?: boolean; sessions_pinned?: string[]; sessions_voice_alerts?: boolean; sessions_notifications?: boolean; sessions_hide_background?: boolean; summary_model?: string; project_colors?: Partial<{ [key in string]: string }> }
+export type AppSettings = { bindings: Partial<{ [key in string]: ShortcutBinding }>; push_to_talk: boolean; audio_feedback: boolean; audio_feedback_volume?: number; sound_theme?: SoundTheme; start_hidden?: boolean; autostart_enabled?: boolean; update_checks_enabled?: boolean; selected_model?: string; always_on_microphone?: boolean; selected_microphone?: string | null; clamshell_microphone?: string | null; selected_output_device?: string | null; translate_to_english?: boolean; selected_language?: string; overlay_position?: OverlayPosition; debug_mode?: boolean; log_level?: LogLevel; custom_words?: string[]; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; paste_method?: PasteMethod; clipboard_handling?: ClipboardHandling; auto_submit?: boolean; auto_submit_key?: AutoSubmitKey; post_process_enabled?: boolean; post_process_provider_id?: string; post_process_providers?: PostProcessProvider[]; post_process_api_keys?: SecretMap; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; post_process_selected_prompt_id?: string | null; mute_while_recording?: boolean; append_trailing_space?: boolean; app_language?: string; experimental_enabled?: boolean; lazy_stream_close?: boolean; keyboard_implementation?: KeyboardImplementation; show_tray_icon?: boolean; paste_delay_ms?: number; typing_tool?: TypingTool; external_script_path: string | null; custom_filler_words?: string[] | null; whisper_accelerator?: WhisperAcceleratorSetting; ort_accelerator?: OrtAcceleratorSetting; whisper_gpu_device?: number; extra_recording_buffer_ms?: number; tts_voice?: string | null; tts_rate?: number; tts_provider?: TtsProvider; elevenlabs_voice_id?: string | null; kokoro_voice_id?: string | null; tts_secrets?: SecretMap; converse_enabled?: boolean; converse_model?: string; converse_project_scope?: string | null; converse_max_turns?: number; session_voices?: Partial<{ [key in string]: string }>; agents_autospeak?: boolean; agents_enabled?: boolean; sessions_rolling_summaries?: boolean; sessions_pinned?: string[]; sessions_voice_alerts?: boolean; sessions_notifications?: boolean; sessions_hide_background?: boolean; summary_model?: string; project_colors?: Partial<{ [key in string]: string }> }
 export type AudioDevice = { index: string; name: string; is_default: boolean }
 export type TtsVoice = { name: string; locale: string; sample: string }
-export type TtsProvider = "say" | "eleven_labs"
+export type TtsProvider = "say" | "eleven_labs" | "kokoro"
 export type ElevenVoice = { voice_id: string; name: string; category: string }
 export type ClaudeProject = { cwd: string; dir: string }
 export type AgentKind = "session_report" | "voice_task"

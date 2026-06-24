@@ -9,67 +9,79 @@ import { Slider } from "../../ui/Slider";
 import { useSettings } from "../../../hooks/useSettings";
 import { ApiKeyField } from "../PostProcessingSettingsApi/ApiKeyField";
 
+// Prettify a Kokoro voice file-stem ("af_heart") into a label ("Heart · US F").
+// Convention: [accent][gender]_name where accent a=American, b=British.
+function prettyKokoro(id: string): string {
+  const m = id.match(/^([ab])([fm])_(.+)$/);
+  const base = (m ? m[3] : id).replace(/_/g, " ");
+  const cap = base.charAt(0).toUpperCase() + base.slice(1);
+  if (!m) return cap;
+  const accent = m[1] === "a" ? "US" : "UK";
+  const gender = m[2] === "f" ? "F" : "M";
+  return `${cap} · ${accent} ${gender}`;
+}
+
+/**
+ * Read Aloud is Kokoro-first: a free, on-device neural voice is the default
+ * picker. ElevenLabs lives behind an "Advanced" disclosure (bring your own
+ * key). The macOS `say` voices are intentionally not listed (kept only as a
+ * silent offline fallback in the engine).
+ */
 export const ReadAloudSettings: React.FC = () => {
   const { t } = useTranslation();
   const { getSetting, updateSetting, refreshSettings } = useSettings();
+  const [kokoroVoices, setKokoroVoices] = useState<string[]>([]);
   const [elVoices, setElVoices] = useState<ElevenVoice[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // Read Aloud is ElevenLabs-first: the dropdown is your own voices + the free
-  // ElevenLabs library. The macOS `say` voices are intentionally gone (only kept
-  // as a silent offline fallback in the engine).
-  const loadElVoices = useCallback(async () => {
-    const result = await commands.listElevenlabsVoices();
-    setElVoices(result.status === "ok" ? result.data : []);
-    setLoaded(true);
-  }, []);
-  useEffect(() => {
-    loadElVoices();
-  }, [loadElVoices]);
-
-  const provider = getSetting("tts_provider") ?? "say";
+  const provider = getSetting("tts_provider") ?? "kokoro";
+  const kokoroVoiceId = getSetting("kokoro_voice_id") ?? "";
   const elVoiceId = getSetting("elevenlabs_voice_id") ?? "";
   const rate = getSetting("tts_rate") ?? 175;
   const elKey = getSetting("tts_secrets")?.["elevenlabs"] ?? "";
+  const hasKey = elKey.trim().length > 0;
+
+  const loadKokoro = useCallback(async () => {
+    const r = await commands.listKokoroVoices();
+    setKokoroVoices(r.status === "ok" ? r.data : []);
+  }, []);
+  const loadEl = useCallback(async () => {
+    const r = await commands.listElevenlabsVoices();
+    setElVoices(r.status === "ok" ? r.data : []);
+  }, []);
+  useEffect(() => {
+    loadKokoro();
+    loadEl();
+  }, [loadKokoro, loadEl]);
+  // Open Advanced automatically when ElevenLabs is the active engine.
+  useEffect(() => {
+    if (provider === "eleven_labs") setShowAdvanced(true);
+  }, [provider]);
+
+  const selectKokoro = async (voice: string) => {
+    await updateSetting("kokoro_voice_id", voice || null);
+    await updateSetting("tts_provider", "kokoro");
+  };
+  const selectEleven = async (voiceId: string) => {
+    if (!voiceId) return;
+    await updateSetting("elevenlabs_voice_id", voiceId);
+    await updateSetting("tts_provider", "eleven_labs");
+  };
+  const handleElKeyChange = async (key: string) => {
+    await commands.changeElevenlabsApiKeySetting(key);
+    await refreshSettings();
+    loadEl();
+  };
+  const handlePreview = () =>
+    commands.previewTtsVoice("", t("settings.readAloud.preview.sample"));
+  const handleStop = () => commands.stopTts();
 
   const custom = elVoices.filter((v) => v.category !== "premade");
   const premade = elVoices
     .filter((v) => v.category === "premade")
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const selectedValue =
-    provider === "eleven_labs" && elVoiceId ? `el:${elVoiceId}` : "";
-
-  const handleVoiceChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
-    if (val.startsWith("el:")) {
-      await updateSetting("tts_provider", "eleven_labs");
-      await updateSetting("elevenlabs_voice_id", val.slice(3));
-    } else {
-      // Offline fallback: macOS system default voice.
-      await updateSetting("tts_provider", "say");
-      await updateSetting("tts_voice", null);
-    }
-  };
-
-  const handleElKeyChange = async (key: string) => {
-    await commands.changeElevenlabsApiKeySetting(key);
-    await refreshSettings();
-    loadElVoices();
-  };
-
-  const handlePreview = () => {
-    commands.previewTtsVoice(
-      getSetting("tts_voice") ?? "",
-      t("settings.readAloud.preview.sample"),
-    );
-  };
-
-  const handleStop = () => {
-    commands.stopTts();
-  };
-
-  const hasKey = elKey.trim().length > 0;
+  const kokoroValue = provider === "kokoro" ? kokoroVoiceId || "af_heart" : "";
 
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
@@ -80,49 +92,30 @@ export const ReadAloudSettings: React.FC = () => {
           descriptionMode="tooltip"
           grouped={true}
         >
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-2">
             <select
-              value={selectedValue}
-              onChange={handleVoiceChange}
-              disabled={!loaded}
-              className="text-sm rounded-lg border border-mid-gray/20 bg-background px-2 py-1 focus:outline-none focus:ring-2 focus:ring-logo-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              value={kokoroValue}
+              onChange={(e) => selectKokoro(e.target.value)}
+              className="text-sm rounded-lg border border-mid-gray/20 bg-background px-2 py-1 focus:outline-none focus:ring-2 focus:ring-logo-primary"
             >
-              {custom.length > 0 && (
-                <optgroup label={t("settings.readAloud.voice.customGroup")}>
-                  {custom.map((v) => (
-                    <option key={v.voice_id} value={`el:${v.voice_id}`}>
-                      {v.name}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-
-              {premade.length > 0 && (
-                <optgroup label={t("settings.readAloud.voice.freeGroup")}>
-                  {premade.map((v) => (
-                    <option key={v.voice_id} value={`el:${v.voice_id}`}>
-                      {v.name}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-
-              <optgroup label={t("settings.readAloud.voice.offline")}>
+              {kokoroVoices.length === 0 && (
                 <option value="">
                   {t("settings.readAloud.voice.systemDefault")}
                 </option>
-              </optgroup>
+              )}
+              {kokoroVoices.map((v) => (
+                <option key={v} value={v}>
+                  {prettyKokoro(v)}
+                </option>
+              ))}
             </select>
+            {provider === "kokoro" && (
+              <span className="text-xs text-mid-gray whitespace-nowrap">
+                Free · on-device
+              </span>
+            )}
           </div>
         </SettingContainer>
-
-        {loaded && elVoices.length === 0 && (
-          <p className="px-4 text-sm text-mid-gray">
-            {hasKey
-              ? t("settings.readAloud.eleven.noVoices")
-              : t("settings.readAloud.eleven.needKey")}
-          </p>
-        )}
 
         <p className="px-4 text-xs text-mid-gray">
           {t("settings.readAloud.voice.hint")}
@@ -151,8 +144,7 @@ export const ReadAloudSettings: React.FC = () => {
             <button
               type="button"
               onClick={handlePreview}
-              disabled={!loaded}
-              className="text-sm font-medium rounded-lg px-3 py-1 bg-logo-primary/80 hover:bg-logo-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-sm font-medium rounded-lg px-3 py-1 bg-logo-primary/80 hover:bg-logo-primary transition-colors"
             >
               {t("settings.readAloud.preview.play")}
             </button>
@@ -168,28 +160,75 @@ export const ReadAloudSettings: React.FC = () => {
       </SettingsGroup>
 
       <SettingsGroup title={t("settings.readAloud.eleven.title")}>
-        <SettingContainer
-          title={t("settings.readAloud.eleven.keyTitle")}
-          description={t("settings.readAloud.eleven.keyDescription")}
-          descriptionMode="tooltip"
-          layout="horizontal"
-          grouped={true}
+        <button
+          type="button"
+          onClick={() => setShowAdvanced((s) => !s)}
+          className="px-4 text-sm text-mid-gray hover:text-foreground transition-colors text-left"
         >
-          <div className="flex items-center gap-2">
-            <ApiKeyField
-              value={elKey}
-              onBlur={handleElKeyChange}
-              disabled={false}
-              placeholder={t("settings.readAloud.eleven.keyPlaceholder")}
-              className="min-w-[320px]"
-            />
-          </div>
-        </SettingContainer>
-        <p className="px-4 text-sm text-mid-gray">
-          {elVoices.length > 0
-            ? t("settings.readAloud.eleven.loaded", { count: elVoices.length })
-            : t("settings.readAloud.eleven.noVoices")}
-        </p>
+          {showAdvanced ? "▾" : "▸"} Advanced: use my ElevenLabs key
+          {provider === "eleven_labs" ? " (active)" : ""}
+        </button>
+
+        {showAdvanced && (
+          <>
+            <SettingContainer
+              title={t("settings.readAloud.eleven.keyTitle")}
+              description={t("settings.readAloud.eleven.keyDescription")}
+              descriptionMode="tooltip"
+              layout="horizontal"
+              grouped={true}
+            >
+              <ApiKeyField
+                value={elKey}
+                onBlur={handleElKeyChange}
+                disabled={false}
+                placeholder={t("settings.readAloud.eleven.keyPlaceholder")}
+                className="min-w-[320px]"
+              />
+            </SettingContainer>
+
+            {hasKey && (
+              <SettingContainer
+                title={t("settings.readAloud.voice.title")}
+                description={t("settings.readAloud.voice.description")}
+                descriptionMode="tooltip"
+                grouped={true}
+              >
+                <select
+                  value={provider === "eleven_labs" ? elVoiceId : ""}
+                  onChange={(e) => selectEleven(e.target.value)}
+                  className="text-sm rounded-lg border border-mid-gray/20 bg-background px-2 py-1 focus:outline-none focus:ring-2 focus:ring-logo-primary"
+                >
+                  <option value="">—</option>
+                  {custom.length > 0 && (
+                    <optgroup label={t("settings.readAloud.voice.customGroup")}>
+                      {custom.map((v) => (
+                        <option key={v.voice_id} value={v.voice_id}>
+                          {v.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {premade.length > 0 && (
+                    <optgroup label={t("settings.readAloud.voice.freeGroup")}>
+                      {premade.map((v) => (
+                        <option key={v.voice_id} value={v.voice_id}>
+                          {v.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+              </SettingContainer>
+            )}
+
+            <p className="px-4 text-sm text-mid-gray">
+              {elVoices.length > 0
+                ? t("settings.readAloud.eleven.loaded", { count: elVoices.length })
+                : t("settings.readAloud.eleven.needKey")}
+            </p>
+          </>
+        )}
       </SettingsGroup>
 
       <SettingsGroup title={t("settings.readAloud.hotkey.title")}>

@@ -147,6 +147,20 @@ function App() {
     };
   }, [t]);
 
+  // Surface Read Aloud degradations (ElevenLabs quota exhausted, Kokoro model
+  // missing, etc.) instead of silently dropping to a worse voice.
+  useEffect(() => {
+    const unlisten = listen<{ reason: string; message: string }>(
+      "tts-degraded",
+      (event) => {
+        toast.warning(event.payload.message);
+      },
+    );
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
+
   // Listen for model loading failures and show a toast
   useEffect(() => {
     const unlisten = listen<ModelStateEvent>("model-state-changed", (event) => {
