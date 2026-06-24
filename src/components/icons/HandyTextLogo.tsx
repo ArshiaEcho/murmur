@@ -1,7 +1,8 @@
 import React from "react";
 
-// Strat wordmark. Replaces the original fork's text logo; fill follows the
-// --color-logo-primary theme token (Stratos teal) via the .logo-primary class.
+// Murmur wordmark. Fill follows the --color-logo-primary theme token (Stratos
+// teal) via the .logo-primary class. textLength + lengthAdjust pin the word inside
+// the viewBox so it never clips, regardless of the word's natural glyph width.
 const HandyTextLogo = ({
   width,
   height,
@@ -25,10 +26,12 @@ const HandyTextLogo = ({
         y="32"
         textAnchor="middle"
         dominantBaseline="central"
+        textLength="190"
+        lengthAdjust="spacingAndGlyphs"
         fontFamily="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"
-        fontSize="48"
+        fontSize="40"
         fontWeight="800"
-        letterSpacing="2"
+        letterSpacing="1"
         className="logo-primary"
       >
         MURMUR
