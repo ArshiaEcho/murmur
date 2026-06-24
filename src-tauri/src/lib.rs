@@ -171,11 +171,17 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     let model_manager =
         Arc::new(ModelManager::new(app_handle).expect("Failed to initialize model manager"));
 
-    // Tell the Read Aloud TTS engine where the Kokoro model + voicepacks live
-    // (same models dir the model manager uses).
+    // Stash the app handle so the TTS engine can surface degradations as toasts,
+    // and tell it where the Kokoro model + voicepacks live (same models dir the
+    // model manager uses).
+    crate::tts::set_app_handle(app_handle.clone());
     if let Ok(data_dir) = crate::portable::app_data_dir(app_handle) {
         crate::tts::set_kokoro_dir(data_dir.join("models").join("kokoro"));
     }
+    log::info!(
+        "kokoro: model ready = {}",
+        crate::tts::kokoro_model_ready()
+    );
 
     let transcription_manager = Arc::new(
         TranscriptionManager::new(app_handle, model_manager.clone())

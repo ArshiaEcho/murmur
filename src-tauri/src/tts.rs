@@ -10,6 +10,7 @@ use log::{debug, warn};
 use once_cell::sync::{Lazy, OnceCell};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use tauri::{AppHandle, Emitter};
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
@@ -152,6 +153,27 @@ pub fn set_kokoro_dir(dir: PathBuf) {
     let _ = KOKORO_DIR.set(dir);
 }
 
+/// App handle for surfacing TTS degradations to the UI (set once at startup).
+static TTS_APP: OnceCell<AppHandle> = OnceCell::new();
+
+/// Stash the app handle so the engine can emit `tts-degraded` events.
+pub fn set_app_handle(app: AppHandle) {
+    let _ = TTS_APP.set(app);
+}
+
+/// Surface a non-fatal TTS degradation to the UI instead of silently dropping
+/// to a worse voice. `reason` is a stable code; `message` is human text shown
+/// as a toast. This is the fix for "my voices silently disappeared".
+fn emit_degraded(reason: &str, message: &str) {
+    warn!("tts: degraded ({reason}): {message}");
+    if let Some(app) = TTS_APP.get() {
+        let _ = app.emit(
+            "tts-degraded",
+            serde_json::json!({ "reason": reason, "message": message }),
+        );
+    }
+}
+
 /// The default Kokoro voice when none is configured.
 pub fn default_kokoro_voice() -> &'static str {
     "af_heart"
@@ -277,8 +299,12 @@ pub fn speak_kokoro(text: &str, voice_id: &str, speed: f32, fallback_say_voice: 
                 play_file(&path, my_gen);
             }
             Err(e) => {
-                warn!("tts: kokoro synth failed ({e}); falling back to macOS say");
+                warn!("tts: kokoro unavailable ({e})");
                 if GEN.load(Ordering::SeqCst) == my_gen {
+                    emit_degraded(
+                        "kokoro_failed",
+                        "Free voice engine unavailable (model not downloaded?). Using the system voice.",
+                    );
                     speak(&text, fallback_say_voice.as_deref(), None);
                 }
             }
@@ -367,9 +393,13 @@ pub fn speak_elevenlabs(text: &str, voice_id: &str, api_key: &str) {
             }
         }
         Err(e) => {
-            warn!("tts: ElevenLabs request failed ({e}); falling back to macOS say");
+            warn!("tts: ElevenLabs request failed ({e})");
             if GEN.load(Ordering::SeqCst) == my_gen {
-                speak(&text, None, None);
+                emit_degraded(
+                    "elevenlabs_failed",
+                    "ElevenLabs unavailable (quota, key, or network). Using the free Kokoro voice.",
+                );
+                speak_kokoro(&text, default_kokoro_voice(), 1.0, None);
             }
         }
     });
