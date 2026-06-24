@@ -7,6 +7,15 @@
     "light": "Light",
     "dark": "Dark"
   },
+  "changelog": {
+    "title": "What's new",
+    "subtitle": "Recent updates to Murmur.",
+    "kind": {
+      "added": "New",
+      "fixed": "Fixed",
+      "changed": "Changed"
+    }
+  },
   "tray": {
     "settings": "Settings...",
     "checkUpdates": "Check for Updates...",
@@ -29,6 +38,7 @@
     "conversation": "Conversation",
     "agents": "Sessions",
     "sessions": "Sessions",
+    "changelog": "Changelog",
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar",
     "pin": "Pin sidebar open",

@@ -10,6 +10,7 @@ import {
   Volume2,
   LayoutGrid,
   MessageSquare,
+  ScrollText,
   PanelLeftClose,
   PanelLeftOpen,
   Pin,
@@ -30,6 +31,7 @@ import {
   PostProcessingSettings,
   ModelsSettings,
   ReadAloudSettings,
+  ChangelogSettings,
 } from "./settings";
 
 export type SidebarSection = keyof typeof SECTIONS_CONFIG;
@@ -103,6 +105,12 @@ export const SECTIONS_CONFIG = {
     icon: FlaskConical,
     component: DebugSettings,
     enabled: (settings) => settings?.debug_mode ?? false,
+  },
+  changelog: {
+    labelKey: "sidebar.changelog",
+    icon: ScrollText,
+    component: ChangelogSettings,
+    enabled: () => true,
   },
   about: {
     labelKey: "sidebar.about",
