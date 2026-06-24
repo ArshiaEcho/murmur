@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Murmur — the voice layer for Claude Code</title>
+<meta name="description" content="Murmur is the voice layer for Claude Code. Give your agents a voice, dictate into any app, and keep an eye on every Claude Code session. Local-first, private, and free." />
+<meta name="theme-color" content="#0C0D0C" />
+<link rel="canonical" href="https://murmur.stratosagency.ai" />
+
+<!-- OpenGraph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Murmur" />
+<meta property="og:url" content="https://murmur.stratosagency.ai" />
+<meta property="og:title" content="Murmur — the voice layer for Claude Code" />
+<meta property="og:description" content="Give your agents a voice, dictate into any app, and keep an eye on every Claude Code session. Local-first, private, free." />
+<meta property="og:image" content="./assets/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Murmur — the voice layer for Claude Code" />
+<meta name="twitter:description" content="Give your agents a voice, dictate into any app, and keep an eye on every Claude Code session. Local-first, private, free." />
+<meta name="twitter:image" content="./assets/og-image.png" />
+
+<link rel="icon" href="./assets/stratos-logo.png" />
+<link rel="apple-touch-icon" href="./assets/stratos-logo.png" />
+
+<style>
+  :root {
+    --dark: #0C0D0C;
+    --dark-2: #131412;
+    --surface: #FBFBF9;
+    --surface-2: #F4F3F0;
+    --gold: #C49433;
+    --gold-ink: #8A6516;
+    --teal: #0E9E90;
+    --teal-ink: #0A7468;
+    --on-dark: #F3F1EC;
+    --on-dark-muted: rgba(243, 241, 236, .58);
+    --on-dark-faint: rgba(243, 241, 236, .42);
+    --ink: #16110A;
+    --ink-muted: #5C564C;
+    --ink-faint: #8B857A;
+    --line: rgba(22, 17, 10, .09);
+    --line-strong: rgba(22, 17, 10, .14);
+    --line-dark: rgba(243, 241, 236, .10);
+    --radius: 14px;
+    --radius-lg: 20px;
+    --maxw: 1080px;
+    --pad: clamp(20px, 5vw, 40px);
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+    --ease: cubic-bezier(.22, .68, .12, 1);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    font-family: var(--font);
+    color: var(--ink);
+    background: var(--surface);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3 { line-height: 1.1; letter-spacing: -.022em; margin: 0; font-weight: 600; }
+  p { margin: 0; }
+  a { color: inherit; }
+  img { max-width: 100%; display: block; }
+
+  ::selection { background: rgba(196, 148, 51, .22); }
+
+  a:focus-visible,
+  button:focus-visible,
+  .btn:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: var(--maxw);
+    margin-inline: auto;
+    padding-inline: var(--pad);
+  }
+
+  .eyebrow {
+    display: inline-block;
+    font-size: .74rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--ink-faint);
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5em;
+    font: inherit;
+    font-weight: 600;
+    font-size: .98rem;
+    line-height: 1;
+    padding: .95em 1.55em;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform .4s var(--ease), box-shadow .4s var(--ease), background .25s var(--ease), border-color .25s var(--ease), color .25s var(--ease);
+  }
+
+  /* The one focal CTA. Gold is reserved for this. */
+  .btn-gold {
+    background: var(--gold);
+    color: #1c1403;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .25) inset, 0 12px 28px -12px rgba(196, 148, 51, .55);
+  }
+  .btn-gold:hover {
+    background: #cf9d39;
+    transform: translateY(-2px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .3) inset, 0 18px 38px -14px rgba(196, 148, 51, .7);
+  }
+  .btn-gold:active { transform: translateY(0); }
+
+  /* Secondary action: quiet, never competes with gold */
+  .btn-ghost {
+    background: transparent;
+    color: var(--on-dark);
+    border-color: var(--line-dark);
+    font-weight: 500;
+  }
+  .btn-ghost:hover { border-color: rgba(243, 241, 236, .32); background: rgba(243, 241, 236, .04); }
+
+  .btn svg { width: 1.1em; height: 1.1em; flex: none; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    background: var(--dark);
+    color: var(--on-dark);
+    overflow: hidden;
+    padding-block: clamp(22px, 5vw, 36px) clamp(80px, 13vw, 150px);
+  }
+  /* single restrained glow — gold, behind the wordmark only */
+  .hero::before {
+    content: "";
+    position: absolute;
+    width: 56vw; height: 56vw;
+    max-width: 680px; max-height: 680px;
+    top: -6%; left: 50%;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at center, rgba(196, 148, 51, .26), rgba(196, 148, 51, 0) 64%);
+    filter: blur(40px);
+    pointer-events: none;
+    z-index: 0;
+    animation: floatGlow 18s ease-in-out infinite;
+  }
+  /* faint vignette to ground the dark panel */
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 90% at 50% 0%, transparent 55%, rgba(0,0,0,.35) 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes floatGlow {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, 16px); }
+  }
+
+  .hero-nav {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-block: 6px;
+  }
+  .brand-lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: .55em;
+    font-weight: 600;
+    font-size: 1.02rem;
+    letter-spacing: -.01em;
+    text-decoration: none;
+    color: var(--on-dark);
+  }
+  .brand-lockup img { width: 24px; height: 24px; object-fit: contain; }
+  .nav-links { display: flex; align-items: center; gap: 4px; }
+  .nav-link {
+    text-decoration: none;
+    color: var(--on-dark-muted);
+    font-size: .92rem;
+    font-weight: 500;
+    padding: .45em .8em;
+    border-radius: 999px;
+    transition: color .2s var(--ease), background .2s var(--ease);
+  }
+  .nav-link:hover { color: var(--on-dark); background: rgba(243, 241, 236, .05); }
+
+  .hero-inner {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 720px;
+    margin-inline: auto;
+    padding-top: clamp(44px, 9vw, 84px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-logo {
+    width: clamp(56px, 10vw, 76px);
+    height: auto;
+    margin-bottom: clamp(24px, 4vw, 32px);
+    filter: drop-shadow(0 12px 28px rgba(196, 148, 51, .28));
+    animation: rise .7s var(--ease) both;
+  }
+
+  .wordmark {
+    font-size: clamp(3.4rem, 12vw, 6.6rem);
+    font-weight: 600;
+    letter-spacing: -.05em;
+    line-height: .92;
+    color: var(--on-dark);
+    animation: rise .7s var(--ease) .05s both;
+  }
+
+  .hero-tagline {
+    margin-top: clamp(20px, 3vw, 26px);
+    font-size: clamp(1.08rem, 2.4vw, 1.4rem);
+    line-height: 1.4;
+    color: var(--on-dark-muted);
+    max-width: 30ch;
+    animation: rise .7s var(--ease) .12s both;
+  }
+  .hero-tagline strong { color: var(--on-dark); font-weight: 600; }
+
+  .hero-cta {
+    margin-top: clamp(28px, 4vw, 38px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    animation: rise .7s var(--ease) .2s both;
+  }
+
+  .hero-sub {
+    margin-top: 20px;
+    font-size: .85rem;
+    letter-spacing: .01em;
+    color: var(--on-dark-faint);
+    animation: rise .7s var(--ease) .28s both;
+  }
+  .hero-sub b { color: var(--on-dark-muted); font-weight: 500; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- Sections ---------- */
+  section { padding-block: clamp(64px, 9vw, 112px); }
+
+  .section-head { max-width: 600px; margin-bottom: clamp(36px, 5vw, 60px); }
+  .section-head h2 {
+    margin-top: 16px;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    letter-spacing: -.028em;
+  }
+  .section-head p {
+    margin-top: 16px;
+    color: var(--ink-muted);
+    font-size: clamp(1rem, 1.8vw, 1.1rem);
+    max-width: 52ch;
+  }
+
+  /* ---------- Feature grid ---------- */
+  .features { background: var(--surface); }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .card {
+    position: relative;
+    background: var(--surface);
+    padding: clamp(24px, 3vw, 32px) clamp(22px, 2.6vw, 28px);
+    transition: background .35s var(--ease);
+  }
+  .card:hover { background: var(--surface-2); }
+  .card-icon {
+    width: 40px; height: 40px;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 18px;
+    background: var(--surface-2);
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+  }
+  .card:hover .card-icon { background: var(--surface); }
+  .card-icon svg { width: 21px; height: 21px; stroke-width: 1.6; }
+  .card h3 { font-size: 1.08rem; letter-spacing: -.018em; font-weight: 600; }
+  .card p { margin-top: 8px; color: var(--ink-muted); font-size: .95rem; line-height: 1.55; }
+  .card .tag {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 16px;
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .01em;
+    color: var(--ink-faint);
+  }
+  /* teal is reserved exclusively for the live signal */
+  .card .tag.live {
+    color: var(--teal-ink);
+    font-weight: 500;
+    padding-left: 1.3em;
+    position: relative;
+  }
+  .card .tag.live::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 0 0 rgba(14, 158, 144, .5);
+    animation: livePulse 2.4s var(--ease) infinite;
+  }
+  @keyframes livePulse {
+    0% { box-shadow: 0 0 0 0 rgba(14, 158, 144, .45); }
+    70% { box-shadow: 0 0 0 7px rgba(14, 158, 144, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(14, 158, 144, 0); }
+  }
+
+  /* ---------- How it works ---------- */
+  .how { background: var(--surface-2); border-block: 1px solid var(--line); }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(28px, 4vw, 48px);
+  }
+  .step { position: relative; padding-top: 26px; }
+  .step::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 1px;
+    background: var(--line-strong);
+  }
+  .step .num {
+    font-family: var(--mono);
+    font-size: .8rem;
+    font-weight: 500;
+    color: var(--gold-ink);
+    letter-spacing: .04em;
+  }
+  .step h3 { margin-top: 12px; font-size: 1.08rem; font-weight: 600; }
+  .step p { margin-top: 8px; color: var(--ink-muted); font-size: .95rem; line-height: 1.55; }
+
+  /* ---------- Download ---------- */
+  .download { background: var(--surface); }
+  .download-panel {
+    position: relative;
+    background: var(--dark);
+    color: var(--on-dark);
+    overflow: hidden;
+    border-radius: clamp(20px, 3vw, 28px);
+    padding: clamp(48px, 8vw, 88px) clamp(24px, 5vw, 48px);
+    text-align: center;
+  }
+  .download-panel::before {
+    content: "";
+    position: absolute;
+    width: 70%; height: 140%;
+    top: -40%; left: 50%;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at center, rgba(196, 148, 51, .22), transparent 62%);
+    filter: blur(40px);
+    pointer-events: none;
+  }
+  .download-inner { position: relative; z-index: 1; max-width: 560px; margin-inline: auto; }
+  .download-inner .eyebrow { color: var(--on-dark-faint); }
+  .download h2 { margin-top: 14px; font-size: clamp(1.9rem, 4.5vw, 2.8rem); letter-spacing: -.03em; }
+  .download .lead {
+    margin-top: 16px;
+    color: var(--on-dark-muted);
+    font-size: clamp(1rem, 1.8vw, 1.12rem);
+    line-height: 1.5;
+  }
+  .download .cta-row { margin-top: clamp(28px, 4vw, 36px); display: flex; justify-content: center; }
+  .download .meta {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    font-size: .86rem;
+    color: var(--on-dark-faint);
+  }
+  .download .meta .check {
+    display: inline-flex;
+    align-items: center;
+    gap: .5em;
+    color: var(--on-dark-muted);
+  }
+  .download .meta .check svg { width: 1.05em; height: 1.05em; color: var(--on-dark-faint); flex: none; }
+  .download .req { font-family: var(--mono); font-size: .76rem; letter-spacing: .02em; }
+
+  /* ---------- Footer ---------- */
+  footer {
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    padding-block: 36px;
+  }
+  .footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    color: var(--ink-faint);
+    font-size: .88rem;
+  }
+  .footer-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: .55em;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .footer-brand img { width: 20px; height: 20px; object-fit: contain; }
+  .footer-brand span { color: var(--ink-faint); font-weight: 400; }
+  .footer-links { display: inline-flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .footer-links a {
+    text-decoration: none;
+    color: var(--ink-muted);
+    transition: color .2s var(--ease);
+    display: inline-flex;
+    align-items: center;
+    gap: .4em;
+  }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-links svg { width: 1.05em; height: 1.05em; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .steps { grid-template-columns: 1fr; gap: 0; }
+    .step { padding-block: 22px; }
+  }
+  @media (max-width: 560px) {
+    .grid { grid-template-columns: 1fr; }
+    .nav-links .nav-link.hide-sm { display: none; }
+    .hero-cta { flex-direction: column; align-items: stretch; width: 100%; max-width: 320px; }
+    .hero-cta .btn { width: 100%; }
+    .footer-inner { flex-direction: column; align-items: flex-start; }
+  }
+  @media (max-width: 380px) {
+    :root { --pad: 18px; }
+    .nav-links { gap: 0; }
+    .wordmark { font-size: 3.1rem; }
+  }
+
+  /* ---------- Reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: .001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===================== HERO ===================== -->
+  <header class="hero">
+    <div class="wrap">
+      <nav class="hero-nav" aria-label="Primary">
+        <a class="brand-lockup" href="#" aria-label="Murmur home">
+          <img src="./assets/stratos-logo.png" alt="Stratos House diamond mark" width="24" height="24" />
+          <span>Murmur</span>
+        </a>
+        <div class="nav-links">
+          <a class="nav-link hide-sm" href="#features">Features</a>
+          <a class="nav-link hide-sm" href="#how">How it works</a>
+          <a class="nav-link" href="https://github.com/ArshiaEcho/murmur" rel="noopener">GitHub</a>
+          <a class="nav-link" href="#download">Download</a>
+        </div>
+      </nav>
+
+      <div class="hero-inner">
+        <img class="hero-logo" src="./assets/stratos-logo.png" alt="Murmur, by Stratos House" width="76" height="76" />
+        <h1 class="wordmark">Murmur</h1>
+        <p class="hero-tagline">
+          The voice layer for Claude Code. <strong>Give your agents a voice, dictate into any app, and watch every session as it runs.</strong>
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-gold" href="#download">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M5 21h14"/>
+            </svg>
+            Download for macOS
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/ArshiaEcho/murmur" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.93c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.1-.76.4-1.27.74-1.56-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.2-3.1-.12-.29-.52-1.46.11-3.05 0 0 .98-.31 3.2 1.18a11.1 11.1 0 0 1 5.82 0c2.22-1.5 3.2-1.18 3.2-1.18.63 1.59.23 2.76.11 3.05.75.81 1.2 1.84 1.2 3.1 0 4.43-2.7 5.4-5.26 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/>
+            </svg>
+            View source
+          </a>
+        </div>
+        <p class="hero-sub">Local-first, private, and free · <b>by Stratos House</b></p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ===================== FEATURES ===================== -->
+    <section class="features" id="features" aria-labelledby="features-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">What's inside</p>
+          <h2 id="features-title">A voice layer that respects your machine</h2>
+          <p>Neural read-aloud, push-to-talk dictation, and a live window into every Claude Code session. No cloud, no telemetry.</p>
+        </div>
+
+        <div class="grid">
+          <!-- 1 -->
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/>
+              </svg>
+            </div>
+            <h3>Read-aloud neural voices</h3>
+            <p>Hear your agent think. Natural Edge TTS plus fully offline Kokoro voices — clear, fast, free.</p>
+            <span class="tag">Edge TTS + Kokoro</span>
+          </article>
+
+          <!-- 2 -->
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 19v3"/>
+              </svg>
+            </div>
+            <h3>Dictate into any app</h3>
+            <p>One global hotkey turns speech into text anywhere — editor, terminal, browser, chat. No window switching.</p>
+            <span class="tag">Global hotkey</span>
+          </article>
+
+          <!-- 3 -->
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </div>
+            <h3>Live sessions observatory</h3>
+            <p>Watch every Claude Code session as it runs. See what your agents are doing, in real time, in one place.</p>
+            <span class="tag live">Live</span>
+          </article>
+
+          <!-- 4 -->
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>
+              </svg>
+            </div>
+            <h3>Light &amp; dark, refined</h3>
+            <p>An interface that's easy on the eyes in any light. Considered typography, generous spacing, no clutter.</p>
+            <span class="tag">Native themes</span>
+          </article>
+
+          <!-- 5 -->
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/><circle cx="12" cy="16" r="1"/>
+              </svg>
+            </div>
+            <h3>Local-first &amp; private</h3>
+            <p>Nothing leaves your machine. Transcription and synthesis run entirely offline — your words stay yours.</p>
+            <span class="tag">On-device</span>
+          </article>
+
+          <!-- 6 -->
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+              </svg>
+            </div>
+            <h3>Built for Claude Code</h3>
+            <p>Designed around the way agents work — sessions, voice, and MCP-ready hooks that slot into your flow.</p>
+            <span class="tag">MCP-ready</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== HOW IT WORKS ===================== -->
+    <section class="how" id="how" aria-labelledby="how-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">How it works</p>
+          <h2 id="how-title">Install once. Talk, listen, watch.</h2>
+          <p>Murmur sits quietly in your menu bar and wires voice into everything you already do with Claude Code.</p>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <span class="num">01</span>
+            <h3>Install &amp; grant access</h3>
+            <p>Download the notarized macOS app, allow microphone and accessibility, and you're ready in under a minute.</p>
+          </div>
+          <div class="step">
+            <span class="num">02</span>
+            <h3>Press to talk, anywhere</h3>
+            <p>Hold your hotkey to dictate into any app, and let read-aloud voice every reply your agent sends back.</p>
+          </div>
+          <div class="step">
+            <span class="num">03</span>
+            <h3>Keep watch</h3>
+            <p>Open the observatory to follow every Claude Code session live — all on your own machine.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== DOWNLOAD ===================== -->
+    <section class="download" id="download" aria-labelledby="download-title">
+      <div class="wrap">
+        <div class="download-panel">
+          <div class="download-inner">
+            <p class="eyebrow">Free &amp; open source</p>
+            <h2 id="download-title">Download Murmur</h2>
+            <p class="lead">The voice layer for Claude Code — local-first, private, and free. Built for Apple Silicon.</p>
+
+            <div class="cta-row">
+              <a class="btn btn-gold" href="https://github.com/ArshiaEcho/murmur/releases/latest" rel="noopener">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M16.36 12.9c-.02-2.3 1.88-3.4 1.96-3.45-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.82-.81-2.99-.79-1.54.02-2.96.9-3.75 2.27-1.6 2.78-.41 6.89 1.15 9.14.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.39 0 1.78.74 2.99.72 1.24-.02 2.02-1.12 2.77-2.23.88-1.28 1.24-2.52 1.26-2.58-.03-.01-2.42-.93-2.45-3.69ZM14.05 5.6c.64-.78 1.07-1.86.95-2.94-.92.04-2.03.61-2.69 1.39-.59.69-1.11 1.79-.97 2.85 1.03.08 2.07-.52 2.71-1.3Z"/>
+                </svg>
+                Download for macOS
+              </a>
+            </div>
+
+            <div class="meta">
+              <span class="check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                Notarized by Apple, with auto-updates
+              </span>
+              <span class="req">Apple Silicon · macOS 13+</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer>
+    <div class="wrap footer-inner">
+      <span class="footer-brand">
+        <img src="./assets/stratos-logo.png" alt="" aria-hidden="true" width="20" height="20" />
+        Murmur <span>· by Stratos House</span>
+      </span>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="https://github.com/ArshiaEcho/murmur" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.93c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.1-.76.4-1.27.74-1.56-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.2-3.1-.12-.29-.52-1.46.11-3.05 0 0 .98-.31 3.2 1.18a11.1 11.1 0 0 1 5.82 0c2.22-1.5 3.2-1.18 3.2-1.18.63 1.59.23 2.76.11 3.05.75.81 1.2 1.84 1.2 3.1 0 4.43-2.7 5.4-5.26 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/>
+          </svg>
+          GitHub
+        </a>
+        <span>© 2026</span>
+      </nav>
+    </div>
+  </footer>
+
+</body>
+</html>
