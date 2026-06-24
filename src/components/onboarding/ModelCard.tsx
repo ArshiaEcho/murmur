@@ -250,7 +250,7 @@ const ModelCard: React.FC<ModelCardProps> = ({
         <div className="w-full mt-3">
           <div className="w-full h-1.5 bg-line-2 rounded-full overflow-hidden">
             <div
-              className="h-full bg-signal rounded-full transition-all duration-300"
+              className="h-full bg-signal rounded-full transition-[width] duration-200 ease-[var(--ease-out-quint)]"
               style={{ width: `${downloadProgress}%` }}
             />
           </div>

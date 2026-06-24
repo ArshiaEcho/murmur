@@ -33,7 +33,7 @@ export const SwatchPicker: React.FC<{ color: string; onPick: (c: string) => void
         }}
         aria-label="Project color"
         title="Project color"
-        className={cx("h-3.5 w-3.5 rounded-full ring-2 ring-white/30 shrink-0", FOCUS_RING)}
+        className={cx("h-3.5 w-3.5 rounded-full ring-2 ring-line-2 shrink-0", FOCUS_RING)}
         style={{ backgroundColor: color }}
         {...aria}
       />

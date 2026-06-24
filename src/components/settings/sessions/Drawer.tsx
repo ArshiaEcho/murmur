@@ -485,6 +485,20 @@ export const Drawer: React.FC<{
   onClose: () => void;
 }> = ({ session, color, onClose }) => {
   const open = !!session;
+  // Keep the body mounted through the 300ms slide-out so content doesn't blink
+  // away the instant `session` clears; drop it once the panel has left.
+  const [displayed, setDisplayed] = useState<{
+    session: SessionInfo;
+    color: string;
+  } | null>(session ? { session, color } : null);
+  useEffect(() => {
+    if (session) {
+      setDisplayed({ session, color });
+      return;
+    }
+    const t = window.setTimeout(() => setDisplayed(null), 320);
+    return () => window.clearTimeout(t);
+  }, [session, color]);
   const panelRef = useRef<HTMLDivElement>(null);
   // Remember the element that had focus when the drawer opened, to restore it.
   const returnFocusRef = useRef<HTMLElement | null>(null);
@@ -547,7 +561,9 @@ export const Drawer: React.FC<{
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label={session ? `${session.repo} session chat` : "Session chat"}
+        aria-label={
+          displayed ? `${displayed.session.repo} session chat` : "Session chat"
+        }
         tabIndex={-1}
         onKeyDown={onKeyDown}
         className="absolute top-0 right-0 bottom-0 w-[480px] max-w-[94%] bg-bg-2 border-l border-line-2 flex flex-col outline-none"
@@ -559,8 +575,13 @@ export const Drawer: React.FC<{
             "transform 0.3s var(--ease-out-quint), opacity 0.3s var(--ease-out-quint)",
         }}
       >
-        {session && (
-          <DrawerBody key={session.id} session={session} color={color} onClose={onClose} />
+        {displayed && (
+          <DrawerBody
+            key={displayed.session.id}
+            session={displayed.session}
+            color={displayed.color}
+            onClose={onClose}
+          />
         )}
       </div>
     </div>
