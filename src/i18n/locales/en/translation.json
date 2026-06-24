@@ -606,6 +606,12 @@
     },
     "about": {
       "title": "About",
+      "stratos": {
+        "title": "Stratos House",
+        "description": "Murmur is the voice layer for Claude Code, built by Stratos House AI. Give your agents a voice, dictate into any app, and keep an eye on every session.",
+        "website": "Visit Stratos House",
+        "github": "View on GitHub"
+      },
       "version": {
         "title": "Version",
         "description": "Current version of Murmur"
@@ -626,6 +632,11 @@
       },
       "acknowledgments": {
         "title": "Acknowledgments",
+        "builtOn": {
+          "title": "Built on Handy",
+          "description": "Murmur is built on the open-source Handy project",
+          "details": "Murmur extends Handy (github.com/cjpais/Handy) with Read-Aloud neural voices, a live sessions observatory, and the Stratos House design system."
+        },
         "whisper": {
           "title": "Whisper.cpp",
           "description": "High-performance inference of OpenAI's Whisper automatic speech recognition model",

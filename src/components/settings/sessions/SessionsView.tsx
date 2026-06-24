@@ -106,7 +106,7 @@ export const SessionsView: React.FC = () => {
   };
 
   return (
-    <div className="w-full flex flex-col h-[80vh] mx-auto max-w-[1080px]">
+    <div className="w-full flex flex-col flex-1 min-h-0 mx-auto max-w-[1080px]">
       {/* Header */}
       <div className="flex items-center gap-3.5 mb-4">
         <h1 className="text-[26px] font-semibold tracking-[-0.4px] text-text">{t("sessions.title")}</h1>

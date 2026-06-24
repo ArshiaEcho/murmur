@@ -315,7 +315,7 @@ function App() {
         {/* Scrollable content area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto">
-            <div className="flex flex-col items-center p-4 gap-4">
+            <div className="flex flex-col items-center p-4 gap-4 min-h-full">
               <AccessibilityPermissions />
               <NavigationContext.Provider
                 value={(s) => setCurrentSection(s as SidebarSection)}

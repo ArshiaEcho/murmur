@@ -18,6 +18,23 @@ voice layer for Claude Code) and fast-follow the deep features via auto-update.
 - **Branch:** continue on `design/elevation-pass` (rename/PR at release).
 - **Group C dropped.**
 
+## UX quality bar — "absolutely perfect, buttery-smooth" (Arshia, hard requirement)
+Cross-cutting, applies to every surface, plus a final dedicated QA pass:
+- **One easing language.** Use the existing `--ease-out-quint` / `--ease-io` tokens
+  everywhere; no ad-hoc cubic-beziers. Standard durations: 120ms (hover/press),
+  180–220ms (panel/drawer/sidebar), 300ms (drawer slide).
+- **Animate only cheap properties** (transform, opacity, and width where already
+  in use). Avoid animating layout-affecting properties that cause reflow jank.
+- **No layout jank / content jumps.** Hover-peek sidebar overlays (doesn't push
+  content); fixed-height regions scroll internally; skeletons reserve space.
+- **Respect `prefers-reduced-motion`** (the global block in App.css already kills
+  animation; verify new motion honors it).
+- **60fps target**, GPU-friendly transforms, `will-change` only where it pays.
+- **Consistent focus rings, hover states, and active states** on every interactive
+  element; pointer cursors; no dead clicks.
+- Final QA: drive each surface and confirm transitions are smooth, nothing flashes,
+  nothing reflows on hover, theme/sidebar/drawer toggles are fluid.
+
 ## Non-negotiable constraints (from STATE + prior learnings)
 - Theme/UI prefs stay **frontend-only** (localStorage), never through `bindings.ts`
   (specta regen breaks tsc).
