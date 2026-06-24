@@ -16,6 +16,33 @@
       "changed": "Changed"
     }
   },
+  "readiness": {
+    "title": "Dictation readiness",
+    "ready": "Everything's set up",
+    "remaining_one": "{{count}} step left to set up",
+    "remaining_other": "{{count}} steps left to set up",
+    "recheck": "Re-check",
+    "grant": "Grant",
+    "install": "Install",
+    "items": {
+      "accessibility": {
+        "label": "Accessibility",
+        "desc": "Lets Murmur paste transcriptions into other apps."
+      },
+      "inputMonitoring": {
+        "label": "Input Monitoring",
+        "desc": "Lets the global hotkey start and stop dictation."
+      },
+      "microphone": {
+        "label": "Microphone",
+        "desc": "Lets Murmur record your voice."
+      },
+      "model": {
+        "label": "Speech model",
+        "desc": "A speech-to-text model must be installed."
+      }
+    }
+  },
   "tray": {
     "settings": "Settings...",
     "checkUpdates": "Check for Updates...",
