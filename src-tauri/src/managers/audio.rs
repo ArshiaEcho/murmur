@@ -494,6 +494,16 @@ impl AudioRecordingManager {
         )
     }
 
+    /// True only if a recording is active AND owned by `binding_id`. Lets a caller
+    /// confirm IT started the recording rather than some other binding (e.g. the
+    /// in-app dictation vs the global hotkey, which share this one state machine).
+    pub fn is_recording_binding(&self, binding_id: &str) -> bool {
+        matches!(
+            &*self.state.lock().unwrap(),
+            RecordingState::Recording { binding_id: active } if active == binding_id
+        )
+    }
+
     /// Cancel any ongoing recording without returning audio samples
     pub fn cancel_recording(&self) {
         let mut state = self.state.lock().unwrap();

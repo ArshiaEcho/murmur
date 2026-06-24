@@ -282,7 +282,7 @@ fn start(app: &AppHandle, stage: &mut Stage, binding_id: &str, hotkey: &str, pre
     action.start(app, binding_id, hotkey);
     if app
         .try_state::<Arc<AudioRecordingManager>>()
-        .map_or(false, |a| a.is_recording())
+        .map_or(false, |a| a.is_recording_binding(binding_id))
     {
         *stage = Stage::Recording {
             binding_id: binding_id.to_string(),

@@ -314,28 +314,49 @@ pub fn is_recording(app: AppHandle) -> bool {
 
 /// In-app push-to-talk: start recording for the Sessions Ask box. Uses a distinct
 /// binding id so it can't collide with the global dictation hotkey's recording
-/// state. Pair with `app_stop_dictation` to get the transcript back (NOT pasted).
+/// state. Pair with `app_stop_dictation` (transcribe) or `app_cancel_dictation`
+/// (release without transcribing).
 #[tauri::command]
 #[specta::specta]
 pub fn app_start_dictation(app: AppHandle) -> Result<(), String> {
     let rm = app.state::<Arc<AudioRecordingManager>>();
-    rm.try_start_recording("app_dictation")
+    rm.try_start_recording("app_dictation")?;
+    // Warm the model in the background while the user speaks, so stop->transcribe
+    // isn't a cold, blocking model load (mirrors the global hotkey path).
+    let tm = app.state::<Arc<TranscriptionManager>>();
+    tm.initiate_model_load();
+    Ok(())
 }
 
-/// Stop the in-app recording, run local Whisper, and RETURN the transcript text
-/// (the caller drops it into the Ask box). Returns "" for an empty recording.
+/// Stop the in-app recording, run local Whisper OFF the main thread, and RETURN the
+/// transcript (the caller drops it into the Ask box). Returns "" for empty audio.
 #[tauri::command]
 #[specta::specta]
-pub fn app_stop_dictation(app: AppHandle) -> Result<String, String> {
-    let rm = app.state::<Arc<AudioRecordingManager>>();
-    let samples = rm
-        .stop_recording("app_dictation")
-        .ok_or("No in-app recording in progress")?;
+pub async fn app_stop_dictation(app: AppHandle) -> Result<String, String> {
+    let samples = {
+        let rm = app.state::<Arc<AudioRecordingManager>>();
+        rm.stop_recording("app_dictation")
+            .ok_or("No in-app recording in progress")?
+    };
     if samples.is_empty() {
         return Ok(String::new());
     }
-    let tm = app.state::<Arc<TranscriptionManager>>();
-    tm.transcribe(samples)
-        .map(|t| t.trim().to_string())
-        .map_err(|e| format!("Transcription failed: {e}"))
+    // Clone the Arc and transcribe on a blocking thread so the UI never freezes.
+    let tm = app.state::<Arc<TranscriptionManager>>().inner().clone();
+    let text = tauri::async_runtime::spawn_blocking(move || tm.transcribe(samples))
+        .await
+        .map_err(|e| format!("Transcription task failed: {e}"))?
+        .map_err(|e| format!("Transcription failed: {e}"))?;
+    Ok(text.trim().to_string())
+}
+
+/// Release an in-app recording WITHOUT transcribing (used when the chat drawer
+/// closes mid-listen). Binding-aware via `stop_recording`, so it can never cancel
+/// a global-hotkey recording; no Whisper runs, so it never blocks.
+#[tauri::command]
+#[specta::specta]
+pub fn app_cancel_dictation(app: AppHandle) -> Result<(), String> {
+    let rm = app.state::<Arc<AudioRecordingManager>>();
+    let _ = rm.stop_recording("app_dictation");
+    Ok(())
 }

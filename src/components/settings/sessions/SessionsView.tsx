@@ -193,10 +193,12 @@ const ProjectTile: React.FC<{
     { working: 0, waiting_for_you: 0, idle: 0 } as Record<SessionStatus, number>,
   );
   return (
-    <div
-      className="flex flex-col rounded-xl border border-mid-gray/15 bg-background overflow-hidden"
-      style={{ borderTopColor: color, borderTopWidth: 3 }}
-    >
+    <div className="relative flex flex-col rounded-xl border border-mid-gray/15 bg-background">
+      {/* Accent bar (overlay, not a clipping border) so the swatch popover isn't cut off. */}
+      <div
+        className="absolute top-0 inset-x-0 h-[3px] rounded-t-xl"
+        style={{ backgroundColor: color }}
+      />
       <div className="flex items-center gap-2 px-3 py-2 border-b border-mid-gray/10">
         <SwatchPicker color={color} onPick={onColor} />
         <h3 className="font-semibold text-sm truncate flex-1" title={name}>
@@ -267,15 +269,22 @@ const Detail: React.FC<{ session: SessionInfo; color: string; onClose: () => voi
       mounted.current = false;
       // Release a dangling recording if the drawer closes mid-listen, so the
       // recorder doesn't stay on and block the global hotkey / next dictation.
+      // Cancel (not stop) so no Whisper runs on teardown.
       if (micRef.current === "listening") {
-        commands.appStopDictation().catch(() => {});
+        commands.appCancelDictation().catch(() => {});
       }
     },
     [],
   );
 
+  // Sync the server-side cached summary only when it actually changes, so a poll
+  // tick can't clobber a summary the user just refreshed locally.
+  const lastServerSummary = useRef<string | null>(session.summary);
   useEffect(() => {
-    if (session.summary) setSummary(session.summary);
+    if (session.summary && session.summary !== lastServerSummary.current) {
+      lastServerSummary.current = session.summary;
+      setSummary(session.summary);
+    }
   }, [session.summary]);
 
   useEffect(() => {
@@ -303,8 +312,12 @@ const Detail: React.FC<{ session: SessionInfo; color: string; onClose: () => voi
     const r = await commands.summarizeSession(session.id);
     if (!mounted.current) return;
     setSummarizing(false);
-    if (r.status === "ok") setSummary(r.data);
-    else setSummary(`(${r.error})`);
+    if (r.status === "ok") {
+      lastServerSummary.current = r.data; // keep poll-sync in agreement
+      setSummary(r.data);
+    } else {
+      setSummary(`(${r.error})`);
+    }
   };
 
   const ask = async () => {
@@ -324,17 +337,23 @@ const Detail: React.FC<{ session: SessionInfo; color: string; onClose: () => voi
   const toggleMic = async () => {
     if (mic === "idle") {
       const r = await commands.appStartDictation();
-      if (!mounted.current) return;
+      if (!mounted.current) {
+        // Drawer closed during start — release so the recorder isn't stuck on.
+        if (r.status === "ok") commands.appCancelDictation().catch(() => {});
+        return;
+      }
       if (r.status === "ok") setMic("listening");
       else setAskErr(r.error);
     } else if (mic === "listening") {
       setMic("transcribing");
+      micRef.current = "transcribing"; // exclude this from the unmount cancel
       const r = await commands.appStopDictation();
       if (!mounted.current) return;
       setMic("idle");
       if (r.status === "ok") {
         if (r.data) setQuestion((p) => (p.trim() ? p.trim() + " " : "") + r.data);
-      } else {
+      } else if (!/no in-app recording/i.test(r.error)) {
+        // Benign if an external cancel already stopped it; otherwise surface.
         setAskErr(r.error);
       }
     }
@@ -422,7 +441,7 @@ const Detail: React.FC<{ session: SessionInfo; color: string; onClose: () => voi
           <p className="text-xs text-mid-gray">No recent messages.</p>
         ) : (
           turns.map((turn, i) => (
-            <div key={i} className="text-sm">
+            <div key={`${i}:${turn.role}:${turn.text.slice(0, 24)}`} className="text-sm">
               <span
                 className={`text-[10px] uppercase tracking-wide font-semibold ${
                   turn.role === "assistant" ? "text-logo-primary" : "text-mid-gray"
@@ -587,6 +606,16 @@ export const SessionsView: React.FC = () => {
   useEffect(() => {
     if (selectedId && !sessions.some((s) => s.id === selectedId)) select(null);
   }, [sessions, selectedId, select]);
+
+  // Escape closes the chat drawer (standard overlay behavior).
+  useEffect(() => {
+    if (!selectedId) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") select(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedId, select]);
 
   const toggleRolling = async () => {
     await commands.setSessionsRolling(!rolling);

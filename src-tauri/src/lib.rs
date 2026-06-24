@@ -448,6 +448,7 @@ pub fn run(cli_args: CliArgs) {
             commands::audio::is_recording,
             commands::audio::app_start_dictation,
             commands::audio::app_stop_dictation,
+            commands::audio::app_cancel_dictation,
             commands::transcription::set_model_unload_timeout,
             commands::transcription::get_model_load_status,
             commands::transcription::unload_model_manually,
