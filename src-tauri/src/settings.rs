@@ -166,6 +166,7 @@ pub enum TtsProvider {
     Say,
     ElevenLabs,
     Kokoro,
+    EdgeTts,
 }
 
 impl Default for TtsProvider {
@@ -478,6 +479,9 @@ pub struct AppSettings {
     /// Read Aloud (TTS): Kokoro voice file-stem (e.g. "af_heart"). None = default.
     #[serde(default)]
     pub kokoro_voice_id: Option<String>,
+    /// Read Aloud (TTS): edge-tts neural voice id (e.g. "AriaNeural"). None = default.
+    #[serde(default)]
+    pub edge_voice_id: Option<String>,
     /// Cloud secrets (keys "elevenlabs", "anthropic"). Redacted in logs.
     #[serde(default = "default_tts_secrets")]
     pub tts_secrets: SecretMap,
@@ -1020,6 +1024,7 @@ pub fn get_default_settings() -> AppSettings {
         tts_provider: TtsProvider::default(),
         elevenlabs_voice_id: None,
         kokoro_voice_id: None,
+        edge_voice_id: None,
         tts_secrets: default_tts_secrets(),
         converse_enabled: false,
         converse_model: default_converse_model(),

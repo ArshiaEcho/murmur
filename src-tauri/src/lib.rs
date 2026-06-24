@@ -171,9 +171,10 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     let model_manager =
         Arc::new(ModelManager::new(app_handle).expect("Failed to initialize model manager"));
 
-    // Stash the app handle so the TTS engine can surface degradations as toasts,
-    // and tell it where the Kokoro model + voicepacks live (same models dir the
-    // model manager uses).
+    // Install the rustls CryptoProvider edge-tts needs, stash the app handle so
+    // the TTS engine can surface degradations as toasts, and tell it where the
+    // Kokoro model + voicepacks live (same models dir the model manager uses).
+    crate::tts::init_tls_provider();
     crate::tts::set_app_handle(app_handle.clone());
     if let Ok(data_dir) = crate::portable::app_data_dir(app_handle) {
         crate::tts::set_kokoro_dir(data_dir.join("models").join("kokoro"));
@@ -484,6 +485,8 @@ pub fn run(cli_args: CliArgs) {
             commands::tts::list_elevenlabs_voices,
             commands::tts::list_kokoro_voices,
             commands::tts::change_kokoro_voice_setting,
+            commands::tts::list_edge_voices,
+            commands::tts::change_edge_voice_setting,
             commands::converse::converse_test,
             commands::converse::converse_cancel,
             commands::converse::list_claude_projects,
