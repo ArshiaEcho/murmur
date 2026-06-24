@@ -36,8 +36,8 @@ const IconButton: React.FC<{
     disabled={disabled}
     className={`p-1.5 rounded-md flex items-center justify-center transition-colors cursor-pointer disabled:cursor-not-allowed disabled:text-text/20 ${
       active
-        ? "text-logo-primary hover:text-logo-primary/80"
-        : "text-text/50 hover:text-logo-primary"
+        ? "text-signal-ink hover:text-signal-ink/80"
+        : "text-text/50 hover:text-signal-ink"
     }`}
     title={title}
   >

@@ -63,7 +63,7 @@ export const ConversationSettings: React.FC = () => {
   const stop = () => commands.converseCancel();
 
   const selectCls =
-    "text-sm rounded-lg border border-mid-gray/20 bg-background px-2 py-1 focus:outline-none focus:ring-2 focus:ring-logo-primary";
+    "text-sm rounded-lg border border-line bg-bg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-signal";
 
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
@@ -138,7 +138,7 @@ export const ConversationSettings: React.FC = () => {
             />
           </div>
         </SettingContainer>
-        <p className="px-4 text-sm text-mid-gray">
+        <p className="px-4 text-sm text-text-2">
           {t("conversation.voiceNote")}
         </p>
       </SettingsGroup>
@@ -150,28 +150,28 @@ export const ConversationSettings: React.FC = () => {
             onChange={(e) => setQuestion(e.target.value)}
             placeholder={t("conversation.test.placeholder")}
             rows={2}
-            className="w-full text-sm rounded-lg border border-mid-gray/20 bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-logo-primary resize-none"
+            className="w-full text-sm rounded-lg border border-line bg-bg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-signal resize-none"
           />
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={ask}
               disabled={busy || !question.trim()}
-              className="text-sm font-medium rounded-lg px-3 py-1 bg-logo-primary/80 hover:bg-logo-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-sm font-medium rounded-lg px-3 py-1 bg-signal/80 hover:bg-signal transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {busy ? t("conversation.test.thinking") : t("conversation.test.ask")}
             </button>
             <button
               type="button"
               onClick={stop}
-              className="text-sm font-medium rounded-lg px-3 py-1 border border-mid-gray/20 hover:bg-mid-gray/20 transition-colors"
+              className="text-sm font-medium rounded-lg px-3 py-1 border border-line hover:bg-card-2 transition-colors"
             >
               {t("conversation.test.stop")}
             </button>
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
           {answer && (
-            <p className="text-sm bg-mid-gray/10 rounded-lg px-3 py-2">{answer}</p>
+            <p className="text-sm bg-card-2 rounded-lg px-3 py-2">{answer}</p>
           )}
         </div>
       </SettingsGroup>
