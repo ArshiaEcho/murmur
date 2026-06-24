@@ -5,9 +5,11 @@
 //! in-flight speech first, and `stop()` kills it immediately (used for hotkey /
 //! Esc / new-dictation barge-in).
 
+use kokoro_en::{KokoroTts, Voice};
 use log::{debug, warn};
-use once_cell::sync::Lazy;
+use once_cell::sync::{Lazy, OnceCell};
 use std::io::Write;
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
@@ -127,8 +129,144 @@ fn parse_voice_list(text: &str) -> Vec<TtsVoiceInfo> {
         .collect()
 }
 
-/// Speak `text` using whichever engine the settings select: macOS `say` by
-/// default, ElevenLabs when chosen and configured. This is the single seam the
+// --- Kokoro (local neural TTS, free + offline) ------------------------------
+
+/// Directory holding the Kokoro model (`model.onnx`) and `voices/<name>.bin`.
+/// Set once at startup from `<app_data_dir>/models/kokoro`.
+static KOKORO_DIR: OnceCell<PathBuf> = OnceCell::new();
+
+/// The loaded Kokoro engine, initialized lazily on first synth (model load is
+/// expensive). Reused across utterances.
+static KOKORO_INSTANCE: tokio::sync::OnceCell<KokoroTts> = tokio::sync::OnceCell::const_new();
+
+/// Configure where the Kokoro model + voicepacks live. Call once during setup.
+pub fn set_kokoro_dir(dir: PathBuf) {
+    // Force the CPU execution provider. The quantized Kokoro model we ship
+    // cannot run on CoreML (it fails at synth with "dynamically resizing for
+    // sequence length"), and the crate's auto-probe does not catch it. CPU is
+    // ~2x realtime here, fine for Read Aloud. A power user can still override
+    // with a real KOKORO_ORT_PROVIDER env var (e.g. with the fp32 model).
+    if std::env::var_os("KOKORO_ORT_PROVIDER").is_none() {
+        std::env::set_var("KOKORO_ORT_PROVIDER", "cpu");
+    }
+    let _ = KOKORO_DIR.set(dir);
+}
+
+/// The default Kokoro voice when none is configured.
+pub fn default_kokoro_voice() -> &'static str {
+    "af_heart"
+}
+
+/// True if the Kokoro model file has been downloaded.
+pub fn kokoro_model_ready() -> bool {
+    KOKORO_DIR
+        .get()
+        .map(|d| d.join("model.onnx").exists())
+        .unwrap_or(false)
+}
+
+/// Spawn `afplay <path>` as the tracked child (generation-guarded), so `stop()`
+/// and `is_speaking()` work for file playback exactly as for `say`.
+fn play_file(path: &Path, my_gen: u64) {
+    match Command::new("afplay").arg(path).spawn() {
+        Ok(mut child) => {
+            let mut guard = CURRENT.lock().unwrap();
+            if GEN.load(Ordering::SeqCst) != my_gen {
+                let _ = child.kill();
+                let _ = child.wait();
+                return;
+            }
+            if let Some(mut old) = guard.take() {
+                let _ = old.kill();
+                let _ = old.wait();
+            }
+            *guard = Some(child);
+            debug!("tts: playing audio file {}", path.display());
+        }
+        Err(e) => warn!("tts: failed to spawn `afplay`: {e}"),
+    }
+}
+
+/// Write mono f32 PCM samples (Kokoro outputs 24kHz) to a 16-bit WAV file.
+fn write_wav_i16(path: &Path, samples: &[f32], sample_rate: u32) -> Result<(), String> {
+    let spec = hound::WavSpec {
+        channels: 1,
+        sample_rate,
+        bits_per_sample: 16,
+        sample_format: hound::SampleFormat::Int,
+    };
+    let mut writer = hound::WavWriter::create(path, spec).map_err(|e| e.to_string())?;
+    for &s in samples {
+        let v = (s.clamp(-1.0, 1.0) * 32767.0) as i16;
+        writer.write_sample(v).map_err(|e| e.to_string())?;
+    }
+    writer.finalize().map_err(|e| e.to_string())
+}
+
+/// Load (once) the Kokoro engine from `KOKORO_DIR`. Errors if the model is not
+/// downloaded yet, so callers can fall back to `say`.
+async fn kokoro_instance() -> Result<&'static KokoroTts, String> {
+    KOKORO_INSTANCE
+        .get_or_try_init(|| async {
+            let dir = KOKORO_DIR.get().ok_or("kokoro dir not configured")?;
+            let model = dir.join("model.onnx");
+            let voices = dir.join("voices");
+            if !model.exists() {
+                return Err(format!("kokoro model not downloaded ({})", model.display()));
+            }
+            KokoroTts::new(model, voices)
+                .await
+                .map_err(|e| format!("kokoro load failed: {e}"))
+        })
+        .await
+}
+
+/// Speak `text` with a local Kokoro voice (free, offline). Synthesizes f32 PCM
+/// on Tauri's async runtime, writes a WAV, and plays it via the tracked `afplay`
+/// child (generation-guarded like every other engine). On any failure it falls
+/// back to the offline macOS `say` voice so the user still hears the text.
+pub fn speak_kokoro(text: &str, voice_id: &str, speed: f32, fallback_say_voice: Option<String>) {
+    let text = text.trim().to_string();
+    if text.is_empty() {
+        return;
+    }
+    stop();
+    let my_gen = GEN.load(Ordering::SeqCst);
+    let voice_id = voice_id.to_string();
+
+    tauri::async_runtime::spawn(async move {
+        let voice = Voice::new(voice_id).with_speed(speed);
+        let result = match kokoro_instance().await {
+            Ok(tts) => tts.synth(text.as_str(), voice).await.map_err(|e| e.to_string()),
+            Err(e) => Err(e),
+        };
+        match result {
+            Ok((samples, _dur)) => {
+                if GEN.load(Ordering::SeqCst) != my_gen {
+                    return; // superseded while synthesizing
+                }
+                let path = std::env::temp_dir().join("strat-tts-kokoro.wav");
+                if let Err(e) = write_wav_i16(&path, &samples, 24_000) {
+                    warn!("tts: kokoro wav write failed ({e}); falling back to say");
+                    if GEN.load(Ordering::SeqCst) == my_gen {
+                        speak(&text, fallback_say_voice.as_deref(), None);
+                    }
+                    return;
+                }
+                play_file(&path, my_gen);
+            }
+            Err(e) => {
+                warn!("tts: kokoro synth failed ({e}); falling back to macOS say");
+                if GEN.load(Ordering::SeqCst) == my_gen {
+                    speak(&text, fallback_say_voice.as_deref(), None);
+                }
+            }
+        }
+    });
+}
+
+/// Speak `text` using whichever engine the settings select: local Kokoro
+/// (default), macOS `say`, or ElevenLabs (opt-in). This is the single seam the
 /// hotkey action and the preview command route through.
 pub fn speak_with_settings(settings: &crate::settings::AppSettings, text: &str) {
     use crate::settings::TtsProvider;
@@ -149,6 +287,15 @@ pub fn speak_with_settings(settings: &crate::settings::AppSettings, text: &str) 
                     speak(text, settings.tts_voice.as_deref(), rate);
                 }
             }
+        }
+        TtsProvider::Kokoro => {
+            let voice = settings
+                .kokoro_voice_id
+                .clone()
+                .unwrap_or_else(|| default_kokoro_voice().to_string());
+            // Map Read Aloud rate (wpm; default 175) to Kokoro's speed multiplier.
+            let speed = (settings.tts_rate as f32 / 175.0).clamp(0.5, 2.0);
+            speak_kokoro(text, &voice, speed, settings.tts_voice.clone());
         }
         TtsProvider::Say => speak(text, settings.tts_voice.as_deref(), rate),
     }
@@ -288,5 +435,33 @@ Amira               ar_001   # مرحبا، اسمي أميرة.";
         assert_eq!(voices[1].name, "Eddy (English (US))");
         assert_eq!(voices[2].name, "Bad News");
         assert_eq!(voices[3].locale, "ar_001");
+    }
+
+    /// Headless smoke test for the Kokoro engine. Requires the model to be
+    /// downloaded to the app data dir. Run explicitly:
+    ///   cargo test kokoro_smoke -- --ignored --nocapture
+    ///   afplay /tmp/kokoro_smoke.wav
+    #[test]
+    #[ignore]
+    fn kokoro_smoke() {
+        let home = std::env::var("HOME").unwrap();
+        let base = format!("{home}/Library/Application Support/com.stratos.strat/models/kokoro");
+        tauri::async_runtime::block_on(async {
+            let tts = KokoroTts::new(format!("{base}/model.onnx"), format!("{base}/voices"))
+                .await
+                .expect("load kokoro model");
+            let (samples, dur) = tts
+                .synth(
+                    "Hello from Murmur. This is the Kokoro voice, running locally and completely free.",
+                    Voice::new("af_heart"),
+                )
+                .await
+                .expect("synth");
+            eprintln!("kokoro: {} samples in {:?}", samples.len(), dur);
+            assert!(!samples.is_empty(), "expected non-empty audio");
+            let out = std::path::Path::new("/tmp/kokoro_smoke.wav");
+            write_wav_i16(out, &samples, 24_000).expect("write wav");
+            eprintln!("wrote {}", out.display());
+        });
     }
 }

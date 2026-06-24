@@ -71,6 +71,11 @@ tar = "0.4.44"
 flate2 = "1.0"
 sha2 = "0.10"
 transcribe-rs = { version = "0.3.8", features = ["whisper-cpp", "onnx"] }
+# Kokoro-82M local neural TTS (Apache-2.0). default-features=false drops the
+# bundled GPL espeak-ng G2P, leaving the MIT misaki path. Its onnxruntime (ort)
+# must unify with transcribe-rs's 2.0.0-rc.12 (one native lib, no link clash).
+# Spec: docs/superpowers/specs/2026-06-23-kokoro-tts-design.md
+kokoro-en = { version = "0.1.4", default-features = false }
 handy-keys = "0.2.4"
 ferrous-opencc = "0.2.3"
 clap = { version = "4", features = ["derive"] }

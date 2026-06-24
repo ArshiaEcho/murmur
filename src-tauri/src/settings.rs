@@ -158,12 +158,14 @@ pub enum ClipboardHandling {
     CopyToClipboard,
 }
 
-/// Read Aloud (TTS) engine: offline macOS `say` or cloud ElevenLabs.
+/// Read Aloud (TTS) engine: local Kokoro neural (free, offline, default),
+/// offline macOS `say`, or cloud ElevenLabs (bring-your-own-key).
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type)]
 #[serde(rename_all = "snake_case")]
 pub enum TtsProvider {
     Say,
     ElevenLabs,
+    Kokoro,
 }
 
 impl Default for TtsProvider {
@@ -473,6 +475,9 @@ pub struct AppSettings {
     /// Read Aloud (TTS): ElevenLabs voice id (e.g. the user's "Monoly" voice).
     #[serde(default)]
     pub elevenlabs_voice_id: Option<String>,
+    /// Read Aloud (TTS): Kokoro voice file-stem (e.g. "af_heart"). None = default.
+    #[serde(default)]
+    pub kokoro_voice_id: Option<String>,
     /// Cloud secrets (keys "elevenlabs", "anthropic"). Redacted in logs.
     #[serde(default = "default_tts_secrets")]
     pub tts_secrets: SecretMap,
@@ -1014,6 +1019,7 @@ pub fn get_default_settings() -> AppSettings {
         tts_rate: default_tts_rate(),
         tts_provider: TtsProvider::default(),
         elevenlabs_voice_id: None,
+        kokoro_voice_id: None,
         tts_secrets: default_tts_secrets(),
         converse_enabled: false,
         converse_model: default_converse_model(),
