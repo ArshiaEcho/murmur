@@ -76,6 +76,12 @@ transcribe-rs = { version = "0.3.8", features = ["whisper-cpp", "onnx"] }
 # must unify with transcribe-rs's 2.0.0-rc.12 (one native lib, no link clash).
 # Spec: docs/superpowers/specs/2026-06-23-kokoro-tts-design.md
 kokoro-en = { version = "0.1.4", default-features = false }
+# Microsoft Edge "Read aloud" neural voices: free, no key, hundreds of voices.
+# Default `blocking` feature = synchronous client (ureq + tungstenite + rustls).
+msedge-tts = "0.4.0"
+# rustls 0.23 needs an explicit CryptoProvider when both ring + aws-lc-rs are in
+# the graph (they are, via reqwest + msedge-tts). We install one at startup.
+rustls = "0.23"
 handy-keys = "0.2.4"
 ferrous-opencc = "0.2.3"
 clap = { version = "4", features = ["derive"] }

@@ -91,6 +91,8 @@ const settingUpdaters: {
     commands.changeElevenlabsVoiceSetting((value as string | null) ?? null),
   kokoro_voice_id: (value) =>
     commands.changeKokoroVoiceSetting((value as string | null) ?? null),
+  edge_voice_id: (value) =>
+    commands.changeEdgeVoiceSetting((value as string | null) ?? null),
   start_hidden: (value) => commands.changeStartHiddenSetting(value as boolean),
   autostart_enabled: (value) =>
     commands.changeAutostartSetting(value as boolean),

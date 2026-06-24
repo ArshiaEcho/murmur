@@ -40,7 +40,9 @@ pub fn preview_tts_voice(app: AppHandle, voice: String, text: String) -> Result<
     };
     if matches!(
         settings.tts_provider,
-        settings::TtsProvider::ElevenLabs | settings::TtsProvider::Kokoro
+        settings::TtsProvider::ElevenLabs
+            | settings::TtsProvider::Kokoro
+            | settings::TtsProvider::EdgeTts
     ) {
         // Preview the currently-configured cloud/neural voice.
         crate::tts::speak_with_settings(&settings, &sample);
@@ -122,6 +124,7 @@ pub fn change_tts_provider_setting(app: AppHandle, provider: String) -> Result<(
     settings.tts_provider = match provider.as_str() {
         "eleven_labs" => settings::TtsProvider::ElevenLabs,
         "kokoro" => settings::TtsProvider::Kokoro,
+        "edge_tts" => settings::TtsProvider::EdgeTts,
         _ => settings::TtsProvider::Say,
     };
     settings::write_settings(&app, settings);
@@ -175,6 +178,38 @@ pub fn change_kokoro_voice_setting(
 ) -> Result<(), String> {
     let mut settings = settings::get_settings(&app);
     settings.kokoro_voice_id = voice_id.filter(|v| !v.is_empty());
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
+/// An edge-tts neural voice surfaced to the voice picker.
+#[derive(Serialize, Deserialize, Debug, Clone, Type)]
+pub struct EdgeVoice {
+    pub id: String,
+    pub display: String,
+    pub locale: String,
+}
+
+/// List the English edge-tts neural voices (free, no key; one network call).
+#[tauri::command]
+#[specta::specta]
+pub fn list_edge_voices() -> Result<Vec<EdgeVoice>, String> {
+    Ok(crate::tts::list_edge_voices()
+        .into_iter()
+        .map(|(id, display, locale)| EdgeVoice {
+            id,
+            display,
+            locale,
+        })
+        .collect())
+}
+
+/// Set the active edge-tts voice id (None / empty = default).
+#[tauri::command]
+#[specta::specta]
+pub fn change_edge_voice_setting(app: AppHandle, voice_id: Option<String>) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.edge_voice_id = voice_id.filter(|v| !v.is_empty());
     settings::write_settings(&app, settings);
     Ok(())
 }

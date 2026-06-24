@@ -264,52 +264,223 @@ async fn kokoro_instance() -> Result<&'static KokoroTts, String> {
         .await
 }
 
-/// Speak `text` with a local Kokoro voice (free, offline). Synthesizes f32 PCM
-/// on Tauri's async runtime, writes a WAV, and plays it via the tracked `afplay`
-/// child (generation-guarded like every other engine). On any failure it falls
-/// back to the offline macOS `say` voice so the user still hears the text.
-pub fn speak_kokoro(text: &str, voice_id: &str, speed: f32, fallback_say_voice: Option<String>) {
-    let text = text.trim().to_string();
-    if text.is_empty() {
+// --- shared chunked playback (reads start fast, not after the whole text) ----
+
+/// Unique temp-file counter so rapid/overlapping utterances never collide.
+static TMP_SEQ: AtomicU64 = AtomicU64::new(0);
+
+fn tmp_audio_path(ext: &str) -> PathBuf {
+    let n = TMP_SEQ.fetch_add(1, Ordering::Relaxed);
+    std::env::temp_dir().join(format!("strat-tts-{n}.{ext}"))
+}
+
+/// Split text into readable chunks (~sentences, each <= ~400 chars) so the
+/// first chunk plays in ~1s instead of waiting for the whole selection.
+fn split_for_reading(text: &str) -> Vec<String> {
+    const MAX: usize = 400;
+    let mut chunks: Vec<String> = Vec::new();
+    let mut cur = String::new();
+    fn flush(chunks: &mut Vec<String>, cur: &mut String) {
+        let s = cur.trim();
+        if !s.is_empty() {
+            chunks.push(s.to_string());
+        }
+        cur.clear();
+    }
+    for piece in text.split_inclusive(|c: char| matches!(c, '.' | '!' | '?' | '\n')) {
+        let piece = piece.trim();
+        if piece.is_empty() {
+            continue;
+        }
+        if cur.len() + piece.len() + 1 > MAX {
+            flush(&mut chunks, &mut cur);
+        }
+        if piece.len() > MAX {
+            for word in piece.split_whitespace() {
+                if cur.len() + word.len() + 1 > MAX {
+                    flush(&mut chunks, &mut cur);
+                }
+                if !cur.is_empty() {
+                    cur.push(' ');
+                }
+                cur.push_str(word);
+            }
+        } else {
+            if !cur.is_empty() {
+                cur.push(' ');
+            }
+            cur.push_str(piece);
+        }
+    }
+    flush(&mut chunks, &mut cur);
+    chunks
+}
+
+/// Play an audio file and BLOCK until it finishes or a newer utterance/stop
+/// supersedes us. Returns false if superseded (so the chunk loop aborts).
+fn play_and_wait(path: &Path, my_gen: u64) -> bool {
+    play_file(path, my_gen);
+    loop {
+        std::thread::sleep(std::time::Duration::from_millis(60));
+        if GEN.load(Ordering::SeqCst) != my_gen {
+            return false;
+        }
+        if !is_speaking() {
+            return true;
+        }
+    }
+}
+
+/// Speak `text` by splitting it into chunks and synthesizing + playing each in
+/// order, so audio starts quickly. `synth` turns one chunk into a playable
+/// audio file. On synth failure it surfaces a notice and reads the rest via
+/// macOS `say`. Runs on a background thread; cancels cleanly on stop()/Esc.
+fn speak_chunked<F>(
+    text: &str,
+    fallback_say_voice: Option<String>,
+    reason: &'static str,
+    message: &'static str,
+    synth: F,
+) where
+    F: Fn(&str) -> Result<PathBuf, String> + Send + 'static,
+{
+    let full = text.trim().to_string();
+    if full.is_empty() {
         return;
     }
     stop();
     let my_gen = GEN.load(Ordering::SeqCst);
-    let voice_id = voice_id.to_string();
-
-    tauri::async_runtime::spawn(async move {
-        let voice = Voice::new(voice_id).with_speed(speed);
-        let result = match kokoro_instance().await {
-            Ok(tts) => tts.synth(text.as_str(), voice).await.map_err(|e| e.to_string()),
-            Err(e) => Err(e),
-        };
-        match result {
-            Ok((samples, _dur)) => {
-                if GEN.load(Ordering::SeqCst) != my_gen {
-                    return; // superseded while synthesizing
+    std::thread::spawn(move || {
+        let chunks = split_for_reading(&full);
+        for (i, chunk) in chunks.iter().enumerate() {
+            if GEN.load(Ordering::SeqCst) != my_gen {
+                return;
+            }
+            match synth(chunk) {
+                Ok(path) => {
+                    let played = play_and_wait(&path, my_gen);
+                    let _ = std::fs::remove_file(&path);
+                    if !played {
+                        return;
+                    }
                 }
-                let path = std::env::temp_dir().join("strat-tts-kokoro.wav");
-                if let Err(e) = write_wav_i16(&path, &samples, 24_000) {
-                    warn!("tts: kokoro wav write failed ({e}); falling back to say");
+                Err(e) => {
+                    warn!("tts: chunk synth failed ({e})");
                     if GEN.load(Ordering::SeqCst) == my_gen {
-                        speak(&text, fallback_say_voice.as_deref(), None);
+                        emit_degraded(reason, message);
+                        speak(&chunks[i..].join(" "), fallback_say_voice.as_deref(), None);
                     }
                     return;
-                }
-                play_file(&path, my_gen);
-            }
-            Err(e) => {
-                warn!("tts: kokoro unavailable ({e})");
-                if GEN.load(Ordering::SeqCst) == my_gen {
-                    emit_degraded(
-                        "kokoro_failed",
-                        "Free voice engine unavailable (model not downloaded?). Using the system voice.",
-                    );
-                    speak(&text, fallback_say_voice.as_deref(), None);
                 }
             }
         }
     });
+}
+
+/// Speak `text` with a local Kokoro voice (free, offline), chunked so it starts
+/// quickly. Each chunk is synthesized to a WAV and played in order.
+pub fn speak_kokoro(text: &str, voice_id: &str, speed: f32, fallback_say_voice: Option<String>) {
+    let voice_id = voice_id.to_string();
+    speak_chunked(
+        text,
+        fallback_say_voice,
+        "kokoro_failed",
+        "Free voice engine unavailable (model not downloaded?). Using the system voice.",
+        move |chunk| {
+            let voice = Voice::new(voice_id.clone()).with_speed(speed);
+            let samples = tauri::async_runtime::block_on(async {
+                let tts = kokoro_instance().await?;
+                tts.synth(chunk, voice)
+                    .await
+                    .map(|(s, _)| s)
+                    .map_err(|e| e.to_string())
+            })?;
+            let path = tmp_audio_path("wav");
+            write_wav_i16(&path, &samples, 24_000)?;
+            Ok(path)
+        },
+    );
+}
+
+// --- edge-tts (Microsoft Edge "Read aloud" neural voices: free, fast, many) --
+
+/// Install a rustls CryptoProvider so edge-tts's TLS works (both ring and
+/// aws-lc-rs are in the dependency graph, so rustls won't auto-pick). Call once.
+pub fn init_tls_provider() {
+    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+}
+
+/// Cached edge-tts voice list (one network call, reused).
+static EDGE_VOICES: OnceCell<Vec<msedge_tts::voice::Voice>> = OnceCell::new();
+
+fn edge_voices() -> Result<&'static Vec<msedge_tts::voice::Voice>, String> {
+    if let Some(v) = EDGE_VOICES.get() {
+        return Ok(v);
+    }
+    let v = msedge_tts::voice::get_voices_list().map_err(|e| e.to_string())?;
+    let _ = EDGE_VOICES.set(v);
+    Ok(EDGE_VOICES.get().unwrap())
+}
+
+/// Parse "Microsoft ... Voice (en-US, AriaNeural)" -> (id "AriaNeural",
+/// display "Aria", locale "en-US").
+fn parse_edge_voice(full: &str) -> Option<(String, String, String)> {
+    let inside = full.rsplit_once('(')?.1.trim_end_matches(')');
+    let (locale, short) = inside.split_once(',')?;
+    let id = short.trim().to_string();
+    let display = id.trim_end_matches("Neural").trim().to_string();
+    Some((id, display, locale.trim().to_string()))
+}
+
+/// English edge-tts voices as (id, display, locale), sorted by locale+display.
+pub fn list_edge_voices() -> Vec<(String, String, String)> {
+    let Ok(voices) = edge_voices() else {
+        return Vec::new();
+    };
+    let mut out: Vec<_> = voices
+        .iter()
+        .filter_map(|v| parse_edge_voice(&v.name))
+        .filter(|(_, _, locale)| locale.to_lowercase().starts_with("en"))
+        .collect();
+    out.sort_by(|a, b| (&a.2, &a.1).cmp(&(&b.2, &b.1)));
+    out.dedup();
+    out
+}
+
+fn edge_config(voice_id: &str) -> Result<msedge_tts::tts::SpeechConfig, String> {
+    let voices = edge_voices()?;
+    let v = voices
+        .iter()
+        .find(|v| v.name.contains(voice_id))
+        .ok_or_else(|| format!("edge voice not found: {voice_id}"))?;
+    Ok(msedge_tts::tts::SpeechConfig::from(v))
+}
+
+/// The default edge-tts voice (US, natural female).
+pub fn default_edge_voice() -> &'static str {
+    "AriaNeural"
+}
+
+/// Speak `text` with an edge-tts neural voice (free, fast, online), chunked so
+/// it starts quickly. Each chunk is synthesized to mp3 and played in order.
+pub fn speak_edge(text: &str, voice_id: &str, fallback_say_voice: Option<String>) {
+    let voice_id = voice_id.to_string();
+    speak_chunked(
+        text,
+        fallback_say_voice,
+        "edge_failed",
+        "Edge voice unavailable (offline?). Using the system voice.",
+        move |chunk| {
+            let config = edge_config(&voice_id)?;
+            let mut client = msedge_tts::tts::client::connect().map_err(|e| e.to_string())?;
+            let audio = client
+                .synthesize(chunk, &config)
+                .map_err(|e| e.to_string())?;
+            let path = tmp_audio_path("mp3");
+            std::fs::write(&path, &audio.audio_bytes).map_err(|e| e.to_string())?;
+            Ok(path)
+        },
+    );
 }
 
 /// Speak `text` using whichever engine the settings select: local Kokoro
@@ -343,6 +514,13 @@ pub fn speak_with_settings(settings: &crate::settings::AppSettings, text: &str) 
             // Map Read Aloud rate (wpm; default 175) to Kokoro's speed multiplier.
             let speed = (settings.tts_rate as f32 / 175.0).clamp(0.5, 2.0);
             speak_kokoro(text, &voice, speed, settings.tts_voice.clone());
+        }
+        TtsProvider::EdgeTts => {
+            let voice = settings
+                .edge_voice_id
+                .clone()
+                .unwrap_or_else(|| default_edge_voice().to_string());
+            speak_edge(text, &voice, settings.tts_voice.clone());
         }
         TtsProvider::Say => speak(text, settings.tts_voice.as_deref(), rate),
     }
@@ -514,5 +692,52 @@ Amira               ar_001   # مرحبا، اسمي أميرة.";
             write_wav_i16(out, &samples, 24_000).expect("write wav");
             eprintln!("wrote {}", out.display());
         });
+    }
+
+    /// Headless smoke test for edge-tts (Microsoft Edge Read Aloud). Hits the
+    /// network. Run: cargo test edge_smoke -- --ignored --nocapture ; afplay /tmp/edge_smoke.mp3
+    #[test]
+    #[ignore]
+    fn edge_smoke() {
+        use msedge_tts::tts::{client::connect, SpeechConfig};
+        use msedge_tts::voice::get_voices_list;
+        let voices = get_voices_list().expect("voice list");
+        let en: Vec<_> = voices
+            .iter()
+            .filter(|v| {
+                v.locale
+                    .as_deref()
+                    .unwrap_or("")
+                    .to_lowercase()
+                    .starts_with("en")
+            })
+            .collect();
+        eprintln!("edge voices: {} total, {} english", voices.len(), en.len());
+        for v in en.iter().take(10) {
+            eprintln!("  {} | {}", v.name, v.locale.as_deref().unwrap_or(""));
+        }
+        let voice = en
+            .iter()
+            .find(|v| v.name.contains("AriaNeural"))
+            .or_else(|| en.first())
+            .expect("an english voice");
+        let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+        let config = SpeechConfig::from(*voice);
+        let t0 = std::time::Instant::now();
+        let mut client = connect().expect("connect");
+        let audio = client
+            .synthesize(
+                "Hello Arshia, this is a free Microsoft Edge neural voice running in Murmur.",
+                &config,
+            )
+            .expect("synthesize");
+        eprintln!(
+            "edge synth: {} audio bytes in {:?}",
+            audio.audio_bytes.len(),
+            t0.elapsed()
+        );
+        assert!(!audio.audio_bytes.is_empty());
+        std::fs::write("/tmp/edge_smoke.mp3", &audio.audio_bytes).expect("write");
+        eprintln!("wrote /tmp/edge_smoke.mp3");
     }
 }

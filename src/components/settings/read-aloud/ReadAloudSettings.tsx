@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands } from "@/bindings";
-import type { ElevenVoice } from "@/bindings";
+import type { ElevenVoice, EdgeVoice } from "@/bindings";
 import { ShortcutInput } from "../ShortcutInput";
 import { SettingsGroup } from "../../ui/SettingsGroup";
 import { SettingContainer } from "../../ui/SettingContainer";
@@ -9,38 +9,45 @@ import { Slider } from "../../ui/Slider";
 import { useSettings } from "../../../hooks/useSettings";
 import { ApiKeyField } from "../PostProcessingSettingsApi/ApiKeyField";
 
-// Prettify a Kokoro voice file-stem ("af_heart") into a label ("Heart · US F").
-// Convention: [accent][gender]_name where accent a=American, b=British.
+// "af_heart" -> "Heart · US F". Convention: [accent a=US/b=UK][gender f/m]_name.
 function prettyKokoro(id: string): string {
   const m = id.match(/^([ab])([fm])_(.+)$/);
   const base = (m ? m[3] : id).replace(/_/g, " ");
   const cap = base.charAt(0).toUpperCase() + base.slice(1);
   if (!m) return cap;
-  const accent = m[1] === "a" ? "US" : "UK";
-  const gender = m[2] === "f" ? "F" : "M";
-  return `${cap} · ${accent} ${gender}`;
+  return `${cap} · ${m[1] === "a" ? "US" : "UK"} ${m[2] === "f" ? "F" : "M"}`;
+}
+
+// edge-tts voice -> "Aria · US".
+function edgeLabel(v: EdgeVoice): string {
+  return `${v.display} · ${v.locale.replace(/^en-/i, "")}`;
 }
 
 /**
- * Read Aloud is Kokoro-first: a free, on-device neural voice is the default
- * picker. ElevenLabs lives behind an "Advanced" disclosure (bring your own
- * key). The macOS `say` voices are intentionally not listed (kept only as a
- * silent offline fallback in the engine).
+ * Read Aloud voice picker. Primary = free, fast, natural edge-tts neural voices
+ * (online). Then free offline Kokoro voices. ElevenLabs (bring your own key) is
+ * tucked behind an Advanced disclosure. macOS `say` is only a silent fallback.
  */
 export const ReadAloudSettings: React.FC = () => {
   const { t } = useTranslation();
   const { getSetting, updateSetting, refreshSettings } = useSettings();
+  const [edgeVoices, setEdgeVoices] = useState<EdgeVoice[]>([]);
   const [kokoroVoices, setKokoroVoices] = useState<string[]>([]);
   const [elVoices, setElVoices] = useState<ElevenVoice[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const provider = getSetting("tts_provider") ?? "kokoro";
+  const provider = getSetting("tts_provider") ?? "edge_tts";
+  const edgeVoiceId = getSetting("edge_voice_id") ?? "";
   const kokoroVoiceId = getSetting("kokoro_voice_id") ?? "";
   const elVoiceId = getSetting("elevenlabs_voice_id") ?? "";
   const rate = getSetting("tts_rate") ?? 175;
   const elKey = getSetting("tts_secrets")?.["elevenlabs"] ?? "";
   const hasKey = elKey.trim().length > 0;
 
+  const loadEdge = useCallback(async () => {
+    const r = await commands.listEdgeVoices();
+    setEdgeVoices(r.status === "ok" ? r.data : []);
+  }, []);
   const loadKokoro = useCallback(async () => {
     const r = await commands.listKokoroVoices();
     setKokoroVoices(r.status === "ok" ? r.data : []);
@@ -50,17 +57,22 @@ export const ReadAloudSettings: React.FC = () => {
     setElVoices(r.status === "ok" ? r.data : []);
   }, []);
   useEffect(() => {
+    loadEdge();
     loadKokoro();
     loadEl();
-  }, [loadKokoro, loadEl]);
-  // Open Advanced automatically when ElevenLabs is the active engine.
+  }, [loadEdge, loadKokoro, loadEl]);
   useEffect(() => {
     if (provider === "eleven_labs") setShowAdvanced(true);
   }, [provider]);
 
-  const selectKokoro = async (voice: string) => {
-    await updateSetting("kokoro_voice_id", voice || null);
-    await updateSetting("tts_provider", "kokoro");
+  const onPick = async (val: string) => {
+    if (val.startsWith("edge:")) {
+      await updateSetting("edge_voice_id", val.slice(5));
+      await updateSetting("tts_provider", "edge_tts");
+    } else if (val.startsWith("kokoro:")) {
+      await updateSetting("kokoro_voice_id", val.slice(7));
+      await updateSetting("tts_provider", "kokoro");
+    }
   };
   const selectEleven = async (voiceId: string) => {
     if (!voiceId) return;
@@ -81,7 +93,11 @@ export const ReadAloudSettings: React.FC = () => {
     .filter((v) => v.category === "premade")
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const kokoroValue = provider === "kokoro" ? kokoroVoiceId || "af_heart" : "";
+  let selectedValue = "";
+  if (provider === "edge_tts")
+    selectedValue = `edge:${edgeVoiceId || "AriaNeural"}`;
+  else if (provider === "kokoro")
+    selectedValue = `kokoro:${kokoroVoiceId || "af_heart"}`;
 
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
@@ -94,24 +110,38 @@ export const ReadAloudSettings: React.FC = () => {
         >
           <div className="flex items-center space-x-2">
             <select
-              value={kokoroValue}
-              onChange={(e) => selectKokoro(e.target.value)}
-              className="text-sm rounded-lg border border-mid-gray/20 bg-background px-2 py-1 focus:outline-none focus:ring-2 focus:ring-logo-primary"
+              value={selectedValue}
+              onChange={(e) => onPick(e.target.value)}
+              className="text-sm rounded-lg border border-mid-gray/20 bg-background px-2 py-1 focus:outline-none focus:ring-2 focus:ring-logo-primary max-w-[260px]"
             >
-              {kokoroVoices.length === 0 && (
-                <option value="">
-                  {t("settings.readAloud.voice.systemDefault")}
-                </option>
+              {selectedValue === "" && <option value="">—</option>}
+              {edgeVoices.length > 0 && (
+                <optgroup label="Natural voices (free, online)">
+                  {edgeVoices.map((v) => (
+                    <option key={v.id} value={`edge:${v.id}`}>
+                      {edgeLabel(v)}
+                    </option>
+                  ))}
+                </optgroup>
               )}
-              {kokoroVoices.map((v) => (
-                <option key={v} value={v}>
-                  {prettyKokoro(v)}
-                </option>
-              ))}
+              {kokoroVoices.length > 0 && (
+                <optgroup label="Offline voices (free)">
+                  {kokoroVoices.map((v) => (
+                    <option key={v} value={`kokoro:${v}`}>
+                      {prettyKokoro(v)}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
+            {provider === "edge_tts" && (
+              <span className="text-xs text-mid-gray whitespace-nowrap">
+                Free · natural
+              </span>
+            )}
             {provider === "kokoro" && (
               <span className="text-xs text-mid-gray whitespace-nowrap">
-                Free · on-device
+                Free · offline
               </span>
             )}
           </div>
