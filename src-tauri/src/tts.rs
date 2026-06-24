@@ -165,6 +165,27 @@ pub fn kokoro_model_ready() -> bool {
         .unwrap_or(false)
 }
 
+/// List downloaded Kokoro voices (the `<name>.bin` file-stems in `voices/`),
+/// sorted. Empty if the dir is unset or no voices are downloaded yet.
+pub fn list_kokoro_voices() -> Vec<String> {
+    let Some(dir) = KOKORO_DIR.get() else {
+        return Vec::new();
+    };
+    let mut out = Vec::new();
+    if let Ok(entries) = std::fs::read_dir(dir.join("voices")) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().and_then(|x| x.to_str()) == Some("bin") {
+                if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+                    out.push(stem.to_string());
+                }
+            }
+        }
+    }
+    out.sort();
+    out
+}
+
 /// Spawn `afplay <path>` as the tracked child (generation-guarded), so `stop()`
 /// and `is_speaking()` work for file playback exactly as for `say`.
 fn play_file(path: &Path, my_gen: u64) {

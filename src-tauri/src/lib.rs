@@ -476,6 +476,8 @@ pub fn run(cli_args: CliArgs) {
             commands::tts::change_elevenlabs_voice_setting,
             commands::tts::change_elevenlabs_api_key_setting,
             commands::tts::list_elevenlabs_voices,
+            commands::tts::list_kokoro_voices,
+            commands::tts::change_kokoro_voice_setting,
             commands::converse::converse_test,
             commands::converse::converse_cancel,
             commands::converse::list_claude_projects,
