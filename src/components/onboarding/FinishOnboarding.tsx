@@ -1,60 +1,49 @@
 import React from "react";
-import { Check, Mic, Volume2, Radio } from "lucide-react";
-import HandyTextLogo from "../icons/HandyTextLogo";
-import stratLogo from "../../assets/strat-logo.png";
+import { useTranslation } from "react-i18next";
+import { Mic, Volume2, Radio } from "lucide-react";
+import OnboardingShell from "./OnboardingShell";
 
 interface FinishOnboardingProps {
   onDone: () => void;
 }
 
-const TIPS = [
-  {
-    icon: Mic,
-    title: "Dictate",
-    body: "Press your dictation hotkey, speak, and the text lands in whatever's focused.",
-  },
-  {
-    icon: Volume2,
-    title: "Read Aloud",
-    body: "Select text and press ⌥⌃R to hear it in the Monoli voice.",
-  },
-  {
-    icon: Radio,
-    title: "Sessions",
-    body: "Open the Sessions tab to see every live Claude Code session, color-coded by project — click one to chat or ask by voice.",
-  },
-];
-
 /** Final onboarding screen after model + permissions: quick tips + enter the app. */
 const FinishOnboarding: React.FC<FinishOnboardingProps> = ({ onDone }) => {
+  const { t } = useTranslation();
+  const TIPS = [
+    {
+      icon: Mic,
+      title: t("onboarding.finish.dictate.title"),
+      body: t("onboarding.finish.dictate.body"),
+    },
+    {
+      icon: Volume2,
+      title: t("onboarding.finish.readAloud.title"),
+      body: t("onboarding.finish.readAloud.body"),
+    },
+    {
+      icon: Radio,
+      title: t("onboarding.finish.sessions.title"),
+      body: t("onboarding.finish.sessions.body"),
+    },
+  ];
   return (
-    <div className="h-screen w-screen flex flex-col items-center justify-center p-8 gap-7 bg-gradient-to-br from-logo-primary/10 via-transparent to-transparent">
-      <div className="flex flex-col items-center gap-3 text-center">
-        <div className="relative">
-          <img src={stratLogo} alt="Murmur" draggable={false} className="w-20 h-20 select-none" />
-          <span className="absolute -bottom-1 -right-1 flex items-center justify-center h-7 w-7 rounded-full bg-emerald-500 text-white ring-2 ring-background">
-            <Check size={16} />
-          </span>
-        </div>
-        <HandyTextLogo width={200} />
-        <h2 className="text-xl font-semibold">You're all set</h2>
-        <p className="text-sm text-mid-gray max-w-md">
-          Murmur is listening. Here's how to get the most out of it.
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-2.5 max-w-md w-full">
+    <OnboardingShell
+      subtitle={t("onboarding.finish.subtitle")}
+      footnote={t("onboarding.finish.footnote")}
+    >
+      <div className="mt-8 flex w-full max-w-md flex-col gap-2.5">
         {TIPS.map(({ icon: Icon, title, body }) => (
           <div
             key={title}
-            className="flex items-start gap-3 rounded-xl border border-mid-gray/15 bg-background/60 p-3"
+            className="flex items-start gap-3 rounded-2xl border border-line bg-card p-4"
           >
-            <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-logo-primary/15 text-logo-primary shrink-0">
-              <Icon size={18} />
-            </div>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-signal-soft text-signal-ink">
+              <Icon size={18} strokeWidth={1.9} />
+            </span>
             <div>
-              <h3 className="font-semibold text-sm">{title}</h3>
-              <p className="text-xs text-mid-gray leading-relaxed">{body}</p>
+              <h3 className="text-sm font-semibold text-text">{title}</h3>
+              <p className="text-xs leading-relaxed text-text-3">{body}</p>
             </div>
           </div>
         ))}
@@ -63,11 +52,11 @@ const FinishOnboarding: React.FC<FinishOnboardingProps> = ({ onDone }) => {
       <button
         type="button"
         onClick={onDone}
-        className="rounded-xl px-6 py-2.5 bg-logo-primary text-white font-medium hover:bg-logo-primary/90 transition-colors"
+        className="relative mt-8 rounded-full border border-signal bg-signal px-6 py-3 text-sm font-semibold text-on-signal transition-[filter] duration-150 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
       >
-        Open Murmur
+        {t("onboarding.finish.start")}
       </button>
-    </div>
+    </OnboardingShell>
   );
 };
 

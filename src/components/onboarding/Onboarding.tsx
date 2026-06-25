@@ -4,8 +4,7 @@ import { toast } from "sonner";
 import type { ModelInfo } from "@/bindings";
 import type { ModelCardStatus } from "./ModelCard";
 import ModelCard from "./ModelCard";
-import HandyTextLogo from "../icons/HandyTextLogo";
-import stratLogo from "../../assets/strat-logo.png";
+import OnboardingShell from "./OnboardingShell";
 import { useModelStore } from "../../stores/modelStore";
 
 interface OnboardingProps {
@@ -90,22 +89,9 @@ const Onboarding: React.FC<OnboardingProps> = ({ onModelSelected }) => {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col p-6 gap-4 inset-0">
-      <div className="flex flex-col items-center gap-2 shrink-0">
-        <img
-          src={stratLogo}
-          alt="Stratos"
-          draggable={false}
-          className="w-24 h-24 select-none"
-        />
-        <HandyTextLogo width={200} />
-        <p className="text-text/70 max-w-md font-medium mx-auto">
-          {t("onboarding.subtitle")}
-        </p>
-      </div>
-
-      <div className="max-w-[600px] w-full mx-auto text-center flex-1 flex flex-col min-h-0">
-        <div className="flex flex-col gap-4 pb-6">
+    <OnboardingShell subtitle={t("onboarding.subtitle")}>
+      <div className="mt-8 flex w-full max-w-[600px] flex-col">
+        <div className="flex flex-col gap-3.5 pb-6">
           {models
             .filter((m: ModelInfo) => !m.is_downloaded)
             .filter((model: ModelInfo) => model.is_recommended)
@@ -144,7 +130,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onModelSelected }) => {
             ))}
         </div>
       </div>
-    </div>
+    </OnboardingShell>
   );
 };
 

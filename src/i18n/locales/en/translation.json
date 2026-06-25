@@ -1,4 +1,48 @@
 {
+  "theme": {
+    "title": "Appearance",
+    "description": "Switch between light and dark.",
+    "switchToLight": "Light mode",
+    "switchToDark": "Dark mode",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "changelog": {
+    "title": "What's new",
+    "subtitle": "Recent updates to Murmur.",
+    "kind": {
+      "added": "New",
+      "fixed": "Fixed",
+      "changed": "Changed"
+    }
+  },
+  "readiness": {
+    "title": "Dictation readiness",
+    "ready": "Everything's set up",
+    "remaining_one": "{{count}} step left to set up",
+    "remaining_other": "{{count}} steps left to set up",
+    "recheck": "Re-check",
+    "grant": "Grant",
+    "install": "Install",
+    "items": {
+      "accessibility": {
+        "label": "Accessibility",
+        "desc": "Lets Murmur paste transcriptions into other apps."
+      },
+      "inputMonitoring": {
+        "label": "Input Monitoring",
+        "desc": "Lets the global hotkey start and stop dictation."
+      },
+      "microphone": {
+        "label": "Microphone",
+        "desc": "Lets Murmur record your voice."
+      },
+      "model": {
+        "label": "Speech model",
+        "desc": "A speech-to-text model must be installed."
+      }
+    }
+  },
   "tray": {
     "settings": "Settings...",
     "checkUpdates": "Check for Updates...",
@@ -20,9 +64,48 @@
     "overview": "Overview",
     "conversation": "Conversation",
     "agents": "Sessions",
-    "sessions": "Sessions"
+    "sessions": "Sessions",
+    "changelog": "Changelog",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "pin": "Pin sidebar open",
+    "unpin": "Unpin sidebar"
   },
   "onboarding": {
+    "welcome": {
+      "subtitle": "Your voice layer for Claude Code.",
+      "footnote": "a Stratos House product",
+      "getStarted": "Get started",
+      "dictate": {
+        "title": "Dictate anywhere",
+        "body": "Talk instead of type. A hotkey turns your voice into clean text in any app — including Claude Code."
+      },
+      "hearItBack": {
+        "title": "Hear it back",
+        "body": "Read Aloud speaks any selection in a natural voice (Monoli) — proofread with your ears."
+      },
+      "runSessions": {
+        "title": "Run your sessions",
+        "body": "See every live Claude Code session at a glance, ask any of them what's going on, and get told when one needs you."
+      }
+    },
+    "finish": {
+      "subtitle": "You're all set.",
+      "footnote": "Murmur is listening — here's how to get the most out of it.",
+      "start": "Start using Murmur",
+      "dictate": {
+        "title": "Dictate",
+        "body": "Press your dictation hotkey, speak, and the text lands in whatever's focused."
+      },
+      "readAloud": {
+        "title": "Read Aloud",
+        "body": "Select text and press ⌥⌃R to hear it in the Monoli voice."
+      },
+      "sessions": {
+        "title": "Sessions",
+        "body": "Open the Sessions tab to see every live Claude Code session, color-coded by project — click one to chat or ask by voice."
+      }
+    },
     "subtitle": "To get started, choose a transcription model",
     "recommended": "Recommended",
     "download": "Download",
@@ -445,6 +528,17 @@
           "refreshModels": "Refresh models"
         }
       },
+      "presets": {
+        "title": "Refinement presets",
+        "description": "One-click cleanup prompts. Add one and it becomes your selected prompt.",
+        "items": {
+          "cleanup": "Clean up",
+          "fillers": "Remove fillers",
+          "selfcorrect": "Fix self-corrections",
+          "technical": "Preserve technical terms",
+          "professional": "Professional tone"
+        }
+      },
       "prompts": {
         "title": "Prompt",
         "selectedPrompt": {
@@ -470,6 +564,12 @@
     "history": {
       "title": "History",
       "openFolder": "Open Recordings Folder",
+      "searchPlaceholder": "Search transcripts",
+      "export": "Export",
+      "exported_one": "Copied {{count}} entry as Markdown",
+      "exported_other": "Copied {{count}} entries as Markdown",
+      "exportError": "Couldn't copy to clipboard",
+      "noMatches": "No transcripts match your search",
       "loading": "Loading history...",
       "empty": "No transcriptions yet. Start recording to build your history!",
       "copyToClipboard": "Copy transcription to clipboard",
@@ -560,6 +660,12 @@
     },
     "about": {
       "title": "About",
+      "stratos": {
+        "title": "Stratos House",
+        "description": "Murmur is the voice layer for Claude Code, built by Stratos House AI. Give your agents a voice, dictate into any app, and keep an eye on every session.",
+        "website": "Visit Stratos House",
+        "github": "View on GitHub"
+      },
       "version": {
         "title": "Version",
         "description": "Current version of Murmur"
@@ -580,6 +686,11 @@
       },
       "acknowledgments": {
         "title": "Acknowledgments",
+        "builtOn": {
+          "title": "Built on Handy",
+          "description": "Murmur is built on the open-source Handy project",
+          "details": "Murmur extends Handy (github.com/cjpais/Handy) with Read-Aloud neural voices, a live sessions observatory, and the Stratos House design system."
+        },
         "whisper": {
           "title": "Whisper.cpp",
           "description": "High-performance inference of OpenAI's Whisper automatic speech recognition model",
@@ -675,7 +786,9 @@
     "systemVoice": "System voice",
     "systemDefault": "System default",
     "ready": "Ready",
-    "sessions": "Sessions"
+    "sessions": "Sessions",
+    "agentsNeedYou": "agents need you",
+    "live": "live"
   },
   "conversation": {
     "title": "Conversation Mode",
@@ -722,5 +835,30 @@
       "description": "Install the Murmur reporter into a repo's Claude Code so its sessions report back here when they finish.",
       "enable": "Enable voice reports"
     }
+  },
+  "sessions": {
+    "title": "Sessions",
+    "live": "live",
+    "needYou": "need you",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "empty": "No live Claude Code sessions. Start one and it'll appear here.",
+    "recentlyFinished": "Recently finished",
+    "openChat": "Open chat",
+    "noSummary": "No summary yet — open the chat to ask what this session is doing.",
+    "summary": "Summary",
+    "transcript": "Transcript",
+    "agent": "Agent",
+    "you": "You",
+    "noMessages": "No messages yet in this session.",
+    "askError": "Couldn't get an answer. {{error}}",
+    "ask": "Ask",
+    "stop": "Stop",
+    "background": "· background",
+    "timeAgo": "{{time}} ago",
+    "options": "Options",
+    "rollingSummaries": "Rolling summaries (auto-refresh)",
+    "voiceAlerts": "Speak \"needs you\" alerts",
+    "showBackground": "Show background sessions"
   }
 }

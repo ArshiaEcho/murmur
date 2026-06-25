@@ -1,7 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { readFile } from "@tauri-apps/plugin-fs";
-import { Check, Copy, FolderOpen, RotateCcw, Star, Trash2 } from "lucide-react";
+import {
+  Check,
+  Copy,
+  Download,
+  FolderOpen,
+  RotateCcw,
+  Search,
+  Star,
+  Trash2,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
@@ -27,8 +36,8 @@ const IconButton: React.FC<{
     disabled={disabled}
     className={`p-1.5 rounded-md flex items-center justify-center transition-colors cursor-pointer disabled:cursor-not-allowed disabled:text-text/20 ${
       active
-        ? "text-logo-primary hover:text-logo-primary/80"
-        : "text-text/50 hover:text-logo-primary"
+        ? "text-signal-ink hover:text-signal-ink/80"
+        : "text-text/50 hover:text-signal-ink"
     }`}
     title={title}
   >
@@ -60,11 +69,12 @@ const OpenRecordingsButton: React.FC<OpenRecordingsButtonProps> = ({
 );
 
 export const HistorySettings: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const osType = useOsType();
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
+  const [query, setQuery] = useState("");
   const sentinelRef = useRef<HTMLDivElement>(null);
   const entriesRef = useRef<HistoryEntry[]>([]);
   const loadingRef = useRef(false);
@@ -128,7 +138,9 @@ export const HistorySettings: React.FC = () => {
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [loading, hasMore, loadPage]);
+    // `query` is a dep so clearing a search re-mounts the sentinel and we
+    // re-observe it (otherwise infinite scroll would stay dead after a search).
+  }, [loading, hasMore, loadPage, query]);
 
   // Listen for new entries added from the transcription pipeline
   useEffect(() => {
@@ -234,6 +246,36 @@ export const HistorySettings: React.FC = () => {
     }
   };
 
+  // Search filters the currently-loaded entries (infinite-scroll loads more).
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? entries.filter(
+        (e) =>
+          e.transcription_text.toLowerCase().includes(q) ||
+          (e.post_processed_text ?? "").toLowerCase().includes(q) ||
+          (e.title ?? "").toLowerCase().includes(q),
+      )
+    : entries;
+
+  const exportMarkdown = async () => {
+    if (filtered.length === 0) return;
+    const md = filtered
+      .map((e) => {
+        const body =
+          e.post_processed_text && e.post_processed_text.trim()
+            ? e.post_processed_text
+            : e.transcription_text;
+        return `### ${formatDateTime(String(e.timestamp), i18n.language)}\n\n${body}\n`;
+      })
+      .join("\n");
+    try {
+      await navigator.clipboard.writeText(md);
+      toast.success(t("settings.history.exported", { count: filtered.length }));
+    } catch {
+      toast.error(t("settings.history.exportError"));
+    }
+  };
+
   let content: React.ReactNode;
 
   if (loading) {
@@ -251,21 +293,27 @@ export const HistorySettings: React.FC = () => {
   } else {
     content = (
       <>
-        <div className="divide-y divide-mid-gray/20">
-          {entries.map((entry) => (
-            <HistoryEntryComponent
-              key={entry.id}
-              entry={entry}
-              onToggleSaved={() => toggleSaved(entry.id)}
-              onCopyText={() => copyToClipboard(entry.transcription_text)}
-              getAudioUrl={getAudioUrl}
-              deleteAudio={deleteAudioEntry}
-              retryTranscription={retryHistoryEntry}
-            />
-          ))}
+        <div className="divide-y divide-line">
+          {filtered.length === 0 ? (
+            <div className="px-4 py-3 text-center text-text-3">
+              {t("settings.history.noMatches")}
+            </div>
+          ) : (
+            filtered.map((entry) => (
+              <HistoryEntryComponent
+                key={entry.id}
+                entry={entry}
+                onToggleSaved={() => toggleSaved(entry.id)}
+                onCopyText={() => copyToClipboard(entry.transcription_text)}
+                getAudioUrl={getAudioUrl}
+                deleteAudio={deleteAudioEntry}
+                retryTranscription={retryHistoryEntry}
+              />
+            ))
+          )}
         </div>
-        {/* Sentinel for infinite scroll */}
-        <div ref={sentinelRef} className="h-1" />
+        {/* Sentinel for infinite scroll (only when not filtering) */}
+        {!q && <div ref={sentinelRef} className="h-1" />}
       </>
     );
   }
@@ -273,18 +321,35 @@ export const HistorySettings: React.FC = () => {
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
       <div className="space-y-2">
-        <div className="px-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-xs font-medium text-mid-gray uppercase tracking-wide">
-              {t("settings.history.title")}
-            </h2>
+        <div className="px-4 flex items-center gap-3">
+          <h2 className="text-xs font-medium text-text-3 uppercase tracking-wide shrink-0">
+            {t("settings.history.title")}
+          </h2>
+          <div className="relative flex-1 min-w-0 max-w-xs ms-auto">
+            <Search className="pointer-events-none absolute start-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-3" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t("settings.history.searchPlaceholder")}
+              className="w-full h-9 rounded-full border border-line-2 bg-card-2 ps-8 pe-3 text-[13px] text-text placeholder:text-text-3 outline-none transition-colors duration-150 focus-visible:border-signal focus-visible:ring-2 focus-visible:ring-signal"
+            />
           </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={exportMarkdown}
+            disabled={filtered.length === 0}
+          >
+            <Download className="w-3.5 h-3.5" />
+            {t("settings.history.export")}
+          </Button>
           <OpenRecordingsButton
             onClick={openRecordingsFolder}
             label={t("settings.history.openFolder")}
           />
         </div>
-        <div className="bg-background border border-mid-gray/20 rounded-lg overflow-visible">
+        <div className="bg-card border border-line rounded-lg overflow-visible">
           {content}
         </div>
       </div>

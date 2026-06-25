@@ -10,6 +10,8 @@ import { AudioFeedback } from "../AudioFeedback";
 import { useSettings } from "../../../hooks/useSettings";
 import { VolumeSlider } from "../VolumeSlider";
 import { MuteWhileRecording } from "../MuteWhileRecording";
+import { ThemeSetting } from "../ThemeSetting";
+import { DictationReadiness } from "../../DictationReadiness";
 import { ModelSettingsCard } from "./ModelSettingsCard";
 
 export const GeneralSettings: React.FC = () => {
@@ -19,6 +21,10 @@ export const GeneralSettings: React.FC = () => {
   const isLinux = type() === "linux";
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
+      <DictationReadiness />
+      <SettingsGroup title={t("theme.title")}>
+        <ThemeSetting grouped={true} />
+      </SettingsGroup>
       <SettingsGroup title={t("settings.general.title")}>
         <ShortcutInput shortcutId="transcribe" grouped={true} />
         <PushToTalk descriptionMode="tooltip" grouped={true} />

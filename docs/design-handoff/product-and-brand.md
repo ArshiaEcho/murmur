@@ -97,3 +97,37 @@ The accent drives status/active states, focus borders, the logo gradient glow, a
 - Iconography beyond the core mark (tray icons, status dots, the four-state status visual language), motion/micro-interactions, and the spoken-alert / "needs you" affordances.
 - All UI copy and tone polish, the onboarding flow, the Sessions observatory master–detail layout, empty/idle/working/done states, and overall calm-but-dense operator feel.
 - Whether and how to surface the "ambient/always-listening" personality visually (the murmur idea) — this is underexpressed and a strong opportunity.
+
+## Aesthetic direction (the visual translation — read this before designing)
+
+The tone above ("quiet, anti-Siri, operator-grade") is the *feeling*. This section converts it into a *visual* direction so the redesign lands as something ownable, not the generic "tasteful AI SaaS settings panel" the app currently reads as. **Do not interpret "sleek / modular / premium" as license to default** — those adjectives are exactly where every AI tool converges.
+
+### Named direction (pick this, commit to it)
+**"A calm night-shift observatory / mixing console."** Dark, instrument-grade, dim-by-default, with **teal as the single live signal** in the room. Depth comes from **layered teal-on-teal strata** (the diamonds, the `#1B2422` teal-near-black), not from decoration. Typography is precise and slightly **tabular**, like a control surface — legible at a glance by someone monitoring 12 things. The felt sense: *a quiet control room at 2am, one teal indicator breathing — not a chat app, not a marketing page.*
+
+Supporting adjectives on the visual plane: **instrument, ambient, layered, dim, precise.**
+
+### Reference set (borrow the named quality, not the look)
+- **Raycast** — confident dark command-surface density and keyboard-first calm. *Borrow:* assured dark hierarchy. *Avoid:* its purple.
+- **Linear** — motion restraint, type hierarchy, the discipline of "quiet until it matters." *Borrow:* restraint + crisp hierarchy.
+- **Things 3** — warmth and breathing room inside density. *Borrow:* humane spacing in a dense tool.
+- **An audio mixing console / observatory dashboard** — instrument-grade, dim, one live signal glowing. *Borrow:* the ambient-instrument mood; signal-as-light.
+- **NOT:** generic AI-chat UIs, Notion-style cards, gradient marketing hero pages.
+
+### Banned generic defaults (anti-slop — the likely failure modes)
+With teal as the brand color, the model's most probable wrong turn is the trained-in "AI startup" look. Avoid each → do the alternative:
+- ❌ Purple/teal **gradient hero blobs** → ✅ flat teal-near-black surfaces; depth from layered opacity, not gradients.
+- ❌ **Glassmorphism as decoration** → ✅ real native vibrancy (NSVisualEffect) only where it has function (sidebar/HUD); otherwise opaque.
+- ❌ **Glossy oversized rounded cards** → ✅ quiet, tight cards with deliberate elevation (`--elev-*`), not glow.
+- ❌ **Emoji in empty/error states** → ✅ a small line icon + one calm sentence.
+- ❌ **Friendly-assistant copy** ("Oops!", "Let's get started!") → ✅ operator-grade, terse, factual.
+- ❌ **Generic gradient CTAs** → ✅ the one solid action teal (`--color-action`).
+- ❌ **Centered marketing hero** on a dense operator tool → ✅ information-first layout; the Overview header earns its space, doesn't dominate.
+
+### Expressing "the murmur" (the most ownable idea — directions, not mandates)
+- A **barely-there ambient pulse** on the mark / a faint teal signal-glow when sessions are live (sound felt as a slow light, not a UI animation).
+- **Voice felt as a state change**, not a chatbot affordance — the listening/transcribing moment is a confident, quiet shift in the one teal signal.
+- **Avoid:** a Siri-style orb, a literal waveform, any "assistant is thinking" theater.
+
+### The squint test + the one signature element
+Before shipping any surface: **squint at a single dark Sessions screenshot — it must read as *Murmur*, not as a generic dark dev dashboard.** The ownable signature to protect and amplify is **the project-colored spine running through the Sessions surface + the single teal voice moment.** If those two read instantly, the direction landed.

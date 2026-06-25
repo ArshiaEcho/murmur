@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif; }
+  html, body { width: 100vw; height: 100vh; overflow: hidden; }
+  .card {
+    width: 100vw; height: 100vh; position: relative; overflow: hidden;
+    background: #0C0D0C;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; color: #F3F1EC;
+  }
+  .card::before { content:""; position:absolute; inset:0;
+    background:
+      radial-gradient(circle at 50% 8%, rgba(47,211,189,0.16) 0%, rgba(47,211,189,0) 42%),
+      radial-gradient(circle at 50% 108%, rgba(224,182,92,0.22) 0%, rgba(224,182,92,0) 52%);
+  }
+  .card::after { content:""; position:absolute; inset:0;
+    background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 26px 26px; opacity: 0.5;
+  }
+  .inner { position: relative; z-index: 1; display:flex; flex-direction:column; align-items:center; gap: 30px; padding: 0 80px; }
+  .logo { width: 132px; height: 132px; filter: drop-shadow(0 0 22px rgba(224,182,92,0.45)) drop-shadow(0 0 50px rgba(47,211,189,0.25)); }
+  .word { font-size: 104px; font-weight: 700; letter-spacing: 10px; line-height: 1; }
+  .tag { font-size: 36px; font-weight: 500; color: rgba(243,241,236,0.74); letter-spacing: 0.3px; }
+  .chips { display:flex; gap: 14px; margin-top: 6px; }
+  .chip { font-size: 21px; font-weight: 600; padding: 9px 20px; border-radius: 999px; border: 1px solid rgba(243,241,236,0.16); color: rgba(243,241,236,0.82); }
+  .chip.gold { border-color: rgba(224,182,92,0.5); color: #E0B65C; }
+  .chip.teal { border-color: rgba(47,211,189,0.5); color: #2FD3BD; }
+  .by { position:absolute; bottom: 40px; left: 0; right: 0; text-align:center; font-size: 22px; font-weight: 600; letter-spacing: 2px; color: rgba(243,241,236,0.5); z-index:1; }
+  .by b { color: #E0B65C; font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="inner">
+      <img class="logo" src="/Users/vabi/Dev/strat/assets/stratos-logo.png" alt="" />
+      <div class="word">MURMUR</div>
+      <div class="tag">The voice layer for Claude Code</div>
+      <div class="chips">
+        <span class="chip gold">Read-Aloud voices</span>
+        <span class="chip">Dictate anywhere</span>
+        <span class="chip teal">Live sessions</span>
+      </div>
+    </div>
+    <div class="by">by <b>STRATOS HOUSE</b></div>
+  </div>
+</body>
+</html>

@@ -112,7 +112,7 @@ export const ReadAloudSettings: React.FC = () => {
             <select
               value={selectedValue}
               onChange={(e) => onPick(e.target.value)}
-              className="text-sm rounded-lg border border-mid-gray/20 bg-background px-2 py-1 focus:outline-none focus:ring-2 focus:ring-logo-primary max-w-[260px]"
+              className="text-sm rounded-lg border border-line bg-bg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-signal max-w-[260px]"
             >
               {selectedValue === "" && <option value="">—</option>}
               {edgeVoices.length > 0 && (
@@ -135,19 +135,19 @@ export const ReadAloudSettings: React.FC = () => {
               )}
             </select>
             {provider === "edge_tts" && (
-              <span className="text-xs text-mid-gray whitespace-nowrap">
+              <span className="text-xs text-text-2 whitespace-nowrap">
                 Free · natural
               </span>
             )}
             {provider === "kokoro" && (
-              <span className="text-xs text-mid-gray whitespace-nowrap">
+              <span className="text-xs text-text-2 whitespace-nowrap">
                 Free · offline
               </span>
             )}
           </div>
         </SettingContainer>
 
-        <p className="px-4 text-xs text-mid-gray">
+        <p className="px-4 text-xs text-text-2">
           {t("settings.readAloud.voice.hint")}
         </p>
 
@@ -174,14 +174,14 @@ export const ReadAloudSettings: React.FC = () => {
             <button
               type="button"
               onClick={handlePreview}
-              className="text-sm font-medium rounded-lg px-3 py-1 bg-logo-primary/80 hover:bg-logo-primary transition-colors"
+              className="text-sm font-medium rounded-lg px-3 py-1 bg-signal/80 hover:bg-signal transition-colors"
             >
               {t("settings.readAloud.preview.play")}
             </button>
             <button
               type="button"
               onClick={handleStop}
-              className="text-sm font-medium rounded-lg px-3 py-1 border border-mid-gray/20 hover:bg-mid-gray/20 transition-colors"
+              className="text-sm font-medium rounded-lg px-3 py-1 border border-line hover:bg-card-2 transition-colors"
             >
               {t("settings.readAloud.preview.stop")}
             </button>
@@ -193,7 +193,7 @@ export const ReadAloudSettings: React.FC = () => {
         <button
           type="button"
           onClick={() => setShowAdvanced((s) => !s)}
-          className="px-4 text-sm text-mid-gray hover:text-foreground transition-colors text-left"
+          className="px-4 text-sm text-text-2 hover:text-text transition-colors text-left"
         >
           {showAdvanced ? "▾" : "▸"} Advanced: use my ElevenLabs key
           {provider === "eleven_labs" ? " (active)" : ""}
@@ -227,7 +227,7 @@ export const ReadAloudSettings: React.FC = () => {
                 <select
                   value={provider === "eleven_labs" ? elVoiceId : ""}
                   onChange={(e) => selectEleven(e.target.value)}
-                  className="text-sm rounded-lg border border-mid-gray/20 bg-background px-2 py-1 focus:outline-none focus:ring-2 focus:ring-logo-primary"
+                  className="text-sm rounded-lg border border-line bg-bg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-signal"
                 >
                   <option value="">—</option>
                   {custom.length > 0 && (
@@ -252,7 +252,7 @@ export const ReadAloudSettings: React.FC = () => {
               </SettingContainer>
             )}
 
-            <p className="px-4 text-sm text-mid-gray">
+            <p className="px-4 text-sm text-text-2">
               {elVoices.length > 0
                 ? t("settings.readAloud.eleven.loaded", { count: elVoices.length })
                 : t("settings.readAloud.eleven.needKey")}
@@ -263,7 +263,7 @@ export const ReadAloudSettings: React.FC = () => {
 
       <SettingsGroup title={t("settings.readAloud.hotkey.title")}>
         <ShortcutInput shortcutId="read_selection" grouped={true} />
-        <p className="px-4 text-sm text-mid-gray">
+        <p className="px-4 text-sm text-text-2">
           {t("settings.readAloud.hotkey.help")}
         </p>
       </SettingsGroup>

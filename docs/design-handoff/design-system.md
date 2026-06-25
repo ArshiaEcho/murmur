@@ -1,8 +1,10 @@
 # Design System (current)
 
-This section documents the **actual** tokens and conventions in the Murmur codebase as of the current `cleanup/brain-optimization` working tree. Everything below was extracted from real files — primarily `src/App.css` (the project's only global stylesheet; there is no `index.css`), `tailwind.config.js`, `src/overlay/RecordingOverlay.css`, and component source. Where the code is inconsistent (hardcoded hex vs. tokens, undocumented scales, dead/commented values), it is flagged explicitly. This is the raw material Claude Design should **formalize and extend** into a real system.
+This section documents the **actual** tokens and conventions in the Murmur codebase as of the current `main` working tree. Everything below was extracted from real files — primarily `src/App.css` (the project's only global stylesheet; there is no `index.css`), `tailwind.config.js`, `src/overlay/RecordingOverlay.css`, and component source. Where the code is inconsistent (hardcoded hex vs. tokens, undocumented scales, dead/commented values), it is flagged explicitly. This is the raw material Claude Design should **formalize and extend** into a real system.
 
-The app is Tailwind **v4** (`@import "tailwindcss"` + `@theme {}` in `src/App.css`) with a **v3-style `tailwind.config.js` shim** that re-exposes the same tokens under `theme.extend.colors`. Both must be kept in sync by hand today — that duplication is itself a gap (see Inconsistencies).
+> **Machine-readable export:** every token below is mirrored in [`tokens.json`](tokens.json) (DTCG-style, light + dark) — the canonical, importable source. Build against that; this doc is the prose explanation.
+
+The app is Tailwind **v4** (`@import "tailwindcss"` + `@theme {}` in `src/App.css`) with a **v3-style `tailwind.config.js` shim** that re-exposes *some* tokens under `theme.extend.colors`. **Correction (verified):** the shim is incomplete — it exposes only 5 of the 7 `@theme` colors, **omitting `--color-background-ui`** (the primary-action teal used by Button + ToggleSwitch) **and `--color-mid-gray`** (every border/divider/muted-text). Don't trust the config as a token list; use `tokens.json`. Recommend deleting `tailwind.config.js` entirely (redundant under v4, and currently misleading).
 
 ---
 

@@ -3,27 +3,39 @@ import React from "react";
 export type ChipState = "active" | "on" | "off" | "loading" | "idle";
 
 export const KeyChip: React.FC<{ keys: string }> = ({ keys }) => (
-  <span className="px-2 py-0.5 text-xs font-semibold bg-mid-gray/10 border border-mid-gray/30 rounded-md whitespace-nowrap">
+  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full border border-line-2 bg-card-2 font-mono text-xs font-semibold text-text whitespace-nowrap tnum">
     {keys || "—"}
   </span>
 );
 
-export const StatusDot: React.FC<{ state?: ChipState }> = ({ state = "idle" }) => {
+// Token-driven status dot. `active`/`on` read as live (teal --live), `loading`
+// pulses (warn), `off` is the muted state and `idle` is neutral. (Gold --signal
+// is reserved for primary actions, not live state.)
+export const StatusDot: React.FC<{ state?: ChipState }> = ({
+  state = "idle",
+}) => {
   const cls =
     state === "active" || state === "on"
-      ? "bg-logo-primary"
+      ? "bg-live"
       : state === "loading"
-        ? "bg-amber-400 animate-pulse"
-        : "bg-mid-gray/40";
-  return <span className={`inline-block h-2 w-2 rounded-full ${cls}`} />;
+        ? "bg-warn motion-safe:animate-pulse"
+        : state === "off"
+          ? "bg-text-3"
+          : "bg-text-3/40";
+  return (
+    <span className={`inline-block h-[7px] w-[7px] rounded-full ${cls}`} />
+  );
 };
 
+// Key/value summary row: muted key on the left, mono tabular value on the right.
 export const FieldRow: React.FC<{ label: string; value: React.ReactNode }> = ({
   label,
   value,
 }) => (
-  <div className="flex items-center justify-between gap-2 text-sm">
-    <span className="text-mid-gray">{label}</span>
-    <span className="font-medium truncate max-w-[62%] text-right">{value}</span>
+  <div className="flex items-center gap-2">
+    <span className="text-xs font-medium text-text-3">{label}</span>
+    <span className="ml-auto font-mono text-xs font-semibold text-text-2 tnum truncate max-w-[62%] text-right">
+      {value}
+    </span>
   </div>
 );

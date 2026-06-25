@@ -20,6 +20,7 @@ import { Sidebar, SidebarSection, SECTIONS_CONFIG } from "./components/Sidebar";
 import { NavigationContext } from "./hooks/useNavigate";
 import { useSettings } from "./hooks/useSettings";
 import { useSettingsStore } from "./stores/settingsStore";
+import { useThemeStore } from "./stores/themeStore";
 import { commands } from "@/bindings";
 import { getLanguageDirection, initializeRTL } from "@/lib/utils/rtl";
 
@@ -47,6 +48,7 @@ function App() {
   const [currentSection, setCurrentSection] =
     useState<SidebarSection>("overview");
   const { settings, updateSetting } = useSettings();
+  const theme = useThemeStore((state) => state.theme);
   const direction = getLanguageDirection(i18n.language);
   const refreshAudioDevices = useSettingsStore(
     (state) => state.refreshAudioDevices,
@@ -290,17 +292,17 @@ function App() {
   return (
     <div
       dir={direction}
-      className="h-screen flex flex-col select-none cursor-default"
+      className="h-screen flex flex-col select-none cursor-default bg-bg text-text"
     >
       <Toaster
-        theme="system"
+        theme={theme}
         toastOptions={{
           unstyled: true,
           classNames: {
             toast:
-              "bg-background border border-mid-gray/20 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3 text-sm",
+              "bg-card border border-line text-text rounded-[12px] shadow-[var(--shadow)] px-4 py-3 flex items-center gap-3 text-sm",
             title: "font-medium",
-            description: "text-mid-gray",
+            description: "text-text-2",
           },
         }}
       />
@@ -313,12 +315,21 @@ function App() {
         {/* Scrollable content area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto">
-            <div className="flex flex-col items-center p-4 gap-4">
+            <div className="flex flex-col items-center p-4 gap-4 min-h-full">
               <AccessibilityPermissions />
               <NavigationContext.Provider
                 value={(s) => setCurrentSection(s as SidebarSection)}
               >
-                {renderSettingsContent(currentSection)}
+                {/* Keyed wrapper: subtle slide-fade on section change (buttery,
+                    reduced-motion-safe via the global App.css block) while keeping
+                    the flex chain so full-height views like Sessions still fill. */}
+                <div
+                  key={currentSection}
+                  className="w-full flex-1 min-h-0 flex flex-col"
+                  style={{ animation: "mur-reveal 0.18s var(--ease-out-quint)" }}
+                >
+                  {renderSettingsContent(currentSection)}
+                </div>
               </NavigationContext.Provider>
             </div>
           </div>

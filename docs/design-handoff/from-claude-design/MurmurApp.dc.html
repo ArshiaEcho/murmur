@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  @keyframes mur-spin { to{transform:rotate(360deg)} }
+  @keyframes mur-dotpulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+  @keyframes mur-micring { 0%{transform:scale(1);opacity:.5} 100%{transform:scale(2);opacity:0} }
+  @keyframes mur-breathe { 0%,100%{opacity:.3;transform:scale(1)} 50%{opacity:.8;transform:scale(1.05)} }
+  @keyframes mur-reveal { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
+  @keyframes mur-shimmer { 0%{background-position:-180px 0} 100%{background-position:340px 0} }
+  @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+</style>
+</helmet>
+<div data-mur-root="1" style="{{ rootStyle }}">
+
+  <div data-drags-region="1" style="position:absolute;top:0;left:0;right:0;height:42px;z-index:5"></div>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside style="width:212px;flex:none;display:flex;flex-direction:column;background:var(--bg-2);border-right:1px solid var(--line)">
+    <div style="display:flex;align-items:center;gap:10px;padding:46px 18px 18px 18px">
+      <div style="position:relative;width:28px;height:28px;flex:none">
+        <div style="{{ glowStyle }}"></div>
+        <svg width="28" height="28" viewBox="0 0 48 48" fill="none" style="position:relative">
+          <path d="M24 6 L40 17.5 L24 29 L8 17.5 Z" fill="none" stroke="var(--signal)" stroke-opacity="0.45" stroke-width="2.2"/>
+          <path d="M24 12.5 L40 24 L24 35.5 L8 24 Z" fill="none" stroke="var(--signal)" stroke-opacity="0.72" stroke-width="2.2"/>
+          <path d="M24 18.5 L34 26 L24 33.5 L14 26 Z" fill="var(--signal)" fill-opacity="0.95"/>
+          <path d="M24 18.5 L34 26 L24 33.5 L14 26 Z" fill="url(#mg1)" fill-opacity="0.55"/>
+          <defs><linearGradient id="mg1" x1="0" y1="0.4" x2="0" y2="1"><stop offset="0" stop-color="var(--signal)" stop-opacity="0"/><stop offset="1" stop-color="var(--gold)"/></linearGradient></defs>
+        </svg>
+      </div>
+      <span style="font:600 14px var(--font);letter-spacing:2.5px;color:var(--text)">MURMUR</span>
+    </div>
+
+    <nav style="display:flex;flex-direction:column;gap:2px;padding:4px 12px;flex:1;overflow:auto">
+      <button onClick="{{ navOverview }}" style="display:flex;align-items:center;gap:12px;padding:8px 11px;border-radius:10px;border:none;background:transparent;cursor:pointer;color:var(--text-2);font:500 13px var(--font);text-align:left; {{ aOverview }}" style-hover="color:var(--text);background:var(--card-hover)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg>Overview</button>
+      <button onClick="{{ navSessions }}" style="display:flex;align-items:center;gap:12px;padding:8px 11px;border-radius:10px;border:none;background:transparent;cursor:pointer;color:var(--text-2);font:500 13px var(--font);text-align:left; {{ aSessions }}" style-hover="color:var(--text);background:var(--card-hover)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l2.5-7 4.5 14 2.5-7H22"/></svg>Sessions</button>
+      <button onClick="{{ navModels }}" style="display:flex;align-items:center;gap:12px;padding:8px 11px;border-radius:10px;border:none;background:transparent;cursor:pointer;color:var(--text-2);font:500 13px var(--font);text-align:left; {{ aModels }}" style-hover="color:var(--text);background:var(--card-hover)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 2.5l8 4.6v9.8l-8 4.6-8-4.6V7.1z"/><circle cx="12" cy="12" r="2.6"/></svg>Models</button>
+      <button onClick="{{ navReadAloud }}" style="display:flex;align-items:center;gap:12px;padding:8px 11px;border-radius:10px;border:none;background:transparent;cursor:pointer;color:var(--text-2);font:500 13px var(--font);text-align:left; {{ aReadAloud }}" style-hover="color:var(--text);background:var(--card-hover)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 10v4"/><path d="M9 6v12"/><path d="M14 3v18"/><path d="M19 9v6"/></svg>Read Aloud</button>
+      <button onClick="{{ navAdvanced }}" style="display:flex;align-items:center;gap:12px;padding:8px 11px;border-radius:10px;border:none;background:transparent;cursor:pointer;color:var(--text-2);font:500 13px var(--font);text-align:left; {{ aAdvanced }}" style-hover="color:var(--text);background:var(--card-hover)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 4v5M6 15v5M12 4v8M12 18v2M18 4v2M18 12v8"/><circle cx="6" cy="12" r="2"/><circle cx="12" cy="15" r="2"/><circle cx="18" cy="9" r="2"/></svg>Advanced</button>
+      <button onClick="{{ navHistory }}" style="display:flex;align-items:center;gap:12px;padding:8px 11px;border-radius:10px;border:none;background:transparent;cursor:pointer;color:var(--text-2);font:500 13px var(--font);text-align:left; {{ aHistory }}" style-hover="color:var(--text);background:var(--card-hover)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4v5h5"/><path d="M3.5 9a8.5 8.5 0 1 1-1 4"/><path d="M12 7.5V12l3 2"/></svg>History</button>
+      <button onClick="{{ navGeneral }}" style="display:flex;align-items:center;gap:12px;padding:8px 11px;border-radius:10px;border:none;background:transparent;cursor:pointer;color:var(--text-2);font:500 13px var(--font);text-align:left; {{ aGeneral }}" style-hover="color:var(--text);background:var(--card-hover)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h9"/><path d="M18 7h2"/><circle cx="15.5" cy="7" r="2.3"/><path d="M4 17h4"/><path d="M13 17h7"/><circle cx="10.5" cy="17" r="2.3"/></svg>General</button>
+      <button onClick="{{ navPost }}" style="display:flex;align-items:center;gap:12px;padding:8px 11px;border-radius:10px;border:none;background:transparent;cursor:pointer;color:var(--text-2);font:500 13px var(--font);text-align:left; {{ aPost }}" style-hover="color:var(--text);background:var(--card-hover)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3l1.7 4.6L18 9l-4.3 1.4L12 15l-1.7-4.6L6 9l4.3-1.4z"/><path d="M18.5 14l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>Post Process</button>
+      <button onClick="{{ navAbout }}" style="display:flex;align-items:center;gap:12px;padding:8px 11px;border-radius:10px;border:none;background:transparent;cursor:pointer;color:var(--text-2);font:500 13px var(--font);text-align:left; {{ aAbout }}" style-hover="color:var(--text);background:var(--card-hover)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r="0.7" fill="currentColor" stroke="none"/></svg>About</button>
+    </nav>
+
+    <div style="padding:10px 12px;border-top:1px solid var(--line);position:relative">
+      <button onClick="{{ toggleModelMenu }}" style="display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--line-2);background:var(--card);cursor:pointer" style-hover="border-color:var(--signal)">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--signal);flex:none"></span>
+        <span style="font:600 11.5px var(--mono);color:var(--text-2)">Parakeet V3</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" style="margin-left:auto;transition:transform .15s var(--ease-out-quint);transform:rotate({{ modelChevron }})"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <sc-if value="{{ modelMenu }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:12px;right:12px;bottom:54px;z-index:60;padding:6px;border-radius:13px;border:1px solid var(--line-2);background:var(--card-2);box-shadow:var(--shadow);animation:mur-reveal .15s var(--ease-out-quint)">
+          <sc-for list="{{ modelList }}" as="m" hint-placeholder-count="4">
+            <button onClick="{{ m.pick }}" style="display:flex;align-items:center;gap:9px;width:100%;padding:8px 9px;border-radius:9px;border:none;background:{{ m.bg }};cursor:pointer;text-align:left" style-hover="background:var(--card-hover)">
+              <span style="width:6px;height:6px;border-radius:50%;background:{{ m.dot }};flex:none"></span>
+              <div style="min-width:0;flex:1"><div style="font:500 12px var(--font);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m.name }}</div><div style="font:500 10px var(--mono);color:var(--text-3)">{{ m.sub }}</div></div>
+              <sc-if value="{{ m.active }}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--signal)" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg></sc-if>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </aside>
+
+  <!-- ===== RIGHT COLUMN ===== -->
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+  <main style="position:relative;flex:1;min-height:0;overflow:auto;background:var(--bg)">
+
+    <!-- ----- SESSIONS (agent-plan tree) ----- -->
+    <sc-if value="{{ isSessions }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:42px 22px 30px 22px;max-width:1080px;margin:0 auto">
+      <div style="display:flex;align-items:center;gap:13px;margin-bottom:16px">
+        <h1 style="font:600 26px var(--font);letter-spacing:-0.4px;color:var(--text);margin:0">Sessions</h1>
+        <span style="display:inline-flex;align-items:center;gap:6px;font:600 12px var(--mono);color:var(--signal)"><span style="width:6px;height:6px;border-radius:50%;background:var(--signal);animation:mur-dotpulse 2.2s var(--ease-io) infinite"></span>{{ liveTotal }} live</span>
+        <span style="font:600 12px var(--mono);color:var(--warn)">{{ needTotal }} need you</span>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button onClick="{{ toggleAll }}" style="display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;border:1px solid var(--line-2);background:var(--card);color:var(--text-2);font:500 12px var(--font);cursor:pointer" style-hover="border-color:var(--signal);color:var(--text)">{{ toggleAllLabel }}</button>
+          <div style="position:relative">
+            <button onClick="{{ toggleOptions }}" style="display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;border:1px solid var(--line-2);background:var(--card);color:var(--text-2);font:500 12px var(--font);cursor:pointer" style-hover="border-color:var(--signal);color:var(--text)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="8" x2="20" y2="8"/><circle cx="9" cy="8" r="2.3" fill="var(--card)"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="15" cy="16" r="2.3" fill="var(--card)"/></svg>Options</button>
+            <sc-if value="{{ optionsOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:40px;right:0;z-index:50;width:248px;padding:7px;border-radius:14px;border:1px solid var(--line-2);background:var(--card-2);box-shadow:var(--shadow);animation:mur-reveal .15s var(--ease-out-quint)">
+                <button onClick="{{ tgRolling }}" style="display:flex;align-items:center;gap:11px;width:100%;padding:9px 10px;border-radius:10px;border:none;background:transparent;cursor:pointer;text-align:left" style-hover="background:var(--card-hover)"><span style="{{ rollingBox }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--on-signal)" stroke-width="3.5"><path d="M5 12l5 5 9-10"/></svg></span><span style="font:500 12.5px var(--font);color:var(--text)">Rolling summaries</span></button>
+                <button onClick="{{ tgVoice }}" style="display:flex;align-items:center;gap:11px;width:100%;padding:9px 10px;border-radius:10px;border:none;background:transparent;cursor:pointer;text-align:left" style-hover="background:var(--card-hover)"><span style="{{ voiceBox }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--on-signal)" stroke-width="3.5"><path d="M5 12l5 5 9-10"/></svg></span><span style="font:500 12.5px var(--font);color:var(--text)">Voice alerts</span></button>
+                <button onClick="{{ tgHide }}" style="display:flex;align-items:center;gap:11px;width:100%;padding:9px 10px;border-radius:10px;border:none;background:transparent;cursor:pointer;text-align:left" style-hover="background:var(--card-hover)"><span style="{{ hideBox }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--on-signal)" stroke-width="3.5"><path d="M5 12l5 5 9-10"/></svg></span><span style="font:500 12.5px var(--font);color:var(--text)">Show background sessions</span></button>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden">
+        <sc-for list="{{ tree }}" as="p" hint-placeholder-count="6">
+          <div style="border-top:1px solid var(--line)">
+            <!-- project row -->
+            <button onClick="{{ p.toggle }}" style="display:flex;align-items:center;gap:11px;width:100%;padding:11px 16px;border:none;background:transparent;cursor:pointer;text-align:left" style-hover="background:var(--card-hover)">
+              <span style="display:flex;flex:none">{{ p.icon }}</span>
+              <span style="width:7px;height:7px;border-radius:50%;background:{{ p.color }};flex:none"></span>
+              <span style="font:600 14px var(--font);color:{{ p.nameColor }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.name }}</span>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:7px;flex:none">
+                <sc-for list="{{ p.chips }}" as="ch" hint-placeholder-count="1"><span style="{{ ch.style }}">{{ ch.text }}</span></sc-for>
+                <span style="{{ p.badgeStyle }}">{{ p.badge }}</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" style="transition:transform .18s var(--ease-out-quint);transform:rotate({{ p.chevron }})"><path d="M9 6l6 6-6 6"/></svg>
+              </div>
+            </button>
+            <!-- sessions -->
+            <sc-if value="{{ p.expanded }}" hint-placeholder-val="{{ false }}">
+              <div style="position:relative;padding:2px 16px 10px 16px">
+                <div style="position:absolute;top:0;bottom:14px;left:25px;border-left:1.5px dashed var(--line-2)"></div>
+                <sc-for list="{{ p.sessions }}" as="ss" hint-placeholder-count="1">
+                  <div>
+                    <button onClick="{{ ss.toggle }}" style="display:flex;align-items:center;gap:10px;width:100%;padding:7px 8px 7px 30px;border:none;background:{{ ss.bg }};border-radius:9px;cursor:pointer;text-align:left" style-hover="background:var(--card-hover)">
+                      <span style="display:flex;flex:none">{{ ss.icon }}</span>
+                      <span style="font:500 12.5px var(--font);color:{{ ss.titleColor }};flex:none;{{ ss.strike }}">{{ ss.title }}</span>
+                      <span style="font:400 11.5px var(--font);color:var(--text-3);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ss.preview }}</span>
+                      <span style="font:500 10px var(--mono);color:var(--text-3);flex:none">{{ ss.time }}</span>
+                    </button>
+                    <sc-if value="{{ ss.expanded }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin:2px 0 8px 30px;padding:11px 13px;border-radius:11px;border:1px solid var(--line);background:var(--bg-2)">
+                        <div style="font:400 12.5px/1.55 var(--font);color:var(--text-2);-webkit-user-select:text;user-select:text">{{ ss.summary }}</div>
+                        <div style="display:flex;align-items:center;gap:7px;margin-top:11px;flex-wrap:wrap">
+                          <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line-2);font:500 10px var(--mono);color:var(--text-2)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="7" r="2.4"/><path d="M6 8.4v7.2M18 9.4c0 3-3 3.6-6 3.6"/></svg>{{ ss.branch }}</span>
+                          <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;border:1px solid var(--line-2);font:500 10px var(--mono);color:var(--text-2)">{{ ss.statusLabel }}</span>
+                          <button onClick="{{ ss.openChat }}" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;border:1px solid var(--signal);background:var(--signal-soft);color:var(--signal);font:600 11px var(--font);cursor:pointer" style-hover="background:var(--signal);color:var(--on-signal)">Open chat<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+                        </div>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px;padding:11px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);opacity:.72">
+        <span style="font:600 10px var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--text-3);flex:none">Recently finished</span>
+        <span style="display:flex;align-items:center;gap:4px;flex:none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/></svg></span>
+        <span style="font:500 12px var(--font);color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Overnight build smoke test</span>
+        <span style="font:500 10px var(--mono);color:var(--text-3);flex:none">· strat · 2h ago</span>
+        <button style="margin-left:auto;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;border:1px solid var(--line-2);background:transparent;color:var(--text-2);cursor:pointer;flex:none" style-hover="border-color:var(--signal);color:var(--signal)"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l11-7z"/></svg></button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ----- OVERVIEW ----- -->
+    <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:42px 24px 36px 24px;max-width:1080px;margin:0 auto">
+      <div style="display:flex;align-items:flex-end;gap:13px;margin-bottom:20px;flex-wrap:wrap">
+        <h1 style="font:600 28px var(--font);letter-spacing:-0.5px;color:var(--text);margin:0">Overview</h1>
+        <span style="font:500 12.5px var(--mono);color:var(--text-3);padding-bottom:5px">voice &amp; dictation control center</span>
+      </div>
+      <button onClick="{{ navSessions }}" style="text-align:left;width:100%;position:relative;border-radius:20px;padding:24px 26px;background:var(--accent-surface);color:var(--accent-on);overflow:hidden;cursor:pointer;border:none;margin-bottom:13px">
+        <div style="display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div style="font:600 11px var(--mono);letter-spacing:1.5px;text-transform:uppercase;opacity:.62">Sessions</div>
+            <div style="display:flex;align-items:flex-end;gap:13px;margin-top:10px">
+              <span style="font:600 58px var(--font);letter-spacing:-2.5px;line-height:0.9">{{ needTotal }}</span>
+              <span style="font:500 14px var(--font);opacity:.62;padding-bottom:8px">agents need you · {{ liveTotal }} live</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;max-width:200px;align-self:center">
+            <sc-for list="{{ focusDots }}" as="d" hint-placeholder-count="7"><span style="{{ d.style }}"></span></sc-for>
+          </div>
+        </div>
+      </button>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px">
+        <sc-for list="{{ cards }}" as="c" hint-placeholder-count="7">
+          <button onClick="{{ c.open }}" style="text-align:left;display:flex;flex-direction:column;gap:13px;padding:17px;border-radius:16px;border:1px solid var(--line);background:var(--card);cursor:pointer;min-height:112px" style-hover="border-color:var(--line-2);background:var(--card-hover)">
+            <div style="display:flex;align-items:center;gap:10px"><span style="display:flex;color:var(--text-2)">{{ c.icon }}</span><span style="font:600 14px var(--font);color:var(--text)">{{ c.title }}</span><span style="margin-left:auto;display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;border-radius:50%;background:{{ c.dot }}; {{ c.dotPulse }}"></span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span></div>
+            <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px"><sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:8px"><span style="font:500 12px var(--font);color:var(--text-3)">{{ r.k }}</span><span style="margin-left:auto;font:600 12px var(--mono);color:var(--text-2)">{{ r.v }}</span></div></sc-for></div>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ----- SETTINGS ----- -->
+    <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:42px 24px 36px 24px;max-width:880px;margin:0 auto">
+      <h1 style="font:600 28px var(--font);letter-spacing:-0.5px;color:var(--text);margin:0 0 5px 0">{{ settingsTitle }}</h1>
+      <p style="font:400 13px var(--font);color:var(--text-3);margin:0 0 22px 0;max-width:560px">{{ settingsDesc }}</p>
+      <sc-for list="{{ settingsGroups }}" as="g" hint-placeholder-count="2">
+        <div style="margin-bottom:20px">
+          <div style="font:600 10.5px var(--mono);letter-spacing:1.2px;color:var(--text-3);text-transform:uppercase;padding:0 4px;margin-bottom:9px">{{ g.label }}</div>
+          <div style="background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden">
+            <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:14px;padding:14px 17px;border-top:1px solid var(--line)">
+                <div style="min-width:0;flex:1"><div style="font:500 13.5px var(--font);color:var(--text)">{{ r.label }}</div><div style="font:400 12px var(--font);color:var(--text-3);margin-top:2px">{{ r.desc }}</div></div>
+                <div style="flex:none">
+                  <sc-if value="{{ r.isToggle }}" hint-placeholder-val="{{ false }}"><span style="{{ r.trackStyle }}"><span style="{{ r.knobStyle }}"></span></span></sc-if>
+                  <sc-if value="{{ r.isSelect }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;gap:9px;padding:7px 13px;border-radius:999px;border:1px solid var(--line-2);background:var(--card-2);font:500 12.5px var(--font);color:var(--text)">{{ r.value }}<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span></sc-if>
+                  <sc-if value="{{ r.isKey }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;padding:6px 13px;border-radius:999px;border:1px solid var(--line-2);background:var(--card-2);font:600 12px var(--mono);color:var(--text)">{{ r.value }}</span></sc-if>
+                  <sc-if value="{{ r.isSlider }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;gap:11px"><span style="position:relative;display:block;width:140px;height:5px;border-radius:3px;background:var(--line-2)"><span style="{{ r.fillStyle }}"></span><span style="{{ r.thumbStyle }}"></span></span><span style="font:500 12.5px var(--mono);color:var(--text-2)">{{ r.value }}</span></span></sc-if>
+                  <sc-if value="{{ r.isValue }}" hint-placeholder-val="{{ false }}"><span style="font:500 12.5px var(--mono);color:var(--text-2)">{{ r.value }}</span></sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    <!-- ===== DRAWER ===== -->
+    <div style="position:absolute;inset:0;z-index:55;pointer-events:{{ scrimEvents }}">
+      <div onClick="{{ closeDrawer }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.42);opacity:{{ scrimOpacity }};transition:opacity .2s var(--ease-io)"></div>
+      <div style="position:absolute;top:0;right:0;bottom:0;width:480px;max-width:94%;background:var(--bg-2);border-left:1px solid var(--line-2);box-shadow:var(--shadow);display:flex;flex-direction:column;transform:translateX({{ drawerX }});opacity:{{ drawerOpacity }};transition:transform .3s var(--ease-out-quint),opacity .3s var(--ease-out-quint)">
+        <div style="position:relative;padding:22px 20px 16px 20px;border-bottom:1px solid var(--line)">
+          <div style="position:absolute;inset:0;background:{{ dWash }}"></div>
+          <div style="position:relative;display:flex;align-items:flex-start;gap:11px">
+            <span style="margin-top:5px;width:12px;height:12px;border-radius:50%;background:{{ dColor }};flex:none;box-shadow:0 0 12px {{ dColor }}"></span>
+            <div style="min-width:0;flex:1">
+              <div style="font:600 17px var(--font);letter-spacing:-0.2px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ dName }}</div>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap"><span style="{{ dChipStyle }}">{{ dStatus }}</span><span style="display:inline-flex;align-items:center;gap:4px;font:500 11px var(--mono);color:var(--text-3)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="7" r="2.4"/><path d="M6 8.4v7.2M18 9.4c0 3-3 3.6-6 3.6"/></svg>{{ dBranch }}</span><span style="font:500 11px var(--mono);color:var(--text-3)">{{ dTime }} ago</span></div>
+            </div>
+            <div style="display:flex;gap:5px;flex:none">
+              <button title="Refresh summary" style="display:flex;align-items:center;justify-content:center;width:31px;height:31px;border-radius:999px;border:1px solid var(--line-2);background:transparent;color:var(--text-2);cursor:pointer" style-hover="border-color:var(--signal);color:var(--signal)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 4v5h-5"/></svg></button>
+              <button title="Speak summary" style="display:flex;align-items:center;justify-content:center;width:31px;height:31px;border-radius:999px;border:1px solid var(--line-2);background:transparent;color:var(--text-2);cursor:pointer" style-hover="border-color:var(--signal);color:var(--signal)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 9v6h3.5L13 19V5L7.5 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg></button>
+              <button onClick="{{ closeDrawer }}" title="Close" style="display:flex;align-items:center;justify-content:center;width:31px;height:31px;border-radius:999px;border:1px solid var(--line-2);background:transparent;color:var(--text-2);cursor:pointer" style-hover="border-color:var(--signal);color:var(--text)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;min-height:0;overflow:auto;padding:18px 20px">
+          <div style="border:1px solid var(--line-2);background:var(--card);border-radius:14px;padding:14px 15px;margin-bottom:20px">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--signal)" stroke-width="1.8"><path d="M12 3l1.7 4.6L18 9l-4.3 1.4L12 15l-1.7-4.6L6 9l4.3-1.4z"/></svg><span style="font:600 10.5px var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--signal)">Summary</span></div>
+            <div style="font:400 13.5px/1.6 var(--font);color:var(--text-2);-webkit-user-select:text;user-select:text">{{ dSummary }}</div>
+          </div>
+          <div style="font:600 10.5px var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--text-3);margin-bottom:13px">Transcript</div>
+          <div style="display:flex;flex-direction:column;gap:16px"><sc-for list="{{ dTurns }}" as="t" hint-placeholder-count="3"><div><div style="font:600 10px var(--mono);letter-spacing:1px;text-transform:uppercase;color:{{ t.attrColor }};margin-bottom:5px">{{ t.who }}</div><div style="font:400 13.5px/1.6 var(--font);color:var(--text);-webkit-user-select:text;user-select:text">{{ t.text }}</div></div></sc-for></div>
+        </div>
+        <div style="flex:none;padding:14px 18px 18px 18px;border-top:1px solid var(--line);background:var(--bg-2)">
+          <sc-if value="{{ showAnswer }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid var(--line-2);background:var(--card);border-radius:13px;padding:12px 14px;margin-bottom:12px;animation:mur-reveal .2s var(--ease-out-quint)"><div style="font:600 10px var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--signal);margin-bottom:5px">Agent</div><div style="font:400 13px/1.55 var(--font);color:var(--text);-webkit-user-select:text;user-select:text">{{ answerText }}</div></div></sc-if>
+          <div style="display:flex;align-items:flex-end;gap:10px">
+            <div style="position:relative;flex:none"><span style="{{ micRingStyle }}"></span><button onClick="{{ cycleMic }}" title="Push to talk" style="position:relative;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:999px;cursor:pointer;transition:background .15s var(--ease-out-quint),transform .15s; {{ micBtnStyle }}"><sc-if value="{{ micTranscribing }}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-signal)" stroke-width="2.4" style="animation:mur-spin .8s linear infinite"><path d="M21 12a9 9 0 1 1-6.2-8.5"/></svg></sc-if><sc-if value="{{ micMic }}" hint-placeholder-val="{{ true }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="{{ micIconColor }}" stroke-width="1.9"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><line x1="12" y1="17" x2="12" y2="21"/></svg></sc-if></button></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+              <sc-if value="{{ micCaption }}" hint-placeholder-val="{{ false }}"><div style="font:500 11px var(--mono);color:var(--signal);padding-left:2px">{{ micCaptionText }}</div></sc-if>
+              <div style="display:flex;align-items:flex-end;gap:9px"><div style="flex:1;display:flex;align-items:center;min-height:40px;padding:9px 13px;border-radius:13px;border:1px solid var(--line-2);background:var(--bg);font:400 13px var(--font);color:{{ askTextColor }}">{{ askDisplay }}</div><button onClick="{{ doAsk }}" style="display:flex;align-items:center;justify-content:center;height:40px;padding:0 17px;border-radius:13px;border:1px solid var(--signal);background:var(--signal);color:var(--on-signal);font:600 13px var(--font);cursor:pointer;flex:none" style-hover="filter:brightness(1.08)"><sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--on-signal)" stroke-width="2.4" style="animation:mur-spin .8s linear infinite"><path d="M21 12a9 9 0 1 1-6.2-8.5"/></svg></sc-if><sc-if value="{{ askIdleBtn }}" hint-placeholder-val="{{ true }}">Ask</sc-if></button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div style="flex:none;display:flex;align-items:center;padding:7px 18px;border-top:1px solid var(--line);background:var(--bg-2)">
+    <button onClick="{{ toggleOnboarding }}" style="display:flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--text-3);font:500 10.5px var(--mono);cursor:pointer" style-hover="color:var(--text-2);border-color:var(--line-2)"><span style="width:5px;height:5px;border-radius:50%;background:var(--signal)"></span>Onboarding</button>
+    <span style="margin-left:auto;font:500 11px var(--mono);color:var(--text-3)">Update checking disabled · v0.9.0</span>
+  </div>
+  </div>
+
+  <!-- ===== ONBOARDING ===== -->
+  <sc-if value="{{ onboarding }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;animation:mur-reveal .25s var(--ease-out-quint);overflow:auto">
+      <div style="position:absolute;inset:0;background:radial-gradient(85% 60% at 50% 16%, var(--signal-soft), transparent 60%)"></div>
+      <div style="position:relative;width:74px;height:74px;margin-bottom:6px"><div style="{{ glowStyleBig }}"></div><svg width="74" height="74" viewBox="0 0 48 48" fill="none" style="position:relative"><path d="M24 6 L40 17.5 L24 29 L8 17.5 Z" fill="none" stroke="var(--signal)" stroke-opacity="0.45" stroke-width="2.2"/><path d="M24 12.5 L40 24 L24 35.5 L8 24 Z" fill="none" stroke="var(--signal)" stroke-opacity="0.72" stroke-width="2.2"/><path d="M24 18.5 L34 26 L24 33.5 L14 26 Z" fill="var(--signal)" fill-opacity="0.95"/><path d="M24 18.5 L34 26 L24 33.5 L14 26 Z" fill="url(#mg3)" fill-opacity="0.6"/><defs><linearGradient id="mg3" x1="0" y1="0.4" x2="0" y2="1"><stop offset="0" stop-color="var(--signal)" stop-opacity="0"/><stop offset="1" stop-color="var(--gold)"/></linearGradient></defs></svg></div>
+      <div style="position:relative;font:600 34px var(--font);letter-spacing:4px;color:var(--text);margin-top:10px">MURMUR</div>
+      <div style="position:relative;font:500 15px var(--font);color:var(--text-2);margin-top:13px">Your voice layer for Claude Code.</div>
+      <div style="position:relative;font:500 12px var(--mono);color:var(--text-3);margin-top:5px">a Stratos House product</div>
+      <div style="position:relative;display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:13px;margin-top:32px;max-width:620px;width:100%">
+        <sc-for list="{{ onbCards }}" as="o" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:11px;padding:18px;border-radius:16px;border:1px solid var(--line);background:var(--card)"><span style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:11px;background:var(--signal-soft);color:var(--signal)">{{ o.icon }}</span><div style="font:600 14px var(--font);color:var(--text)">{{ o.title }}</div><div style="font:400 12px/1.55 var(--font);color:var(--text-3)">{{ o.body }}</div></div></sc-for>
+      </div>
+      <button onClick="{{ finishOnboarding }}" style="position:relative;display:flex;align-items:center;gap:9px;margin-top:32px;padding:12px 24px;border-radius:999px;border:1px solid var(--signal);background:var(--signal);color:var(--on-signal);font:600 14px var(--font);cursor:pointer" style-hover="filter:brightness(1.08)">Get started<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--on-signal)" stroke-width="2.2"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:800},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;'dark'|'light'&quot;}}">
+class Component extends DCLogic {
+  state = {
+    section:'sessions', onboarding:false,
+    drawerOpen:false, selProj:1, selSess:0,
+    mic:'idle', ask:'idle',
+    expProjects:['p1','p2','p4'], expSessions:{'p1-s1':true},
+    modelMenu:false, optionsOpen:false,
+    rolling:true, voiceAlerts:true, hideBackground:false,
+    projects:[
+      { id:'p1', name:'dado-growth', color:'#f87171', sessions:[
+        { id:'s1', title:'dado-growth', branch:'main', time:'1m', status:'needs_you', preview:'Cached the metrics queries — needs the date-range default confirmed.', summary:'Refactored the growth dashboard data layer and is waiting on you. Split the metrics fetch into three cached queries and wired the funnel chart — confirm the default range (7 or 30 days) and it ships.' },
+        { id:'s2', title:'nightly-deploy', branch:'ci/nightly', time:'40m', status:'failed', preview:'Build failed at the asset step — needs a look.', summary:'The nightly deploy failed at the asset-optimization step (out-of-memory on the image pipeline). Logs captured; it paused rather than retrying.' } ] },
+      { id:'p2', name:'elora-v1', color:'#34d399', sessions:[
+        { id:'s1', title:'AVELA ONLINE', branch:'feat/marketing-landing-and-rebrand-sweep', time:'18m', status:'needs_you', preview:'Hero + pricing rebranded — waiting on the wordmark call before the nav.', summary:'Finished the marketing landing rebrand sweep and paused for your call. Rewrote the hero and pricing sections, migrated 14 components onto the new teal token set, and stopped before the nav — it wants the wordmark treatment confirmed first.' } ] },
+      { id:'p3', name:'nafas-platform', color:'#a78bfa', sessions:[
+        { id:'s1', title:'NAFAS ONLINE', branch:'feat/assessment-v3', time:'30s', status:'working', preview:'Scaffolding the v3 assessment flow and scoring…', summary:'Building the v3 assessment flow. Question schema and validation generated, results page scaffolded; currently wiring the scoring model.' } ] },
+      { id:'p4', name:'observer-sessions', color:'#60a5fa', sessions:[
+        { id:'s1', title:'memory-agent · A', branch:'HEAD', time:'18s', status:'needs_you', preview:'Two divergent note branches — pick the canonical one.', summary:'Reconciling the session log. Has two divergent note branches from the last run and needs you to pick which to treat as canonical.' },
+        { id:'s2', title:'memory-agent · B', branch:'HEAD', time:'50s', status:'working', preview:'Summarizing prior context…', summary:'Continuing the prior session — summarizing the prior context and rebuilding the working memory index.' } ] },
+      { id:'p5', name:'one51-bookkeeping-platform', color:'#22d3ee', sessions:[
+        { id:'s1', title:'ONE51 BUILD ONLINE', branch:'godmode/full-dashboard', time:'18m', status:'working', preview:'Running the chart-of-accounts migration…', summary:'Assembling the full bookkeeping dashboard. Ledger, reconciliation and export are wired; running the chart-of-accounts migration now.' },
+        { id:'s2', title:'schema-migrate', branch:'db/v4', time:'1h', status:'done', preview:'Migration complete — 0 errors.', summary:'Database schema migration to v4 completed cleanly — 0 errors across 28 tables.' } ] },
+      { id:'p6', name:'Obsidian - Arshia', color:'#fbbf24', sessions:[
+        { id:'s1', title:'STRATOS VOICE ONLINE', branch:'cleanup/brain-optimization', time:'22s', status:'idle', preview:'Idle — knowledge base cleaned up.', summary:'Cleaning up the knowledge base. Merged 40 orphaned notes and repaired broken links; currently idle, nothing needs your input.' } ] }
+    ]
+  };
+
+  themeVars(){
+    const dark="--bg:#0A0C0B;--bg-2:#0E1211;--card:#141A18;--card-2:#1A211E;--card-hover:#1E2522;--line:rgba(228,240,236,0.085);--line-2:rgba(228,240,236,0.16);--text:#F2F5F4;--text-2:rgba(242,245,244,0.56);--text-3:rgba(242,245,244,0.36);--signal:#2FD3BD;--on-signal:#06201C;--signal-soft:rgba(47,211,189,0.15);--accent-surface:#CFEAE3;--accent-on:#0A1A16;--warn:#FBBF24;--warn-soft:rgba(251,191,36,0.16);--ok:#34D399;--ok-soft:rgba(52,211,153,0.15);--danger:#F87171;--danger-soft:rgba(248,113,113,0.16);--gold:#E7B45C;--shadow:0 1px 0 rgba(255,255,255,0.03),0 22px 50px rgba(0,0,0,0.55);--ease-out-quint:cubic-bezier(.22,1,.36,1);--ease-io:cubic-bezier(.45,0,.55,1);";
+    const light="--bg:#ECEBE3;--bg-2:#F3F2EC;--card:#FBFBF8;--card-2:#FFFFFF;--card-hover:#F2F1EA;--line:rgba(22,32,28,0.10);--line-2:rgba(22,32,28,0.17);--text:#141A16;--text-2:rgba(20,26,22,0.56);--text-3:rgba(20,26,22,0.40);--signal:#0FA697;--on-signal:#FFFFFF;--signal-soft:rgba(15,166,151,0.12);--accent-surface:#16201C;--accent-on:#EEF3F1;--warn:#C77A12;--warn-soft:rgba(199,122,18,0.12);--ok:#0F9D6B;--ok-soft:rgba(15,157,107,0.12);--danger:#E5484D;--danger-soft:rgba(229,72,77,0.12);--gold:#C68A2E;--shadow:0 1px 0 rgba(255,255,255,0.5),0 22px 46px rgba(20,30,26,0.16);--ease-out-quint:cubic-bezier(.22,1,.36,1);--ease-io:cubic-bezier(.45,0,.55,1);";
+    const fonts="--font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;--mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,monospace;";
+    return (this.props.theme==='light'?light:dark)+fonts;
+  }
+
+  go(section){ this.setState({section,drawerOpen:false,optionsOpen:false,modelMenu:false}); }
+  toggleProject(id){ const e=this.state.expProjects.slice(); const i=e.indexOf(id); if(i>=0)e.splice(i,1); else e.push(id); this.setState({expProjects:e}); }
+  toggleSession(k){ this.setState({expSessions:{...this.state.expSessions,[k]:!this.state.expSessions[k]}}); }
+  openSession(pi,si){ this.setState({selProj:pi,selSess:si,drawerOpen:true,mic:'idle',ask:'idle'}); }
+  closeDrawer(){ this.setState({drawerOpen:false,mic:'idle',ask:'idle'}); }
+  cycleMic(){ const m=this.state.mic; if(m==='idle'){this.setState({mic:'listening'});} else if(m==='listening'){this.setState({mic:'transcribing'});setTimeout(()=>this.setState({mic:'idle',ask:'dictated'}),1400);} else {this.setState({mic:'idle'});} }
+  doAsk(){ if(this.state.ask==='loading')return; this.setState({ask:'loading'}); setTimeout(()=>this.setState({ask:'answered'}),1500); }
+  navp(on){ return on?'background:var(--card);color:var(--signal);font-weight:600;box-shadow:inset 2.5px 0 0 var(--signal);':''; }
+
+  sIcon(kind,size){
+    const C=React.createElement; const b={width:size,height:size,viewBox:'0 0 24 24',fill:'none',strokeWidth:1.9,strokeLinecap:'round',strokeLinejoin:'round'};
+    if(kind==='working') return C('svg',{...b,stroke:'var(--signal)',style:{animation:'mur-spin 4.5s linear infinite'}},C('circle',{cx:12,cy:12,r:9,strokeDasharray:'2.4 3.4'}));
+    if(kind==='needs_you') return C('svg',{...b,stroke:'var(--warn)',style:{animation:'mur-dotpulse 1.9s var(--ease-io) infinite'}},C('circle',{cx:12,cy:12,r:9}),C('line',{x1:12,y1:7.5,x2:12,y2:13}),C('circle',{cx:12,cy:16.3,r:0.7,fill:'var(--warn)',stroke:'none'}));
+    if(kind==='done') return C('svg',{...b,stroke:'var(--ok)'},C('circle',{cx:12,cy:12,r:9}),C('path',{d:'M8.4 12.2l2.5 2.5 4.7-5.2'}));
+    if(kind==='failed') return C('svg',{...b,stroke:'var(--danger)'},C('circle',{cx:12,cy:12,r:9}),C('path',{d:'M9.2 9.2l5.6 5.6M14.8 9.2l-5.6 5.6'}));
+    return C('svg',{...b,stroke:'var(--text-3)'},C('circle',{cx:12,cy:12,r:9}));
+  }
+  projStatus(p){ const ss=p.sessions; if(ss.some(x=>x.status==='needs_you'))return 'needs_you'; if(ss.some(x=>x.status==='working'))return 'working'; if(ss.some(x=>x.status==='idle'))return 'idle'; if(ss.some(x=>x.status==='failed'))return 'failed'; return 'done'; }
+  badge(kind){ const map={ working:['working','var(--signal-soft)','var(--signal)'], needs_you:['needs you','var(--warn-soft)','var(--warn)'], idle:['idle','var(--card-2)','var(--text-3)'], done:['done','var(--ok-soft)','var(--ok)'], failed:['failed','var(--danger-soft)','var(--danger)'] }; return map[kind]||map.idle; }
+
+  renderVals(){
+    const s=this.state, P=s.projects;
+    const live=P.reduce((a,p)=>a+p.sessions.filter(x=>['working','needs_you','idle'].includes(x.status)).length,0);
+    const need=P.reduce((a,p)=>a+p.sessions.filter(x=>x.status==='needs_you').length,0);
+    const statusLabel={working:'working',needs_you:'needs you',idle:'idle',done:'done',failed:'failed'};
+
+    const tree=P.map((p,pi)=>{
+      const pst=this.projStatus(p);
+      const [bt,bb,bc]=this.badge(pst);
+      const needN=p.sessions.filter(x=>x.status==='needs_you').length;
+      const workN=p.sessions.filter(x=>x.status==='working').length;
+      const chips=[];
+      if(needN) chips.push({text:String(needN),style:'display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:6px;font:600 11px var(--mono);background:var(--warn-soft);color:var(--warn)'});
+      if(workN) chips.push({text:String(workN),style:'display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:6px;font:600 11px var(--mono);background:var(--signal-soft);color:var(--signal)'});
+      const expanded=s.expProjects.includes(p.id);
+      const sessions=p.sessions.map((x,si)=>{
+        const key=p.id+'-'+x.id; const ex=!!s.expSessions[key];
+        return { title:x.title, preview:x.preview, time:x.time, branch:x.branch, summary:x.summary, statusLabel:statusLabel[x.status],
+          icon:this.sIcon(x.status,15), titleColor:x.status==='done'?'var(--text-3)':'var(--text)', strike:x.status==='done'?'text-decoration:line-through':'',
+          bg:(s.drawerOpen&&s.selProj===pi&&s.selSess===si)?'var(--card-hover)':'transparent', expanded:ex,
+          toggle:()=>this.toggleSession(key), openChat:(e)=>{ e.stopPropagation(); this.openSession(pi,si); } };
+      });
+      const allDone=p.sessions.every(x=>x.status==='done');
+      return { name:p.name, color:p.color, nameColor:allDone?'var(--text-3)':'var(--text)', icon:this.sIcon(pst,18),
+        chips, badge:bt, badgeStyle:'display:inline-flex;align-items:center;padding:3px 10px;border-radius:7px;font:500 11px var(--font);background:'+bb+';color:'+bc,
+        expanded, chevron:expanded?'90deg':'0deg', toggle:()=>this.toggleProject(p.id), sessions };
+    });
+
+    const focusDots=[]; P.forEach(p=>p.sessions.filter(x=>['working','needs_you','idle'].includes(x.status)).forEach(x=>{ focusDots.push({style:'width:13px;height:13px;border-radius:50%;background:var(--accent-on);opacity:'+(x.status==='needs_you'?'1':'0.22')}); }));
+
+    const mk=(paths)=>React.createElement('svg',{width:17,height:17,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:1.7,strokeLinecap:'round',strokeLinejoin:'round'},paths.map((d,i)=>React.createElement('path',{key:i,d})));
+    const kv=(k,v)=>({k,v});
+    const cards=[
+      {title:'Models',dot:'var(--signal)',dotPulse:'',icon:mk(['M12 2.5l8 4.6v9.8l-8 4.6-8-4.6V7.1z']),rows:[kv('Active','Parakeet V3')],open:()=>this.go('models')},
+      {title:'Read Aloud',dot:'var(--text-3)',dotPulse:'',icon:mk(['M4 9v6h3.5L13 19V5L7.5 9H4z','M16.5 8.5a5 5 0 0 1 0 7']),rows:[kv('Voice','Monoli'),kv('Hotkey','⌥⌃R')],open:()=>this.go('readaloud')},
+      {title:'Post Process',dot:'var(--signal)',dotPulse:'',icon:mk(['M12 3l1.7 4.6L18 9l-4.3 1.4L12 15l-1.7-4.6L6 9z']),rows:[kv('Status','On'),kv('Provider','Apple Intel.')],open:()=>this.go('post')},
+      {title:'General',dot:'var(--text-3)',dotPulse:'',icon:mk(['M4 7h10','M19 7h2','M3 17h5','M13 17h8']),rows:[kv('Hotkey','fn'),kv('Mic','MacBook Pro')],open:()=>this.go('general')},
+      {title:'History',dot:'var(--text-3)',dotPulse:'',icon:mk(['M3 4v5h5','M3.5 9a8.5 8.5 0 1 1-1 4','M12 7.5V12l3 2']),rows:[kv('Limit','5 entries')],open:()=>this.go('history')},
+      {title:'Advanced',dot:'var(--text-3)',dotPulse:'',icon:mk(['M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6','M12 2v3M12 19v3M2 12h3M19 12h3']),rows:[kv('Paste','Clipboard')],open:()=>this.go('advanced')},
+      {title:'About',dot:'var(--text-3)',dotPulse:'',icon:mk(['M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18','M12 11v5']),rows:[kv('Version','v0.9.0')],open:()=>this.go('about')}
+    ];
+
+    const dp=P[s.selProj]||P[0]; const dsess=dp.sessions[s.selSess]||dp.sessions[0]; const dk=dsess.status;
+    const [,dbb,dbc]=this.badge(dk);
+    const dTurns=[{who:'You',text:'What is the state of this session?',attrColor:'var(--text-3)'},{who:'Agent',text:dsess.summary,attrColor:'var(--signal)'}];
+
+    const micState=s.mic;
+    const micBtnStyle=micState==='idle'?'border:1px solid var(--line-2);background:var(--card)':'border:1px solid var(--signal);background:var(--signal);transform:scale(1.04)';
+    const micRingStyle=micState==='listening'?'position:absolute;inset:0;border-radius:999px;background:var(--signal);animation:mur-micring 1.5s var(--ease-io) infinite;pointer-events:none':'display:none';
+    const askState=s.ask; const dictated='Use the new MURMUR wordmark and continue with the nav.';
+    let askDisplay='Ask about this session…',askTextColor='var(--text-3)';
+    if(['dictated','loading','answered'].includes(askState)){askDisplay=dictated;askTextColor='var(--text)';}
+
+    const tg=(label,desc,on)=>({label,desc,isToggle:true,trackStyle:'position:relative;display:inline-block;width:42px;height:24px;border-radius:999px;transition:background .15s var(--ease-out-quint);background:'+(on?'var(--signal)':'var(--line-2)'),knobStyle:'position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s var(--ease-out-quint);transform:translateX('+(on?'18px':'0')+')'});
+    const selr=(l,d,v)=>({label:l,desc:d,isSelect:true,value:v}); const keyr=(l,d,v)=>({label:l,desc:d,isKey:true,value:v}); const valr=(l,d,v)=>({label:l,desc:d,isValue:true,value:v});
+    const sld=(l,d,pct)=>({label:l,desc:d,isSlider:true,value:pct+'%',fillStyle:'position:absolute;left:0;top:0;height:5px;border-radius:3px;background:var(--signal);width:'+pct+'%',thumbStyle:'position:absolute;top:50%;left:'+pct+'%;width:14px;height:14px;border-radius:50%;background:#fff;border:1px solid var(--line-2);box-shadow:0 1px 3px rgba(0,0,0,.3);transform:translate(-50%,-50%)'});
+    const screens={
+      general:{title:'General',desc:'Capture and playback essentials for voice and dictation.',groups:[{label:'General',rows:[keyr('Transcribe Shortcut','Hold to dictate into any focused field.','fn'),tg('Push To Talk','Hold the hotkey to talk; release to transcribe.',true)]},{label:'Sound',rows:[selr('Microphone','Input device used for capture.','MacBook Pro Mic'),tg('Mute While Recording','Mute system output while dictating.',false),tg('Audio Feedback','Play a cue on start and stop.',true),selr('Output Device','Where cues and Read Aloud play.','Default'),sld('Volume','Playback level for cues and Read Aloud.',100)]}]},
+      advanced:{title:'Advanced',desc:'App behavior, output handling and transcription tuning.',groups:[{label:'App',rows:[tg('Start Hidden','Launch to the menu bar with no window.',false),tg('Launch on Startup','Open Murmur when you log in.',false),tg('Show Tray Icon','Keep the status item in the menu bar.',true),selr('Overlay Position','Where the recording HUD appears.','Bottom')]},{label:'Output',rows:[selr('Paste Method','How transcribed text is inserted.','Clipboard (⌘V)'),selr('Auto Submit','Press return after pasting.','Off')]}]},
+      readaloud:{title:'Read Aloud',desc:'Hear any selection spoken in the Monoli voice.',groups:[{label:'Read Aloud',rows:[selr('Voice','ElevenLabs studio voice used for playback.','Monoli'),sld('Speech rate','Words per minute.',62)]},{label:'Shortcut',rows:[keyr('Read selection aloud','Speak the current selection.','⌥⌃R')]}]},
+      models:{title:'Transcription Models',desc:'Local speech-to-text models. Everything runs offline.',groups:[{label:'Downloaded',rows:[valr('Parakeet V3','Best all-round: fast, accurate, multi-language. Great for live dictation.','456 MB')]},{label:'Available to download',rows:[valr('Canary 180M Flash','Fastest. Good for quick notes; supports translation to English.','146 MB'),valr('Moonshine V2 Medium','English-only, highest quality. Best for long-form proofing.','192 MB')]}]},
+      history:{title:'History',desc:'Recent dictations. Audio stays on your machine.',groups:[{label:'Today',rows:[valr('Report feedback','Hey, that report is fine, but…  ·  9:30 PM','0:14'),valr('Task-tracking note','Just a note that the new session should track all tasks…  ·  8:07 PM','0:22'),valr('Session handoff','Update memory and generate a handoff to the new session.  ·  8:06 PM','0:09'),valr('Scope confirmation','Yes, let\u2019s proceed with everything we can do.  ·  8:05 PM','0:05')]}]},
+      post:{title:'Post Process',desc:'Clean and reshape transcripts with a prompt.',groups:[{label:'Hotkey',rows:[keyr('Post-Processing Hotkey','Run the selected prompt on the last transcript.','⌥⇧Space')]},{label:'API',rows:[selr('Provider','OpenAI-compatible endpoint.','Apple Intelligence')]},{label:'Prompt',rows:[selr('Selected Prompt','Active transformation.','Clean Transcript')]}]},
+      about:{title:'About',desc:'Murmur — a Stratos House product.',groups:[{label:'About',rows:[selr('Application Language','Interface language.','English'),valr('Version','','v0.9.0'),valr('App Data Directory','','com.stratos.strat')]}]}
+    };
+    const settingsKeys=['general','advanced','readaloud','models','history','post','about'];
+    const screen=screens[s.section]||screens.general;
+    const checkBox=(on)=>'display:flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:6px;flex:none;border:1px solid '+(on?'var(--signal)':'var(--line-2)')+';background:'+(on?'var(--signal)':'transparent');
+    const onbCards=[{title:'Dictate anywhere',body:'A hotkey turns your voice into clean text in any app — including Claude Code.',icon:mk(['M9 3h6v11a3 3 0 0 1-6 0z','M6 11a6 6 0 0 0 12 0','M12 17v4'])},{title:'Hear it back',body:'Read Aloud speaks any selection in a natural voice (Monoli) — proofread with your ears.',icon:mk(['M4 9v6h3.5L13 19V5L7.5 9H4z','M16.5 8.5a5 5 0 0 1 0 7'])},{title:'Run your sessions',body:'See every live Claude Code session, ask any what is going on, and get told when one needs you.',icon:mk(['M12 11a1 1 0 1 0 0-2 1 1 0 0 0 0 2','M8.5 14.5a5 5 0 0 1 0-5','M15.5 9.5a5 5 0 0 1 0 5'])}];
+    const modelList=[{name:'Parakeet V3',sub:'fast · multi-language',active:true},{name:'Canary 180M Flash',sub:'fastest · translation',active:false},{name:'Moonshine V2 Medium',sub:'English · high quality',active:false},{name:'Cohere',sub:'large · most accurate',active:false}].map(m=>({name:m.name,sub:m.sub,active:m.active,dot:m.active?'var(--signal)':'var(--text-3)',bg:m.active?'var(--card-hover)':'transparent',pick:()=>this.setState({modelMenu:false})}));
+
+    const allExpanded=s.expProjects.length>=P.length;
+
+    return {
+      rootStyle:this.themeVars()+'position:relative;display:flex;width:100%;height:100%;border-radius:14px;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font);box-shadow:var(--shadow);font-variant-numeric:tabular-nums;',
+      glowStyle:'position:absolute;left:50%;top:62%;width:22px;height:12px;border-radius:50%;transform:translateX(-50%);background:var(--gold);filter:blur(6px);opacity:.55;animation:mur-breathe 3.2s var(--ease-io) infinite',
+      glowStyleBig:'position:absolute;left:50%;top:60%;width:54px;height:28px;border-radius:50%;transform:translateX(-50%);background:var(--gold);filter:blur(14px);opacity:.6;animation:mur-breathe 3.2s var(--ease-io) infinite',
+
+      navOverview:()=>this.go('overview'),navSessions:()=>this.go('sessions'),navModels:()=>this.go('models'),navReadAloud:()=>this.go('readaloud'),navAdvanced:()=>this.go('advanced'),navHistory:()=>this.go('history'),navGeneral:()=>this.go('general'),navPost:()=>this.go('post'),navAbout:()=>this.go('about'),
+      aOverview:this.navp(s.section==='overview'),aSessions:this.navp(s.section==='sessions'),aModels:this.navp(s.section==='models'),aReadAloud:this.navp(s.section==='readaloud'),aAdvanced:this.navp(s.section==='advanced'),aHistory:this.navp(s.section==='history'),aGeneral:this.navp(s.section==='general'),aPost:this.navp(s.section==='post'),aAbout:this.navp(s.section==='about'),
+
+      isSessions:s.section==='sessions',isOverview:s.section==='overview',isSettings:settingsKeys.includes(s.section),
+      liveTotal:live,needTotal:need, tree, focusDots, cards,
+      toggleAll:()=>this.setState({expProjects:allExpanded?[]:P.map(p=>p.id)}), toggleAllLabel:allExpanded?'Collapse all':'Expand all',
+
+      toggleModelMenu:()=>this.setState({modelMenu:!s.modelMenu}), modelMenu:s.modelMenu, modelChevron:s.modelMenu?'180deg':'0deg', modelList,
+
+      toggleOnboarding:()=>this.setState({onboarding:true}),finishOnboarding:()=>this.setState({onboarding:false,section:'overview'}),onboarding:s.onboarding,onbCards,
+      toggleOptions:()=>this.setState({optionsOpen:!s.optionsOpen}),optionsOpen:s.optionsOpen,
+      tgRolling:()=>this.setState({rolling:!s.rolling}),tgVoice:()=>this.setState({voiceAlerts:!s.voiceAlerts}),tgHide:()=>this.setState({hideBackground:!s.hideBackground}),
+      rollingBox:checkBox(s.rolling),voiceBox:checkBox(s.voiceAlerts),hideBox:checkBox(!s.hideBackground),
+      settingsTitle:screen.title,settingsDesc:screen.desc,settingsGroups:screen.groups,
+
+      scrimEvents:s.drawerOpen?'auto':'none',scrimOpacity:s.drawerOpen?'1':'0',drawerX:s.drawerOpen?'0':'100%',drawerOpacity:s.drawerOpen?'1':'0',closeDrawer:()=>this.closeDrawer(),
+      dColor:dp.color,dName:dp.name,dBranch:dsess.branch,dTime:dsess.time,dWash:'background:linear-gradient(180deg, '+this.hexA(dp.color,0.13)+', transparent)',dStatus:statusLabel[dk],dChipStyle:'display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font:600 10.5px var(--mono);text-transform:uppercase;letter-spacing:.5px;background:'+dbb+';color:'+dbc,dSummary:dsess.summary,dTurns,
+      cycleMic:()=>this.cycleMic(),micTranscribing:micState==='transcribing',micMic:micState!=='transcribing',micIconColor:micState==='listening'?'var(--on-signal)':'var(--text-2)',micBtnStyle,micRingStyle,micCaption:micState!=='idle',micCaptionText:micState==='listening'?'Listening…':'Transcribing…',
+      doAsk:()=>this.doAsk(),askLoading:askState==='loading',askIdleBtn:askState!=='loading',askDisplay,askTextColor,showAnswer:askState==='answered',answerText:'The nav migration is the only step left — everything else in the sweep is committed on feat/marketing-landing-and-rebrand-sweep. I will switch the lockup to the MURMUR wordmark and finish the nav now.'
+    };
+  }
+  hexA(hex,a){const h=hex.replace('#','');return 'rgba('+parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(4,6),16)+','+a+')';}
+}
+</script>
+</body>
+</html>

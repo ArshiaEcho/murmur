@@ -34,6 +34,8 @@ export const Slider: React.FC<SliderProps> = ({
     onChange(parseFloat(e.target.value));
   };
 
+  const percent = ((value - min) / (max - min)) * 100;
+
   return (
     <SettingContainer
       title={label}
@@ -44,7 +46,7 @@ export const Slider: React.FC<SliderProps> = ({
       disabled={disabled}
     >
       <div className="w-full">
-        <div className="flex items-center space-x-1 h-6">
+        <div className="flex h-6 items-center gap-3">
           <input
             type="range"
             min={min}
@@ -53,17 +55,13 @@ export const Slider: React.FC<SliderProps> = ({
             value={value}
             onChange={handleChange}
             disabled={disabled}
-            className="strat-slider flex-grow h-2 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-logo-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            className="strat-slider h-[5px] w-[140px] flex-grow cursor-pointer appearance-none rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:cursor-not-allowed disabled:opacity-50"
             style={{
-              background: `linear-gradient(to right, var(--color-background-ui) ${
-                ((value - min) / (max - min)) * 100
-              }%, rgba(128, 128, 128, 0.2) ${
-                ((value - min) / (max - min)) * 100
-              }%)`,
+              background: `linear-gradient(to right, var(--signal) ${percent}%, var(--line-2) ${percent}%)`,
             }}
           />
           {showValue && (
-            <span className="text-sm font-medium text-text/90 w-12 text-end">
+            <span className="tnum w-12 text-end font-mono text-[12.5px] text-text-2">
               {formatValue(value)}
             </span>
           )}
