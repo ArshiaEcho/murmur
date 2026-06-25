@@ -275,6 +275,73 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  /* ---------- Hero showcase (app window, bleeds up into hero) ---------- */
+  .showcase {
+    position: relative;
+    z-index: 3;
+    margin-top: clamp(-128px, -12vw, -78px);
+    margin-bottom: clamp(8px, 3vw, 32px);
+  }
+  .showcase .wrap { max-width: 1000px; }
+  .window {
+    border-radius: clamp(12px, 1.6vw, 18px);
+    overflow: hidden;
+    background: var(--dark-2);
+    border: 1px solid rgba(243, 241, 236, .10);
+    box-shadow:
+      0 2px 6px rgba(12, 13, 12, .2),
+      0 30px 60px -24px rgba(12, 13, 12, .55),
+      0 60px 130px -44px rgba(12, 13, 12, .6);
+    animation: rise .8s var(--ease) .34s both;
+  }
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 14px;
+    background: #1b1c1a;
+    border-bottom: 1px solid rgba(243, 241, 236, .07);
+  }
+  .window-bar .dot { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+  .window-bar .dot:nth-child(1) { background: #ff5f57; }
+  .window-bar .dot:nth-child(2) { background: #febc2e; }
+  .window-bar .dot:nth-child(3) { background: #28c840; }
+  .window-bar .win-title {
+    margin-left: 8px;
+    font-family: var(--mono);
+    font-size: .74rem;
+    letter-spacing: .01em;
+    color: var(--on-dark-faint);
+  }
+  .window img { width: 100%; height: auto; display: block; }
+
+  /* ---------- Theme showcase (light + dark proof) ---------- */
+  .themes { background: var(--surface-2); border-block: 1px solid var(--line); }
+  .theme-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(16px, 2.5vw, 28px);
+  }
+  .shot {
+    margin: 0;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--dark-2);
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 18px 42px -22px rgba(12, 13, 12, .42);
+  }
+  .shot img { width: 100%; height: auto; display: block; }
+  .shot figcaption {
+    padding: 12px 16px;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
   /* ---------- Sections ---------- */
   section { padding-block: clamp(64px, 9vw, 112px); }
 
@@ -473,6 +540,10 @@
     .steps { grid-template-columns: 1fr; gap: 0; }
     .step { padding-block: 22px; }
   }
+  @media (max-width: 680px) {
+    .theme-pair { grid-template-columns: 1fr; }
+    .showcase { margin-top: clamp(-72px, -14vw, -48px); }
+  }
   @media (max-width: 560px) {
     .grid { grid-template-columns: 1fr; }
     .nav-links .nav-link.hide-sm { display: none; }
@@ -539,6 +610,21 @@
       </div>
     </div>
   </header>
+
+  <!-- ===================== HERO SHOWCASE ===================== -->
+  <section class="showcase" aria-label="Murmur app preview">
+    <div class="wrap">
+      <figure class="window">
+        <div class="window-bar" aria-hidden="true">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="win-title">Murmur — Sessions</span>
+        </div>
+        <img src="./assets/shots/hero-sessions.png"
+             alt="Murmur's live Sessions observatory showing color-coded Claude Code sessions in real time"
+             width="2000" height="1343" loading="eager" />
+      </figure>
+    </div>
+  </section>
 
   <main>
     <!-- ===================== FEATURES ===================== -->
@@ -622,6 +708,31 @@
             <p>Designed around the way agents work — sessions, voice, and MCP-ready hooks that slot into your flow.</p>
             <span class="tag">MCP-ready</span>
           </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== THEMES ===================== -->
+    <section class="themes" id="themes" aria-labelledby="themes-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Light &amp; dark</p>
+          <h2 id="themes-title">Beautiful in either light</h2>
+          <p>The same considered interface, whichever way you work. Switch themes from the rail or settings — Murmur follows.</p>
+        </div>
+        <div class="theme-pair">
+          <figure class="shot">
+            <img src="./assets/shots/pair-light.png"
+                 alt="Murmur overview in light theme"
+                 width="1200" height="806" loading="lazy" />
+            <figcaption>Light</figcaption>
+          </figure>
+          <figure class="shot">
+            <img src="./assets/shots/pair-dark.png"
+                 alt="Murmur overview in dark theme"
+                 width="1200" height="806" loading="lazy" />
+            <figcaption>Dark</figcaption>
+          </figure>
         </div>
       </div>
     </section>
