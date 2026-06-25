@@ -342,6 +342,34 @@
     color: var(--ink-faint);
   }
 
+  /* ---------- Closer look ---------- */
+  .closer { background: var(--surface-2); border-block: 1px solid var(--line); }
+  .look-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(28px, 5vw, 64px);
+    align-items: center;
+  }
+  .look-row + .look-row { margin-top: clamp(40px, 6vw, 80px); }
+  .look-text h3 { font-size: clamp(1.4rem, 2.8vw, 2rem); letter-spacing: -.02em; }
+  .look-text p { margin-top: 14px; color: var(--ink-muted); font-size: clamp(1rem, 1.6vw, 1.08rem); max-width: 44ch; }
+  .look-tags { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .look-tags span {
+    font-family: var(--mono); font-size: .74rem; color: var(--ink-faint);
+    border: 1px solid var(--line-strong); border-radius: 999px; padding: 5px 11px;
+  }
+  .look-shot {
+    margin: 0; border-radius: 14px; overflow: hidden;
+    background: var(--dark-2); border: 1px solid var(--line-strong);
+    box-shadow: 0 24px 50px -28px rgba(12, 13, 12, .45);
+  }
+  .look-shot img { width: 100%; height: auto; display: block; }
+  .look-row.reverse .look-shot { order: -1; }
+  @media (max-width: 820px) {
+    .look-row { grid-template-columns: 1fr; gap: 24px; }
+    .look-row.reverse .look-shot { order: 0; }
+  }
+
   /* ---------- Sections ---------- */
   section { padding-block: clamp(64px, 9vw, 112px); }
 
@@ -708,6 +736,37 @@
             <p>Designed around the way agents work — sessions, voice, and MCP-ready hooks that slot into your flow.</p>
             <span class="tag">MCP-ready</span>
           </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CLOSER LOOK ===================== -->
+    <section class="closer" id="closer" aria-labelledby="closer-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">A closer look</p>
+          <h2 id="closer-title">Designed for the way you work</h2>
+          <p>Every surface is fast, quiet, and out of your way — so voice fits the flow you already have.</p>
+        </div>
+        <div class="look-row">
+          <div class="look-text">
+            <h3>Hear your agents think</h3>
+            <p>47 free neural voices plus fully offline Kokoro. Pick a voice, set the pace, and let Murmur read every reply aloud.</p>
+            <div class="look-tags"><span>Edge neural</span><span>Kokoro offline</span><span>No API key</span></div>
+          </div>
+          <figure class="look-shot">
+            <img src="./assets/shots/readaloud-light.png" alt="Murmur Read Aloud voice picker with neural and offline voices" width="1680" height="690" loading="lazy" />
+          </figure>
+        </div>
+        <div class="look-row reverse">
+          <div class="look-text">
+            <h3>Your whole setup, at a glance</h3>
+            <p>The Overview is your control center — model, voice, post-processing, and history, all in one quiet dashboard.</p>
+            <div class="look-tags"><span>On device</span><span>Private</span><span>Zero telemetry</span></div>
+          </div>
+          <figure class="look-shot">
+            <img src="./assets/shots/overview-light.png" alt="Murmur Overview control center dashboard" width="1680" height="600" loading="lazy" />
+          </figure>
         </div>
       </div>
     </section>
